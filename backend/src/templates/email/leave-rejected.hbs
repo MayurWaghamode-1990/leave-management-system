@@ -1,0 +1,54 @@
+<div class="greeting">Hello {{employeeName}},</div>
+
+<div class="content">
+    We regret to inform you that your leave request has been <strong>rejected</strong>. Please review the details below and consider resubmitting with modifications if needed.
+</div>
+
+<div class="highlight-box">
+    <strong>❌ Leave Request Rejected</strong>
+    <span class="status-badge status-rejected">Rejected</span>
+</div>
+
+<table class="details-table">
+    <tr>
+        <th>Leave Type</th>
+        <td>{{leaveType}}</td>
+    </tr>
+    <tr>
+        <th>Requested Dates</th>
+        <td>{{startDate}} to {{endDate}}</td>
+    </tr>
+    <tr>
+        <th>Total Days</th>
+        <td>{{totalDays}} day(s)</td>
+    </tr>
+    <tr>
+        <th>Rejected By</th>
+        <td>{{rejectedBy}}</td>
+    </tr>
+    {{#if reason}}
+    <tr>
+        <th>Rejection Reason</th>
+        <td style="color: #d32f2f; font-weight: 500;">{{reason}}</td>
+    </tr>
+    {{/if}}
+</table>
+
+<div class="content">
+    <strong>What You Can Do:</strong>
+    <ul style="margin-left: 20px; margin-top: 10px;">
+        <li>Review the rejection reason above</li>
+        <li>Consider alternative dates that might work better</li>
+        <li>Speak with your manager about possible solutions</li>
+        <li>Submit a new request with the suggested changes</li>
+    </ul>
+</div>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{baseUrl}}/leaves/new" class="btn">Submit New Request</a>
+    <a href="{{baseUrl}}/leaves" class="btn" style="background-color: #666; margin-left: 10px;">View All Requests</a>
+</div>
+
+<div class="content" style="font-size: 14px; color: #666;">
+    If you have questions about this rejection, please contact your manager or HR department for clarification.
+</div>

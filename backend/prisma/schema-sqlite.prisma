@@ -1,0 +1,215 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User and Employee Models
+model User {
+  id                String    @id @default(cuid())
+  employeeId        String    @unique
+  email             String    @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              String    @default("EMPLOYEE")
+  department        String
+  location          String
+  reportingManagerId String?
+  joiningDate       DateTime  @default(now())
+  status            String    @default("ACTIVE")
+  lastLogin         DateTime?
+
+  // Relations
+  reportingManager  User?     @relation("UserHierarchy", fields: [reportingManagerId], references: [id])
+  directReports     User[]    @relation("UserHierarchy")
+  managedDepartment Department[] @relation("DepartmentManager")
+  leaveRequests     LeaveRequest[]
+  leaveBalances     LeaveBalance[]
+  approvals         Approval[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Department {
+  id                    String    @id @default(cuid())
+  name                  String
+  managerId             String?
+  parentDepartmentId    String?
+  location              String
+
+  // Relations
+  manager               User?     @relation("DepartmentManager", fields: [managerId], references: [id])
+  parentDepartment      Department? @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  childDepartments      Department[] @relation("DepartmentHierarchy")
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("departments")
+}
+
+// Leave Models
+model LeaveRequest {
+  id              String        @id @default(cuid())
+  employeeId      String
+  leaveType       String
+  startDate       DateTime
+  endDate         DateTime
+  totalDays       Float
+  isHalfDay       Boolean       @default(false)
+  reason          String
+  attachments     String?
+  status          String        @default("PENDING")
+  appliedDate     DateTime      @default(now())
+
+  // Relations
+  employee        User          @relation(fields: [employeeId], references: [id])
+  approvals       Approval[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("leave_requests")
+}
+
+model Approval {
+  id              String          @id @default(cuid())
+  leaveRequestId  String
+  approverId      String
+  level           Int             @default(1)
+  status          String          @default("PENDING")
+  comments        String?
+  approvedAt      DateTime?
+
+  // Relations
+  leaveRequest    LeaveRequest    @relation(fields: [leaveRequestId], references: [id])
+  approver        User            @relation(fields: [approverId], references: [id])
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([leaveRequestId, level])
+  @@map("approvals")
+}
+
+model LeaveBalance {
+  id                  String      @id @default(cuid())
+  employeeId          String
+  leaveType           String
+  totalEntitlement    Float
+  used                Float       @default(0)
+  available           Float
+  carryForward        Float       @default(0)
+  year                Int
+
+  // Relations
+  employee            User        @relation(fields: [employeeId], references: [id])
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@unique([employeeId, leaveType, year])
+  @@map("leave_balances")
+}
+
+model LeavePolicy {
+  id                    String    @id @default(cuid())
+  name                  String
+  leaveType             String
+  entitlementDays       Float
+  accrualRate           Float     @default(1.0)
+  maxCarryForward       Float     @default(0)
+  minimumGap            Int       @default(0)
+  maxConsecutiveDays    Int       @default(365)
+  requiresDocumentation Boolean   @default(false)
+  documentationThreshold Int      @default(0)
+  location              String
+  region                String    @default("INDIA")
+  effectiveFrom         DateTime
+  effectiveTo           DateTime?
+  isActive              Boolean   @default(true)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("leave_policies")
+}
+
+// Calendar and Holiday Models
+model Holiday {
+  id          String      @id @default(cuid())
+  name        String
+  date        DateTime
+  location    String
+  region      String      @default("INDIA")
+  isOptional  Boolean     @default(false)
+  type        String      @default("COMPANY")
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("holidays")
+}
+
+// Notification Model
+model Notification {
+  id          String            @id @default(cuid())
+  userId      String
+  type        String
+  title       String
+  message     String
+  isRead      Boolean           @default(false)
+  metadata    String?
+
+  // Relations
+  user        User              @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("notifications")
+}
+
+// Audit and Logging Models
+model AuditLog {
+  id          String      @id @default(cuid())
+  userId      String?
+  entity      String
+  entityId    String
+  action      String
+  oldValues   String?
+  newValues   String?
+  ipAddress   String?
+  userAgent   String?
+
+  // Relations
+  user        User?       @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime    @default(now())
+
+  @@map("audit_logs")
+}
+
+// Regional Policy Model
+model RegionalPolicy {
+  id          String    @id @default(cuid())
+  region      String
+  state       String?
+  policyRules String
+  isActive    Boolean   @default(true)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("regional_policies")
+}

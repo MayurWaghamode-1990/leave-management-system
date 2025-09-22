@@ -1,0 +1,71 @@
+<div class="greeting">Hello {{managerName}},</div>
+
+<div class="content">
+    A new leave request has been submitted and requires your attention for approval.
+</div>
+
+<div class="highlight-box">
+    <strong>⏳ New Leave Request Submitted</strong>
+    <span class="status-badge status-pending">Pending Review</span>
+</div>
+
+<table class="details-table">
+    <tr>
+        <th>Employee</th>
+        <td><strong>{{employeeName}}</strong></td>
+    </tr>
+    <tr>
+        <th>Leave Type</th>
+        <td>{{leaveType}}</td>
+    </tr>
+    <tr>
+        <th>Start Date</th>
+        <td>{{startDate}}</td>
+    </tr>
+    <tr>
+        <th>End Date</th>
+        <td>{{endDate}}</td>
+    </tr>
+    <tr>
+        <th>Total Days</th>
+        <td>{{totalDays}} day(s)</td>
+    </tr>
+    <tr>
+        <th>Submitted Date</th>
+        <td>{{submittedDate}}</td>
+    </tr>
+    {{#if reason}}
+    <tr>
+        <th>Reason</th>
+        <td>{{reason}}</td>
+    </tr>
+    {{/if}}
+</table>
+
+{{#if teamImpact}}
+<div class="content">
+    <strong>⚠️ Team Impact Analysis:</strong>
+    <div style="background-color: #fff3e0; padding: 15px; border-radius: 4px; margin-top: 10px;">
+        {{teamImpact}}
+    </div>
+</div>
+{{/if}}
+
+<div class="content">
+    <strong>Action Required:</strong>
+    <ul style="margin-left: 20px; margin-top: 10px;">
+        <li>Review the leave request details above</li>
+        <li>Check team coverage for the requested dates</li>
+        <li>Verify the employee's leave balance</li>
+        <li>Approve or reject the request with appropriate comments</li>
+    </ul>
+</div>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{baseUrl}}/approvals" class="btn">Review & Approve</a>
+    <a href="{{baseUrl}}/team" class="btn" style="background-color: #666; margin-left: 10px;">View Team Calendar</a>
+</div>
+
+<div class="content" style="font-size: 14px; color: #666;">
+    Please review this request promptly to ensure timely processing. The employee will be notified once you take action.
+</div>

@@ -1,0 +1,82 @@
+groups:
+  - name: lms_alerts
+    rules:
+      # High memory usage alert
+      - alert: HighMemoryUsage
+        expr: lms_memory_usage_bytes / (1024*1024*1024) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 2GB for more than 5 minutes"
+
+      # High CPU usage alert
+      - alert: HighCPUUsage
+        expr: lms_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes"
+
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: rate(lms_request_errors_total[5m]) / rate(lms_requests_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 10% for more than 2 minutes"
+
+      # Slow response time alert
+      - alert: SlowResponseTime
+        expr: lms_request_duration_ms > 5000
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow response time detected"
+          description: "Average response time is above 5 seconds for more than 3 minutes"
+
+      # Service down alert
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} service has been down for more than 1 minute"
+
+      # Database connection issues
+      - alert: DatabaseErrors
+        expr: lms_database_queries_total - lms_database_queries_total offset 5m > 10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database errors detected"
+          description: "More than 10 database errors in the last 5 minutes"
+
+      # Email delivery issues
+      - alert: EmailDeliveryIssues
+        expr: rate(lms_email_failed_total[5m]) > 0.5
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Email delivery issues"
+          description: "Email failure rate is high"
+
+      # Low active users (possible system issue)
+      - alert: LowActiveUsers
+        expr: lms_active_users < 1
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low active users"
+          description: "Very few active users detected - possible system issue"

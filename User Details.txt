@@ -1,0 +1,44 @@
+ 1. Read the PROJECT_STATUS.md file I created in your project root
+  2. Start the servers if needed:
+  # Backend: cd backend && npm run dev
+  # Frontend: cd frontend && npm run dev
+  3. Access: http://localhost:5176
+
+🔑 Login Details
+
+  Admin/HR User:
+  - Email: admin@company.com
+  - Password: admin123
+  - Role: HR_ADMIN (can access all features including approvals)
+
+  Regular Employee:
+  - Email: user@company.com
+  - Password: user123
+  - Role: EMPLOYEE (can access personal leave management)
+
+  🌐 Application URLs
+
+  - Frontend: http://localhost:5176
+  - Backend API: http://localhost:3003
+  - Health Check: http://localhost:3003/health
+
+
+
+9/22/2025
+🚀 System Status: READY
+
+  Servers Running:
+
+  - Backend API: http://localhost:3001
+  - Frontend App: http://localhost:5173
+  - API Documentation: http://localhost:3001/api/v1/docs
+  - Health Check: http://localhost:3001/health
+
+  Test Credentials:
+
+  | Role       | Email               | Password    |
+  |------------|---------------------|-------------|
+  | HR Admin   | admin@company.com   | password123 |
+  | Manager    | manager@company.com | password123 |
+  | Employee   | user@company.com    | password123 |
+  | Employee 2 | john@company.com    | password123 |

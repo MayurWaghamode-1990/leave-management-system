@@ -1,0 +1,57 @@
+<div class="greeting">Great news, {{employeeName}}! 🎉</div>
+
+<div class="content">
+    Your leave request has been <strong>approved</strong>. You can now enjoy your time off!
+</div>
+
+<div class="highlight-box">
+    <strong>✅ Leave Request Approved</strong>
+    <span class="status-badge status-approved">Approved</span>
+</div>
+
+<table class="details-table">
+    <tr>
+        <th>Leave Type</th>
+        <td>{{leaveType}}</td>
+    </tr>
+    <tr>
+        <th>Start Date</th>
+        <td>{{startDate}}</td>
+    </tr>
+    <tr>
+        <th>End Date</th>
+        <td>{{endDate}}</td>
+    </tr>
+    <tr>
+        <th>Total Days</th>
+        <td>{{totalDays}} day(s)</td>
+    </tr>
+    <tr>
+        <th>Approved By</th>
+        <td>{{approvedBy}}</td>
+    </tr>
+    {{#if comments}}
+    <tr>
+        <th>Comments</th>
+        <td>{{comments}}</td>
+    </tr>
+    {{/if}}
+</table>
+
+<div class="content">
+    <strong>What's Next?</strong>
+    <ul style="margin-left: 20px; margin-top: 10px;">
+        <li>Mark your calendar for the approved dates</li>
+        <li>Complete any pending work before your leave</li>
+        <li>Set up an out-of-office message if needed</li>
+        <li>Brief your team about ongoing projects</li>
+    </ul>
+</div>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{baseUrl}}/leaves" class="btn btn-success">View My Leaves</a>
+</div>
+
+<div class="content" style="font-size: 14px; color: #666;">
+    If you need to make any changes to this leave request, please contact your manager or HR department.
+</div>
