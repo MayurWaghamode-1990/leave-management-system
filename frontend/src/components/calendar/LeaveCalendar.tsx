@@ -16,8 +16,7 @@ import {
   DialogActions,
   useTheme,
   useMediaQuery,
-  CircularProgress,
-  Tooltip
+  CircularProgress
 } from '@mui/material';
 import {
   ChevronLeft,
