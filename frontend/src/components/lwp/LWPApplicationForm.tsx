@@ -31,7 +31,7 @@ import {
   DatePicker,
   LocalizationProvider
 } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -214,7 +214,7 @@ export const LWPApplicationForm: React.FC<LWPApplicationFormProps> = ({
               name="startDate"
               control={control}
               render={({ field }) => (
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Start Date"
                     value={field.value}
@@ -237,7 +237,7 @@ export const LWPApplicationForm: React.FC<LWPApplicationFormProps> = ({
               name="endDate"
               control={control}
               render={({ field }) => (
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="End Date"
                     value={field.value}
@@ -361,7 +361,7 @@ export const LWPApplicationForm: React.FC<LWPApplicationFormProps> = ({
               name="expectedReturnDate"
               control={control}
               render={({ field }) => (
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DatePicker
                     label="Expected Return Date (Optional)"
                     value={field.value}
@@ -445,7 +445,7 @@ export const LWPApplicationForm: React.FC<LWPApplicationFormProps> = ({
 
           <Grid item xs={12}>
             <Alert severity="info" icon={<InfoIcon />}>
-              Emergency contact information is recommended for extended leaves (>30 days)
+              Emergency contact information is recommended for extended leaves (&gt;30 days)
               and required for critical urgency applications.
             </Alert>
           </Grid>

@@ -75,6 +75,7 @@ api.interceptors.response.use(
 )
 
 export default api
+export { api }
 
 // API endpoints configuration
 export const endpoints = {

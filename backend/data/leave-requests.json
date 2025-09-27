@@ -376,5 +376,17 @@
     "reason": "sdjkfhsjkdfhjksdfkljsdf",
     "status": "PENDING",
     "appliedDate": "2025-09-27"
+  },
+  {
+    "id": "1758986721601_jmc8nwaty",
+    "employeeId": "mgr-engineering",
+    "leaveType": "SICK_LEAVE",
+    "startDate": "2025-09-22",
+    "endDate": "2025-09-22",
+    "totalDays": 1,
+    "isHalfDay": false,
+    "reason": "Retroactive sick leave request for past date validation testing",
+    "status": "PENDING",
+    "appliedDate": "2025-09-27"
   }
 ]

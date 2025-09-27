@@ -14,6 +14,7 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:dev": "tsx src/scripts/dev-seed.ts",
     "db:admin-demo": "tsx prisma/admin-demo-seed.ts"
   },
   "dependencies": {

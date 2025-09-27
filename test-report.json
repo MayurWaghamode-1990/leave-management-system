@@ -1,5 +1,5 @@
 {
-  "testExecutionDate": "2025-09-24T10:10:47.991Z",
+  "testExecutionDate": "2025-09-27T15:25:22.668Z",
   "testUser": {
     "email": "engineering.manager@company.com",
     "userId": "mgr-engineering",
@@ -20,7 +20,7 @@
   "detailedResults": {
     "authentication": {
       "success": true,
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJtZ3ItZW5naW5lZXJpbmciLCJlbWFpbCI6ImVuZ2luZWVyaW5nLm1hbmFnZXJAY29tcGFueS5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc1ODcwODY0NSwiZXhwIjoxNzU5MzEzNDQ1fQ.92uSK2e-hVNUbf3ze35HGZQ6vjxesiH8GH3FUDbjxhQ",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJtZ3ItZW5naW5lZXJpbmciLCJlbWFpbCI6ImVuZ2luZWVyaW5nLm1hbmFnZXJAY29tcGFueS5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc1ODk4NjcyMCwiZXhwIjoxNzU5NTkxNTIwfQ.zGAqguD69CCS3wBHDF_GVX4CpL588XuZP1O67IVqN7U",
       "userId": "mgr-engineering"
     },
     "leaveCreation": [
@@ -95,7 +95,7 @@
         "name": "Past Date Leave Request",
         "success": true,
         "pastDateAllowed": true,
-        "requestId": "6"
+        "requestId": "1758986721601_jmc8nwaty"
       },
       {
         "name": "Excessive Leave Days",
@@ -108,9 +108,9 @@
     "uiConsistency": [
       {
         "name": "Database Consistency Check",
-        "totalRequests": 3,
+        "totalRequests": 10,
         "totalBalanceRecords": 1,
-        "requestsWithIds": 3,
+        "requestsWithIds": 10,
         "balancesWithIds": 1,
         "consistent": true
       }
