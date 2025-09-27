@@ -1,4 +1,5 @@
-import { PrismaClient, LeaveType, UserRole, Region } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { LeaveType, UserRole, Region } from '../types/enums';
 
 const prisma = new PrismaClient();
 
@@ -194,7 +195,9 @@ export class LeaveValidationEngine {
         PATERNITY_LEAVE: 15,
         COMPENSATORY_OFF: 10,
         BEREAVEMENT_LEAVE: 3,
-        MARRIAGE_LEAVE: 5
+        MARRIAGE_LEAVE: 5,
+        LEAVE_WITHOUT_PAY: 365,
+        PTO: 20
       };
 
       const available = mockBalances[request.leaveType] || 0;
@@ -271,7 +274,9 @@ export class LeaveValidationEngine {
       PATERNITY_LEAVE: { maxConsecutive: 15, documentationThreshold: 1, autoApproval: false },
       COMPENSATORY_OFF: { maxConsecutive: 2, documentationThreshold: 0, autoApproval: true },
       BEREAVEMENT_LEAVE: { maxConsecutive: 5, documentationThreshold: 1, autoApproval: false },
-      MARRIAGE_LEAVE: { maxConsecutive: 7, documentationThreshold: 1, autoApproval: false }
+      MARRIAGE_LEAVE: { maxConsecutive: 7, documentationThreshold: 1, autoApproval: false },
+      LEAVE_WITHOUT_PAY: { maxConsecutive: 365, documentationThreshold: 1, autoApproval: false },
+      PTO: { maxConsecutive: 30, documentationThreshold: 0, autoApproval: false }
     };
 
     const rule = rules[request.leaveType];
@@ -406,7 +411,9 @@ export class LeaveValidationEngine {
       [LeaveType.PATERNITY_LEAVE]: { totalEntitlement: 15, used: 0, available: 15, carryForward: 0 },
       [LeaveType.COMPENSATORY_OFF]: { totalEntitlement: 10, used: 0, available: 10, carryForward: 0 },
       [LeaveType.BEREAVEMENT_LEAVE]: { totalEntitlement: 3, used: 0, available: 3, carryForward: 0 },
-      [LeaveType.MARRIAGE_LEAVE]: { totalEntitlement: 5, used: 0, available: 5, carryForward: 0 }
+      [LeaveType.MARRIAGE_LEAVE]: { totalEntitlement: 5, used: 0, available: 5, carryForward: 0 },
+      [LeaveType.LEAVE_WITHOUT_PAY]: { totalEntitlement: 365, used: 0, available: 365, carryForward: 0 },
+      [LeaveType.PTO]: { totalEntitlement: 20, used: 0, available: 20, carryForward: 0 }
     };
 
     try {
@@ -420,12 +427,14 @@ export class LeaveValidationEngine {
 
       // Update with actual balances from database
       balances.forEach(balance => {
-        defaultEntitlements[balance.leaveType] = {
-          totalEntitlement: Number(balance.totalEntitlement),
-          used: Number(balance.used),
-          available: Number(balance.available),
-          carryForward: Number(balance.carryForward)
-        };
+        if (balance.leaveType in defaultEntitlements) {
+          defaultEntitlements[balance.leaveType as LeaveType] = {
+            totalEntitlement: Number(balance.totalEntitlement),
+            used: Number(balance.used),
+            available: Number(balance.available),
+            carryForward: Number(balance.carryForward)
+          };
+        }
       });
 
     } catch (error) {

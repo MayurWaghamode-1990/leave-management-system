@@ -176,6 +176,17 @@ export const endpoints = {
     test: '/email/test',
     config: '/email/config',
   },
+
+  // Templates
+  templates: {
+    list: '/templates',
+    create: '/templates',
+    detail: (id: string) => `/templates/${id}`,
+    update: (id: string) => `/templates/${id}`,
+    delete: (id: string) => `/templates/${id}`,
+    use: (id: string) => `/templates/${id}/use`,
+    categories: '/templates/categories',
+  },
 } as const
 
 export type ApiEndpoints = typeof endpoints

@@ -1,5 +1,6 @@
 import { prisma } from '../config/database';
-import { LeavePolicy, LeaveType, Region, Prisma } from '@prisma/client';
+import { LeavePolicy, Prisma } from '@prisma/client';
+import { LeaveType, Region } from '../types/enums';
 import { logger } from '../utils/logger';
 
 export interface CreateLeavePolicyData {

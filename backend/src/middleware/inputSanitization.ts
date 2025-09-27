@@ -43,7 +43,7 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
   } catch (error) {
     logger.error('Input sanitization failed', {
       requestId,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
       method: req.method,
       url: req.url
     });

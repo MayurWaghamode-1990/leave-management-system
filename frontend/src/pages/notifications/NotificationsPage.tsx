@@ -231,7 +231,7 @@ const NotificationsPage: React.FC = () => {
           ) : (
             <List sx={{ p: 0 }}>
               {filteredNotifications.map((notification, index) => (
-                <React.Fragment key={notification.id}>
+                <React.Fragment key={`${notification.id}-${index}`}>
                   <ListItem
                     onClick={() => handleNotificationClick(notification)}
                     sx={{
@@ -253,8 +253,8 @@ const NotificationsPage: React.FC = () => {
 
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <Typography variant="body1" fontWeight={notification.read ? 'normal' : 'medium'}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <Typography variant="body1" component="span" fontWeight={notification.read ? 'normal' : 'medium'}>
                             {notification.title}
                           </Typography>
                           <Chip
@@ -263,27 +263,28 @@ const NotificationsPage: React.FC = () => {
                             color={getStatusColor(notification.type) as any}
                           />
                           {!notification.read && (
-                            <Box
-                              sx={{
+                            <span
+                              style={{
                                 width: 8,
                                 height: 8,
-                                backgroundColor: 'primary.main',
+                                backgroundColor: 'var(--mui-palette-primary-main)',
                                 borderRadius: '50%',
-                                ml: 'auto'
+                                marginLeft: 'auto',
+                                display: 'inline-block'
                               }}
                             />
                           )}
-                        </Box>
+                        </span>
                       }
                       secondary={
-                        <Box>
-                          <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                        <span>
+                          <Typography variant="body2" component="span" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
                             {notification.message}
                           </Typography>
-                          <Typography variant="caption" color="textSecondary">
+                          <Typography variant="caption" component="span" color="textSecondary">
                             {formatTimestamp(notification.timestamp)}
                           </Typography>
-                        </Box>
+                        </span>
                       }
                     />
 

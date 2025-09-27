@@ -38,6 +38,8 @@ model User {
   cancellationApprovals LeaveCancellationRequest[] @relation("CancellationApprovals")
   modificationRequests LeaveModificationRequest[] @relation("ModificationRequests")
   modificationApprovals LeaveModificationRequest[] @relation("ModificationApprovals")
+  leaveTemplates       LeaveTemplate[]
+  calendarIntegrations CalendarIntegration[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -76,6 +78,8 @@ model LeaveRequest {
   attachments     String?
   status          String        @default("PENDING")
   appliedDate     DateTime      @default(now())
+  googleCalendarEventId String?
+  outlookCalendarEventId String?
 
   // Relations
   employee        User          @relation(fields: [employeeId], references: [id])
@@ -166,6 +170,37 @@ model Holiday {
   updatedAt   DateTime    @updatedAt
 
   @@map("holidays")
+}
+
+// Leave Template Model
+model LeaveTemplate {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  category    String      @default("PERSONAL")
+
+  // Template data
+  leaveType   String
+  duration    Int?        // Number of days (null for variable duration)
+  reason      String
+  isHalfDay   Boolean     @default(false)
+
+  // Sharing and visibility
+  isPublic    Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  usageCount  Int         @default(0)
+
+  // Owner information
+  createdBy   String
+  owner       User        @relation(fields: [createdBy], references: [id])
+
+  // Tags for better categorization
+  tags        String?     // JSON array of tags
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("leave_templates")
 }
 
 // Notification Model
@@ -311,4 +346,24 @@ model LeaveModificationRequest {
   updatedAt         DateTime  @updatedAt
 
   @@map("leave_modification_requests")
+}
+
+// Calendar Integration Model
+model CalendarIntegration {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   // 'google' or 'outlook'
+  accessToken  String
+  refreshToken String?
+  calendarId   String?
+  enabled      Boolean  @default(true)
+
+  // Relations
+  user         User     @relation(fields: [userId], references: [id])
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, provider], name: "userId_provider")
+  @@map("calendar_integrations")
 }

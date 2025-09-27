@@ -15,17 +15,22 @@ import {
   DialogContent,
   DialogActions,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
 import {
   ChevronLeft,
   ChevronRight,
   Today,
   Add,
-  Event
+  Event,
+  Sync,
+  Settings
 } from '@mui/icons-material';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth, addMonths, subMonths } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { useCalendarIntegration } from '@/hooks/useCalendarIntegration';
 
 interface LeaveEvent {
   id: string;
@@ -77,6 +82,7 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
+  const { isProviderConnected, syncLeaveWithCalendar, syncing } = useCalendarIntegration();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedLeave, setSelectedLeave] = useState<LeaveEvent | null>(null);
@@ -226,6 +232,25 @@ const LeaveCalendar: React.FC<LeaveCalendarProps> = ({
               📅 {showTeamLeaves ? 'Team Calendar' : 'My Calendar'}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
+              {(isProviderConnected('google') || isProviderConnected('outlook')) && (
+                <Tooltip title="Sync with connected calendars">
+                  <IconButton
+                    onClick={() => navigate('/settings/calendar')}
+                    disabled={syncing}
+                    size="small"
+                  >
+                    {syncing ? <CircularProgress size={20} /> : <Sync />}
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title="Calendar settings">
+                <IconButton
+                  onClick={() => navigate('/settings/calendar')}
+                  size="small"
+                >
+                  <Settings />
+                </IconButton>
+              </Tooltip>
               <Button
                 startIcon={<Add />}
                 variant="contained"

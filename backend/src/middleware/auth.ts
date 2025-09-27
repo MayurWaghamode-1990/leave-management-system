@@ -2,9 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from './errorHandler';
 import { userService } from '../services/userService';
-
-// Mock data types
-type UserRole = 'EMPLOYEE' | 'MANAGER' | 'HR_ADMIN' | 'PAYROLL_OFFICER' | 'IT_ADMIN';
+import { UserRole } from '../types/enums';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -74,7 +72,7 @@ export const authenticate = async (
   }
 };
 
-export const authorize = (...allowedRoles: UserRole[]) => {
+export const authorize = (...allowedRoles: string[]) => {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({
@@ -85,7 +83,7 @@ export const authorize = (...allowedRoles: UserRole[]) => {
       });
     }
 
-    console.log('Authorization check:', {
+    console.log('Authorization check (updated):', {
       userRole: req.user.role,
       allowedRoles,
       userRoleType: typeof req.user.role,

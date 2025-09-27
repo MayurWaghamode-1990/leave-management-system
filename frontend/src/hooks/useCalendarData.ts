@@ -60,14 +60,23 @@ export const useCalendarData = (showTeamLeaves: boolean = false) => {
         setError(null);
 
         let endpoint = '/leaves';
+        let leavesData = [];
+
         if (showTeamLeaves && user && (user.role === 'MANAGER' || user.role === 'HR_ADMIN')) {
-          endpoint = '/leaves/all'; // Endpoint for getting all team leaves
+          endpoint = '/leaves/team-requests'; // Endpoint for getting all team leaves
         }
 
         const response = await api.get(endpoint);
 
         if (response.data.success) {
-          const leavesData = response.data.data;
+          // Handle different response formats
+          if (endpoint === '/leaves/team-requests') {
+            // team-requests returns {data: {requests: [...]}}
+            leavesData = response.data.data?.requests || [];
+          } else {
+            // regular leaves endpoint returns {data: [...]}
+            leavesData = response.data.data || [];
+          }
           setLeaves(Array.isArray(leavesData) ? leavesData : []);
         } else {
           setError('Failed to fetch leave data');
@@ -147,13 +156,21 @@ export const useCalendarData = (showTeamLeaves: boolean = false) => {
       // This is a simple way to refresh without duplicating the fetch logic
       try {
         const endpoint = showTeamLeaves && (user.role === 'MANAGER' || user.role === 'HR_ADMIN')
-          ? '/leaves/all'
+          ? '/leaves/team-requests'
           : '/leaves';
 
         const response = await api.get(endpoint);
 
         if (response.data.success) {
-          const leavesData = response.data.data;
+          let leavesData = [];
+          // Handle different response formats
+          if (endpoint === '/leaves/team-requests') {
+            // team-requests returns {data: {requests: [...]}}
+            leavesData = response.data.data?.requests || [];
+          } else {
+            // regular leaves endpoint returns {data: [...]}
+            leavesData = response.data.data || [];
+          }
           setLeaves(Array.isArray(leavesData) ? leavesData : []);
         }
       } catch (err: any) {

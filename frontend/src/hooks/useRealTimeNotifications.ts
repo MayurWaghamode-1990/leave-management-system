@@ -35,11 +35,16 @@ export const useRealTimeNotifications = () => {
     try {
       const audio = new Audio('/notification.mp3');
       audio.volume = 0.3;
-      audio.play().catch(() => {
-        // Ignore if audio fails to play (user might not have interacted with page yet)
+      audio.addEventListener('error', () => {
+        console.warn('Notification audio file not found, skipping sound');
+      });
+      audio.play().catch((error) => {
+        // Ignore if audio fails to play (user might not have interacted with page yet or file not found)
+        console.warn('Could not play notification sound:', error.message);
       });
     } catch (error) {
       // Ignore audio errors
+      console.warn('Audio notifications not supported:', error);
     }
   }, []);
 

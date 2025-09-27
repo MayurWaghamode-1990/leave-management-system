@@ -4,12 +4,12 @@ import { authorize, AuthenticatedRequest } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { leaveSchemas, paramSchemas } from '../schemas/validationSchemas';
 import { leaveValidationEngine, LeaveValidationRequest } from '../services/policyEngine';
-import { LeaveType } from '@prisma/client';
-import { io } from '../index';
+import { LeaveType, LeaveStatus } from '../types/enums';
+import { io, prisma } from '../index';
 import { emailService, LeaveEmailData } from '../services/emailService';
+import { MockDataStore } from '../utils/mockDataStore';
 
 // Mock data types
-type LeaveStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
 type RecurrencePattern = 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
 type DelegationStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED';
 type ModificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -114,12 +114,15 @@ interface LeaveCancellationRequest {
 interface LeaveDraft {
   id: string;
   employeeId: string;
+  type?: LeaveType;
   leaveType?: LeaveType;
   startDate?: string;
   endDate?: string;
+  totalDays?: number;
   isHalfDay?: boolean;
   reason?: string;
   templateId?: string;
+  completionPercent?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -143,79 +146,123 @@ const getManagerEmail = (): string => {
   return manager?.email || 'manager@company.com';
 };
 
-// Mock data store
-let mockLeaveRequests: LeaveRequest[] = [
+// Default mock data
+const defaultLeaveRequests: LeaveRequest[] = [
   {
     id: '1',
-    employeeId: '1',
-    leaveType: 'CASUAL_LEAVE',
+    employeeId: 'user-employee-1',
+    leaveType: LeaveType.CASUAL_LEAVE,
     startDate: '2024-12-20',
     endDate: '2024-12-22',
     totalDays: 3,
     isHalfDay: false,
     reason: 'Family function',
-    status: 'APPROVED',
+    status: LeaveStatus.APPROVED,
     appliedDate: '2024-12-10',
     approvedBy: 'Manager',
     approvedAt: '2024-12-11'
   },
   {
     id: '2',
-    employeeId: '1',
-    leaveType: 'SICK_LEAVE',
+    employeeId: 'user-employee-2',
+    leaveType: LeaveType.SICK_LEAVE,
     startDate: '2024-11-15',
     endDate: '2024-11-15',
     totalDays: 1,
     isHalfDay: false,
     reason: 'Fever',
-    status: 'APPROVED',
+    status: LeaveStatus.APPROVED,
     appliedDate: '2024-11-15',
     approvedBy: 'Manager',
     approvedAt: '2024-11-15'
   },
   {
     id: '3',
-    employeeId: '2',
-    leaveType: 'EARNED_LEAVE',
+    employeeId: 'user-employee-3',
+    leaveType: LeaveType.EARNED_LEAVE,
     startDate: '2024-12-25',
     endDate: '2024-12-31',
     totalDays: 5,
     isHalfDay: false,
     reason: 'Year end vacation',
-    status: 'PENDING',
+    status: LeaveStatus.PENDING,
     appliedDate: '2024-12-14'
   },
   {
     id: '4',
-    employeeId: '2',
-    leaveType: 'SICK_LEAVE',
+    employeeId: 'user-employee-4',
+    leaveType: LeaveType.SICK_LEAVE,
     startDate: '2024-12-18',
     endDate: '2024-12-18',
     totalDays: 1,
     isHalfDay: false,
     reason: 'Medical checkup',
-    status: 'PENDING',
+    status: LeaveStatus.PENDING,
     appliedDate: '2024-12-16'
   },
   {
     id: '5',
-    employeeId: '2',
-    leaveType: 'CASUAL_LEAVE',
+    employeeId: 'user-employee-5',
+    leaveType: LeaveType.CASUAL_LEAVE,
     startDate: '2024-12-23',
     endDate: '2024-12-24',
     totalDays: 2,
     isHalfDay: false,
     reason: 'Personal work',
-    status: 'PENDING',
+    status: LeaveStatus.PENDING,
     appliedDate: '2024-12-15'
+  },
+  {
+    id: '6',
+    employeeId: 'user-employee-1',
+    leaveType: LeaveType.EARNED_LEAVE,
+    startDate: '2025-01-10',
+    endDate: '2025-01-15',
+    totalDays: 4,
+    isHalfDay: false,
+    reason: 'Winter vacation',
+    status: LeaveStatus.PENDING,
+    appliedDate: '2024-12-20'
+  },
+  {
+    id: '7',
+    employeeId: 'user-employee-2',
+    leaveType: LeaveType.MATERNITY_LEAVE,
+    startDate: '2025-02-01',
+    endDate: '2025-04-01',
+    totalDays: 60,
+    isHalfDay: false,
+    reason: 'Maternity leave',
+    status: LeaveStatus.PENDING,
+    appliedDate: '2024-12-18'
+  },
+  {
+    id: '8',
+    employeeId: 'user-employee-3',
+    leaveType: LeaveType.CASUAL_LEAVE,
+    startDate: '2025-01-02',
+    endDate: '2025-01-03',
+    totalDays: 2,
+    isHalfDay: false,
+    reason: 'Extended weekend',
+    status: LeaveStatus.PENDING,
+    appliedDate: '2024-12-19'
   }
 ];
+
+// Load data from persistent storage or use defaults
+let mockLeaveRequests: LeaveRequest[] = MockDataStore.loadLeaveRequests(defaultLeaveRequests);
+
+// Helper function to save data whenever it changes
+const saveLeaveRequestsData = () => {
+  MockDataStore.saveLeaveRequests(mockLeaveRequests);
+};
 
 let mockLeaveBalances: LeaveBalance[] = [
   {
     id: '1',
     employeeId: '1',
-    leaveType: 'SICK_LEAVE',
+    leaveType: LeaveType.SICK_LEAVE,
     totalEntitlement: 12,
     used: 2,
     available: 10,
@@ -225,7 +272,7 @@ let mockLeaveBalances: LeaveBalance[] = [
   {
     id: '2',
     employeeId: '1',
-    leaveType: 'CASUAL_LEAVE',
+    leaveType: LeaveType.CASUAL_LEAVE,
     totalEntitlement: 12,
     used: 5,
     available: 7,
@@ -235,7 +282,7 @@ let mockLeaveBalances: LeaveBalance[] = [
   {
     id: '3',
     employeeId: '1',
-    leaveType: 'EARNED_LEAVE',
+    leaveType: LeaveType.EARNED_LEAVE,
     totalEntitlement: 21,
     used: 8,
     available: 13,
@@ -245,7 +292,7 @@ let mockLeaveBalances: LeaveBalance[] = [
   {
     id: '4',
     employeeId: '2',
-    leaveType: 'SICK_LEAVE',
+    leaveType: LeaveType.SICK_LEAVE,
     totalEntitlement: 12,
     used: 1,
     available: 11,
@@ -255,7 +302,7 @@ let mockLeaveBalances: LeaveBalance[] = [
   {
     id: '5',
     employeeId: '2',
-    leaveType: 'CASUAL_LEAVE',
+    leaveType: LeaveType.CASUAL_LEAVE,
     totalEntitlement: 12,
     used: 3,
     available: 9,
@@ -265,7 +312,7 @@ let mockLeaveBalances: LeaveBalance[] = [
   {
     id: '6',
     employeeId: '2',
-    leaveType: 'EARNED_LEAVE',
+    leaveType: LeaveType.EARNED_LEAVE,
     totalEntitlement: 21,
     used: 2,
     available: 19,
@@ -281,7 +328,7 @@ let mockLeaveTemplates: LeaveTemplate[] = [
     employeeId: '1',
     name: 'Annual Vacation',
     description: 'My regular annual vacation period',
-    leaveType: 'EARNED_LEAVE',
+    leaveType: LeaveType.EARNED_LEAVE,
     defaultDuration: 7,
     isHalfDay: false,
     defaultReason: 'Annual vacation',
@@ -297,7 +344,7 @@ let mockLeaveTemplates: LeaveTemplate[] = [
     employeeId: '2',
     name: 'Monthly Wellness Day',
     description: 'Monthly mental health day',
-    leaveType: 'CASUAL_LEAVE',
+    leaveType: LeaveType.CASUAL_LEAVE,
     defaultDuration: 1,
     isHalfDay: false,
     defaultReason: 'Wellness day',
@@ -329,7 +376,7 @@ let mockLeaveModificationRequests: LeaveModificationRequest[] = [
     newStartDate: '2024-12-26',
     newEndDate: '2024-12-30',
     modificationReason: 'Family emergency requires changing dates',
-    status: 'PENDING',
+    status: LeaveStatus.PENDING,
     appliedDate: '2024-12-17'
   }
 ];
@@ -340,7 +387,7 @@ let mockLeaveCancellationRequests: LeaveCancellationRequest[] = [
     leaveRequestId: '4',
     employeeId: '2',
     cancellationReason: 'Medical appointment was rescheduled',
-    status: 'PENDING',
+    status: LeaveStatus.PENDING,
     appliedDate: '2024-12-17'
   }
 ];
@@ -348,21 +395,33 @@ let mockLeaveCancellationRequests: LeaveCancellationRequest[] = [
 let mockLeaveDrafts: LeaveDraft[] = [
   {
     id: '1',
-    employeeId: '1',
-    leaveType: 'CASUAL_LEAVE',
+    employeeId: 'user-hr-admin',
+    type: LeaveType.CASUAL_LEAVE,
+    leaveType: LeaveType.CASUAL_LEAVE,
     startDate: '2024-12-30',
+    endDate: '2024-12-31',
+    totalDays: 2,
+    isHalfDay: false,
     reason: 'Year-end break',
     templateId: '1',
-    createdAt: '2024-12-18',
-    updatedAt: '2024-12-18'
+    completionPercent: 100,
+    createdAt: '2024-12-18T10:00:00.000Z',
+    updatedAt: '2024-12-18T10:00:00.000Z'
   },
   {
     id: '2',
-    employeeId: '2',
-    leaveType: 'SICK_LEAVE',
+    employeeId: 'user-hr-admin',
+    type: LeaveType.SICK_LEAVE,
+    leaveType: LeaveType.SICK_LEAVE,
+    startDate: '2024-12-25',
+    endDate: undefined,
+    totalDays: 0.5,
     isHalfDay: true,
-    createdAt: '2024-12-17',
-    updatedAt: '2024-12-17'
+    reason: undefined,
+    templateId: undefined,
+    completionPercent: 33,
+    createdAt: '2024-12-17T14:30:00.000Z',
+    updatedAt: '2024-12-17T14:30:00.000Z'
   }
 ];
 
@@ -927,6 +986,25 @@ router.post('/',
     //   throw new AppError(`Leave request validation failed: ${validationResult.errors.join(', ')}`, 400);
     // }
 
+    // Check for overlapping leave requests (Critical Fix)
+    const overlappingRequest = mockLeaveRequests.find(existing => {
+      if (existing.employeeId !== req.user!.userId) return false;
+      if (existing.status === 'CANCELLED' || existing.status === 'REJECTED') return false;
+
+      const existingStart = new Date(existing.startDate);
+      const existingEnd = new Date(existing.endDate);
+
+      // Check if dates overlap
+      return (start <= existingEnd && end >= existingStart);
+    });
+
+    if (overlappingRequest) {
+      throw new AppError(
+        `Leave request overlaps with existing ${overlappingRequest.leaveType.replace('_', ' ')} request (${overlappingRequest.startDate} to ${overlappingRequest.endDate}). Please choose different dates or cancel the existing request.`,
+        409 // Conflict status code
+      );
+    }
+
     // Basic validation (fallback)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -985,9 +1063,10 @@ router.post('/',
       throw new AppError(`Insufficient leave balance. Available: ${userBalance.available} days`, 400);
     }
 
-    // Create new leave request
+    // Create new leave request with unique ID
+    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newRequest: LeaveRequest = {
-      id: nextId.toString(),
+      id: uniqueId,
       employeeId: req.user!.userId,
       leaveType,
       startDate: start.toISOString().split('T')[0],
@@ -995,12 +1074,27 @@ router.post('/',
       totalDays: calculatedDays,
       isHalfDay,
       reason,
-      status: 'PENDING',
+      status: LeaveStatus.PENDING,
       appliedDate: new Date().toISOString().split('T')[0]
     };
 
     mockLeaveRequests.push(newRequest);
-    nextId++;
+    saveLeaveRequestsData(); // Save to persistent storage
+
+    // Auto-approve certain leave types for immediate balance deduction (business logic)
+    const autoApproveTypes = ['SICK_LEAVE']; // Sick leave can be auto-approved
+    if (autoApproveTypes.includes(leaveType) || validationResult.autoApprovalEligible) {
+      // Auto-approve and deduct balance immediately
+      newRequest.status = LeaveStatus.APPROVED;
+      newRequest.approvedBy = 'System (Auto-approved)';
+      newRequest.approvedAt = new Date().toISOString().split('T')[0];
+
+      // Deduct from balance immediately
+      if (userBalance) {
+        userBalance.used += calculatedDays;
+        userBalance.available -= calculatedDays;
+      }
+    }
 
     // Emit real-time notification to managers and HR for new leave request
     const employee = getUserDetails(req.user!.userId);
@@ -1074,12 +1168,13 @@ router.get('/team-requests',
 
     // HR_ADMIN can see all requests, MANAGER can see their team's requests
     if (req.user!.role === 'MANAGER') {
-      // Mock team member mapping (in real app, fetch from database)
-      const teamMembers = req.user!.userId === '1' ? ['2'] : [];
+      // Mock team member mapping - managers can see requests from their team members
+      const teamMemberIds = ['user-employee-1', 'user-employee-2', 'user-employee-3', 'user-employee-4', 'user-employee-5'];
       filteredRequests = mockLeaveRequests.filter(
-        request => teamMembers.includes(request.employeeId)
+        request => teamMemberIds.includes(request.employeeId)
       );
     }
+    // HR_ADMIN sees all requests, so no filtering needed
 
     if (status) {
       filteredRequests = filteredRequests.filter(
@@ -1135,11 +1230,12 @@ router.patch('/:id/approve',
     // Update request status
     mockLeaveRequests[requestIndex] = {
       ...existingRequest,
-      status: 'APPROVED',
+      status: LeaveStatus.APPROVED,
       approvedBy: `${req.user!.userId === '1' ? 'Admin User' : 'Manager'}`,
       approvedAt: new Date().toISOString().split('T')[0],
       comments: comments || undefined
     };
+    saveLeaveRequestsData(); // Save to persistent storage
 
     // Update leave balance
     const userBalance = mockLeaveBalances.find(
@@ -1220,11 +1316,12 @@ router.patch('/:id/reject',
     // Update request status
     mockLeaveRequests[requestIndex] = {
       ...existingRequest,
-      status: 'REJECTED',
+      status: LeaveStatus.REJECTED,
       approvedBy: `${req.user!.userId === '1' ? 'Admin User' : 'Manager'}`,
       approvedAt: new Date().toISOString().split('T')[0],
       comments: comments || 'Request rejected'
     };
+    saveLeaveRequestsData(); // Save to persistent storage
 
     // Emit real-time notification to the employee
     const rejectedRequest = mockLeaveRequests[requestIndex];
@@ -1288,9 +1385,25 @@ router.get('/templates',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
 
-    const userTemplates = mockLeaveTemplates.filter(
-      template => template.userId === userId
-    );
+    const userTemplates = await prisma.leaveTemplate.findMany({
+      where: {
+        createdBy: userId,
+        isActive: true
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
     res.json({
       success: true,
@@ -1310,22 +1423,34 @@ router.get('/templates',
  */
 router.post('/templates',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { name, type, reason, isHalfDay, recurrence } = req.body;
+    const { name, leaveType, reason, isHalfDay, duration, description, category } = req.body;
     const userId = req.user?.id;
 
-    const newTemplate: LeaveTemplate = {
-      id: `template_${Date.now()}`,
-      userId: userId!,
-      name,
-      type,
-      reason,
-      isHalfDay: isHalfDay || false,
-      recurrence,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    mockLeaveTemplates.push(newTemplate);
+    const newTemplate = await prisma.leaveTemplate.create({
+      data: {
+        name,
+        leaveType,
+        reason,
+        isHalfDay: isHalfDay || false,
+        duration,
+        description,
+        category: category || 'PERSONAL',
+        createdBy: userId!,
+        isActive: true,
+        isPublic: false,
+        usageCount: 0
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
     res.status(201).json({
       success: true,
@@ -1347,28 +1472,39 @@ router.post('/templates',
 router.put('/templates/:id',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
-    const { name, type, reason, isHalfDay, recurrence } = req.body;
+    const { name, leaveType, reason, isHalfDay, duration, description, category } = req.body;
     const userId = req.user?.id;
 
-    const templateIndex = mockLeaveTemplates.findIndex(
-      template => template.id === id && template.userId === userId
-    );
+    const existingTemplate = await prisma.leaveTemplate.findUnique({
+      where: { id }
+    });
 
-    if (templateIndex === -1) {
+    if (!existingTemplate || existingTemplate.createdBy !== userId) {
       throw new AppError('Template not found', 404);
     }
 
-    const updatedTemplate = {
-      ...mockLeaveTemplates[templateIndex],
-      name,
-      type,
-      reason,
-      isHalfDay,
-      recurrence,
-      updatedAt: new Date().toISOString()
-    };
-
-    mockLeaveTemplates[templateIndex] = updatedTemplate;
+    const updatedTemplate = await prisma.leaveTemplate.update({
+      where: { id },
+      data: {
+        name,
+        leaveType,
+        reason,
+        isHalfDay,
+        duration,
+        description,
+        category
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
     res.json({
       success: true,
@@ -1392,15 +1528,17 @@ router.delete('/templates/:id',
     const { id } = req.params;
     const userId = req.user?.id;
 
-    const templateIndex = mockLeaveTemplates.findIndex(
-      template => template.id === id && template.userId === userId
-    );
+    const existingTemplate = await prisma.leaveTemplate.findUnique({
+      where: { id }
+    });
 
-    if (templateIndex === -1) {
+    if (!existingTemplate || existingTemplate.createdBy !== userId) {
       throw new AppError('Template not found', 404);
     }
 
-    mockLeaveTemplates.splice(templateIndex, 1);
+    await prisma.leaveTemplate.delete({
+      where: { id }
+    });
 
     res.json({
       success: true,
@@ -1424,11 +1562,14 @@ router.post('/from-template/:templateId',
     const { startDate, endDate } = req.body;
     const userId = req.user?.id;
 
-    const template = mockLeaveTemplates.find(
-      t => t.id === templateId && t.userId === userId
-    );
+    const template = await prisma.leaveTemplate.findUnique({
+      where: { id: templateId },
+      include: {
+        owner: true
+      }
+    });
 
-    if (!template) {
+    if (!template || template.createdBy !== userId) {
       throw new AppError('Template not found', 404);
     }
 
@@ -1437,22 +1578,39 @@ router.post('/from-template/:templateId',
     const end = new Date(endDate);
     const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-    const newRequest: LeaveRequest = {
-      id: `req_${Date.now()}`,
-      employeeId: userId!,
-      type: template.type,
-      startDate,
-      endDate,
-      totalDays,
-      reason: template.reason,
-      status: LeaveStatus.PENDING,
-      isHalfDay: template.isHalfDay,
-      appliedDate: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    const newRequest = await prisma.leaveRequest.create({
+      data: {
+        employeeId: userId!,
+        leaveType: template.leaveType,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        totalDays,
+        reason: template.reason,
+        status: LeaveStatus.PENDING,
+        isHalfDay: template.isHalfDay,
+        appliedDate: new Date()
+      },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            department: true
+          }
+        }
+      }
+    });
 
-    mockLeaveRequests.push(newRequest);
+    // Increment template usage count
+    await prisma.leaveTemplate.update({
+      where: { id: templateId },
+      data: {
+        usageCount: {
+          increment: 1
+        }
+      }
+    });
 
     // Send real-time notification to managers
     const managers = getUsersByRole('MANAGER');
@@ -1506,27 +1664,60 @@ router.get('/drafts',
  */
 router.post('/drafts',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { type, startDate, endDate, reason, isHalfDay, completionPercent } = req.body;
+    const { id, type, startDate, endDate, reason, isHalfDay, completionPercent } = req.body;
     const userId = req.user?.id;
 
-    // Check if draft already exists for similar dates
-    const existingDraftIndex = mockLeaveDrafts.findIndex(
-      draft => draft.employeeId === userId &&
-               draft.startDate === startDate &&
-               draft.endDate === endDate
-    );
+    // Debug logging
+    console.log('📝 Draft update request:', {
+      id,
+      type,
+      startDate,
+      endDate,
+      reason,
+      isHalfDay,
+      completionPercent,
+      userId
+    });
+
+    // Check if updating existing draft by ID
+    let existingDraftIndex = -1;
+    if (id) {
+      existingDraftIndex = mockLeaveDrafts.findIndex(
+        draft => draft.id === id && draft.employeeId === userId
+      );
+    } else {
+      // Fallback: Check if draft already exists for similar dates
+      existingDraftIndex = mockLeaveDrafts.findIndex(
+        draft => draft.employeeId === userId &&
+                 draft.startDate === startDate &&
+                 draft.endDate === endDate
+      );
+    }
 
     if (existingDraftIndex !== -1) {
       // Update existing draft
+      console.log('🔄 Updating existing draft at index:', existingDraftIndex);
+      console.log('📄 Current draft:', mockLeaveDrafts[existingDraftIndex]);
+
+      // Calculate total days if dates are provided
+      const totalDays = startDate && endDate ?
+        Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 :
+        mockLeaveDrafts[existingDraftIndex].totalDays;
+
       const updatedDraft = {
         ...mockLeaveDrafts[existingDraftIndex],
-        type,
-        reason,
-        isHalfDay,
-        completionPercent,
+        type: type !== undefined ? type : (mockLeaveDrafts[existingDraftIndex].type || mockLeaveDrafts[existingDraftIndex].leaveType),
+        leaveType: type !== undefined ? type : (mockLeaveDrafts[existingDraftIndex].leaveType || mockLeaveDrafts[existingDraftIndex].type),
+        startDate: startDate !== undefined ? startDate : mockLeaveDrafts[existingDraftIndex].startDate,
+        endDate: endDate !== undefined ? endDate : mockLeaveDrafts[existingDraftIndex].endDate,
+        totalDays,
+        reason: reason !== undefined ? reason : mockLeaveDrafts[existingDraftIndex].reason,
+        isHalfDay: isHalfDay !== undefined ? isHalfDay : mockLeaveDrafts[existingDraftIndex].isHalfDay,
+        completionPercent: completionPercent !== undefined ? completionPercent : mockLeaveDrafts[existingDraftIndex].completionPercent,
         updatedAt: new Date().toISOString()
       };
 
+      console.log('✅ Updated draft:', updatedDraft);
       mockLeaveDrafts[existingDraftIndex] = updatedDraft;
 
       res.json({
@@ -1705,11 +1896,11 @@ router.get('/delegations',
 router.post('/delegations',
   authorize('MANAGER', 'HR_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { delegateeId, startDate, endDate, reason } = req.body;
+    const { delegateId, startDate, endDate, reason } = req.body;
     const delegatorId = req.user?.id;
 
     // Validate delegatee exists and has appropriate role
-    const delegatee = getUserDetails(delegateeId);
+    const delegatee = getUserDetails(delegateId);
     if (!delegatee || !['MANAGER', 'HR_ADMIN'].includes(delegatee.role)) {
       throw new AppError('Invalid delegatee. Must be a manager or HR admin.', 400);
     }
@@ -1730,7 +1921,7 @@ router.post('/delegations',
     const newDelegation: Delegation = {
       id: `delegation_${Date.now()}`,
       delegatorId: delegatorId!,
-      delegateeId,
+      delegateeId: delegateId,
       startDate,
       endDate,
       reason,
@@ -1742,7 +1933,7 @@ router.post('/delegations',
     mockLeaveDelegations.push(newDelegation);
 
     // Send real-time notification to delegatee
-    io.to(`user:${delegateeId}`).emit('newDelegation', {
+    io.to(`user:${delegateId}`).emit('newDelegation', {
       delegation: newDelegation,
       delegator: getUserDetails(delegatorId!)
     });
@@ -2024,7 +2215,7 @@ router.post('/modification-requests/:id/approve',
     // Update modification request
     mockLeaveModificationRequests[modificationIndex] = {
       ...modificationRequest,
-      status: 'APPROVED',
+      status: LeaveStatus.APPROVED,
       approvedBy: userId!,
       approvedDate: new Date().toISOString(),
       updatedAt: new Date().toISOString()

@@ -22,6 +22,7 @@ import DraftsPage from './pages/drafts/DraftsPage'
 import DelegationsPage from './pages/delegations/DelegationsPage'
 import AdvancedRequestsPage from './pages/advanced-requests/AdvancedRequestsPage'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
+import { LWPPage } from './pages/lwp/LWPPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 // Components
@@ -66,6 +67,7 @@ function App() {
         <Route path="drafts" element={<DraftsPage />} />
         <Route path="delegations" element={<DelegationsPage />} />
         <Route path="advanced-requests" element={<AdvancedRequestsPage />} />
+        <Route path="lwp" element={<LWPPage />} />
         <Route path="profile" element={<ProfilePage />} />
 
         {/* Manager routes */}

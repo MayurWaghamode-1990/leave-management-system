@@ -1,0 +1,195 @@
+import express from 'express';
+import { authenticate } from '../middleware/auth';
+import { FileUploadService } from '../services/fileUploadService';
+import { logger } from '../utils/logger';
+
+const router = express.Router();
+
+// Initialize upload directories
+FileUploadService.initializeDirectories().catch(console.error);
+
+/**
+ * @route POST /api/v1/files/upload
+ * @desc Upload files with validation
+ * @access Private
+ */
+router.post('/upload', authenticate, async (req, res) => {
+  try {
+    const category = (req.query.category as string) || 'leave_attachments';
+    const upload = FileUploadService.createMulterConfig(category);
+
+    upload.array('files', 5)(req, res, async (err) => {
+      if (err) {
+        logger.error('File upload error:', err);
+        return res.status(400).json({
+          success: false,
+          message: err.message,
+        });
+      }
+
+      const uploadedFiles = req.files as Express.Multer.File[];
+      if (!uploadedFiles || uploadedFiles.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'No files uploaded',
+        });
+      }
+
+      try {
+        // Save metadata for each file
+        const fileMetadata = await Promise.all(
+          uploadedFiles.map(file =>
+            FileUploadService.saveFileMetadata(file, req.user!.id, category as any)
+          )
+        );
+
+        // Scan files for viruses
+        const scanResults = await Promise.all(
+          uploadedFiles.map(file => FileUploadService.scanFileForVirus(file.path))
+        );
+
+        // Check for infected files
+        const infectedFiles = scanResults
+          .map((result, index) => ({ result, file: uploadedFiles[index] }))
+          .filter(({ result }) => !result.isClean);
+
+        if (infectedFiles.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Some files failed security scan',
+          });
+        }
+
+        res.json({
+          success: true,
+          message: `${uploadedFiles.length} file(s) uploaded successfully`,
+          data: {
+            files: fileMetadata.map(metadata => ({
+              id: metadata.id,
+              originalName: metadata.originalName,
+              fileName: metadata.fileName,
+              size: metadata.size,
+              mimeType: metadata.mimeType,
+              downloadUrl: FileUploadService.createSecureDownloadUrl(metadata.id),
+            })),
+          },
+        });
+
+      } catch (error) {
+        logger.error('Error processing files:', error);
+        res.status(500).json({
+          success: false,
+          message: 'Failed to process uploaded files',
+        });
+      }
+    });
+
+  } catch (error) {
+    logger.error('Upload endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+});
+
+/**
+ * @route GET /api/v1/files/download/:fileId
+ * @desc Download file with token validation
+ * @access Public (with token)
+ */
+router.get('/download/:fileId', async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    const { token, expires } = req.query;
+
+    if (!token || !expires) {
+      return res.status(400).json({
+        success: false,
+        message: 'Download token and expiration required',
+      });
+    }
+
+    // Validate download token
+    if (!FileUploadService.validateDownloadToken(
+      fileId,
+      token as string,
+      expires as string
+    )) {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid or expired download token',
+      });
+    }
+
+    // For now, return success (implement actual file serving later)
+    res.json({
+      success: true,
+      message: 'File download validated',
+      fileId,
+    });
+
+  } catch (error) {
+    logger.error('Download error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download file',
+    });
+  }
+});
+
+/**
+ * @route DELETE /api/v1/files/:fileId
+ * @desc Delete file
+ * @access Private
+ */
+router.delete('/:fileId', authenticate, async (req, res) => {
+  try {
+    const { fileId } = req.params;
+    await FileUploadService.deleteFile(fileId, req.user!.id);
+
+    res.json({
+      success: true,
+      message: 'File deleted successfully',
+    });
+
+  } catch (error) {
+    logger.error('Delete error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete file',
+    });
+  }
+});
+
+/**
+ * @route GET /api/v1/files/storage/stats
+ * @desc Get storage statistics
+ * @access Private (Admin)
+ */
+router.get('/storage/stats', authenticate, async (req, res) => {
+  try {
+    // Check admin permissions
+    if (!['HR_ADMIN', 'IT_ADMIN'].includes(req.user!.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required',
+      });
+    }
+
+    const stats = await FileUploadService.getStorageStats();
+    res.json({
+      success: true,
+      data: stats,
+    });
+
+  } catch (error) {
+    logger.error('Stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve storage statistics',
+    });
+  }
+});
+
+export default router;

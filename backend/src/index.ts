@@ -20,9 +20,13 @@ import reportRoutes from './routes/reports';
 import notificationRoutes from './routes/notifications';
 import emailRoutes from './routes/email';
 import monitoringRoutes from './routes/monitoring';
-import automationRulesRoutes from './routes/automationRules';
-import fileRoutes from './routes/files';
-import advancedLeavesRoutes from './routes/advancedLeaves';
+// import automationRulesRoutes from './routes/automationRules';
+// import fileRoutes from './routes/files';
+// import advancedLeavesRoutes from './routes/advancedLeaves';
+import leaveTemplatesRoutes from './routes/leaveTemplates';
+import lwpRoutes from './routes/lwp-simple';
+import calendarRoutes from './routes/calendar';
+import advancedReportsRoutes from './routes/advancedReports';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -31,6 +35,7 @@ import { authenticate } from './middleware/auth';
 
 // Load environment variables
 dotenv.config();
+// Trigger restart
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -47,7 +52,7 @@ const io = new SocketIOServer(server, {
       'http://localhost:5176',
       'http://localhost:5177',
       'http://localhost:5178',
-      process.env.CORS_ORIGIN || 'http://localhost:5175'
+      process.env.CORS_ORIGIN || 'http://localhost:5174'
     ],
     methods: ['GET', 'POST'],
     credentials: true
@@ -67,11 +72,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
 });
 
-// Basic security middleware
-app.use(helmet());
-app.use(limiter);
-
-// CORS configuration
+// CORS configuration - MUST be before rate limiting
 app.use(cors({
   origin: [
     'http://localhost:5173',
@@ -80,7 +81,7 @@ app.use(cors({
     'http://localhost:5176',
     'http://localhost:5177',
     'http://localhost:5178',
-    process.env.CORS_ORIGIN || 'http://localhost:5173'
+    process.env.CORS_ORIGIN || 'http://localhost:5174'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -88,6 +89,10 @@ app.use(cors({
   preflightContinue: false,
   optionsSuccessStatus: 200
 }));
+
+// Basic security middleware
+app.use(helmet());
+app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -157,9 +162,13 @@ app.use(`${API_PREFIX}/reports`, authenticate, reportRoutes);
 app.use(`${API_PREFIX}/notifications`, authenticate, notificationRoutes);
 app.use(`${API_PREFIX}/email`, authenticate, emailRoutes);
 app.use(`${API_PREFIX}/monitoring`, monitoringRoutes);
-app.use(`${API_PREFIX}/automation-rules`, authenticate, automationRulesRoutes);
-app.use(`${API_PREFIX}/advanced-leaves`, advancedLeavesRoutes);
-// app.use(`${API_PREFIX}/files`, fileRoutes);  // Temporarily disabled
+// app.use(`${API_PREFIX}/automation-rules`, authenticate, automationRulesRoutes);
+// app.use(`${API_PREFIX}/advanced-leaves`, advancedLeavesRoutes);
+app.use(`${API_PREFIX}/templates`, authenticate, leaveTemplatesRoutes);
+app.use(`${API_PREFIX}/lwp`, authenticate, lwpRoutes);
+app.use(`${API_PREFIX}/calendar`, calendarRoutes);
+app.use(`${API_PREFIX}/advanced-reports`, advancedReportsRoutes);
+// app.use(`${API_PREFIX}/files`, fileRoutes);  // Temporarily disabled due to middleware issue
 
 // 404 handler
 app.use('*', (req, res) => {

@@ -1,0 +1,119 @@
+{
+  "testExecutionDate": "2025-09-24T10:10:47.991Z",
+  "testUser": {
+    "email": "engineering.manager@company.com",
+    "userId": "mgr-engineering",
+    "name": "Rajesh Kumar"
+  },
+  "summary": {
+    "totalTests": 11,
+    "passedTests": 4,
+    "failedTests": 7,
+    "identifiedIssues": [
+      "Leave creation failed: Casual Leave - Single Day - Cannot apply for leave more than 30 days in the past",
+      "Leave creation failed: Sick Leave - Half Day - Cannot apply for leave more than 30 days in the past",
+      "Leave creation failed: Earned Leave - Multiple Days - Cannot apply for leave more than 30 days in the past",
+      "Leave balance deduction not working correctly"
+    ],
+    "successRate": "36.4%"
+  },
+  "detailedResults": {
+    "authentication": {
+      "success": true,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJtZ3ItZW5naW5lZXJpbmciLCJlbWFpbCI6ImVuZ2luZWVyaW5nLm1hbmFnZXJAY29tcGFueS5jb20iLCJyb2xlIjoiTUFOQUdFUiIsImlhdCI6MTc1ODcwODY0NSwiZXhwIjoxNzU5MzEzNDQ1fQ.92uSK2e-hVNUbf3ze35HGZQ6vjxesiH8GH3FUDbjxhQ",
+      "userId": "mgr-engineering"
+    },
+    "leaveCreation": [
+      {
+        "testCase": "Casual Leave - Single Day",
+        "success": false,
+        "error": "Cannot apply for leave more than 30 days in the past"
+      },
+      {
+        "testCase": "Sick Leave - Half Day",
+        "success": false,
+        "error": "Cannot apply for leave more than 30 days in the past"
+      },
+      {
+        "testCase": "Earned Leave - Multiple Days",
+        "success": false,
+        "error": "Cannot apply for leave more than 30 days in the past"
+      }
+    ],
+    "multipleLeaveTypes": {
+      "dateRange": {
+        "startDate": "2025-03-15",
+        "endDate": "2025-03-17",
+        "reason": "Testing overlapping leave types for same period - system validation check"
+      },
+      "attemptedTypes": [
+        "CASUAL_LEAVE",
+        "EARNED_LEAVE",
+        "COMPENSATORY_OFF"
+      ],
+      "results": [
+        {
+          "leaveType": "CASUAL_LEAVE",
+          "success": false,
+          "error": "Cannot apply for leave more than 30 days in the past"
+        },
+        {
+          "leaveType": "EARNED_LEAVE",
+          "success": false,
+          "error": "Cannot apply for leave more than 30 days in the past"
+        },
+        {
+          "leaveType": "COMPENSATORY_OFF",
+          "success": false,
+          "error": "Cannot apply for leave more than 30 days in the past"
+        }
+      ],
+      "successCount": 0,
+      "allowsMultiple": false,
+      "issue": "System properly prevents multiple leave types"
+    },
+    "leaveTypeRetention": null,
+    "balanceDeduction": {
+      "error": "Cannot apply for leave more than 30 days in the past",
+      "deductionWorking": false
+    },
+    "edgeCases": [
+      {
+        "name": "Overlapping Leave Requests",
+        "success": true,
+        "error": "Cannot apply for leave more than 30 days in the past",
+        "allowsOverlapping": false,
+        "preventsOverlapping": true
+      },
+      {
+        "name": "Weekend Leave Request",
+        "success": false,
+        "error": "Cannot apply for leave more than 30 days in the past",
+        "weekendAllowed": false
+      },
+      {
+        "name": "Past Date Leave Request",
+        "success": true,
+        "pastDateAllowed": true,
+        "requestId": "6"
+      },
+      {
+        "name": "Excessive Leave Days",
+        "success": false,
+        "error": "Cannot apply for leave more than 30 days in the past",
+        "allowsExcessiveDays": false,
+        "preventsExcessiveDays": true
+      }
+    ],
+    "uiConsistency": [
+      {
+        "name": "Database Consistency Check",
+        "totalRequests": 3,
+        "totalBalanceRecords": 1,
+        "requestsWithIds": 3,
+        "balancesWithIds": 1,
+        "consistent": true
+      }
+    ]
+  }
+}

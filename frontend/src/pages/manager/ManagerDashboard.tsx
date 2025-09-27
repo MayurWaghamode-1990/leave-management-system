@@ -33,7 +33,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Autocomplete
+  Autocomplete,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {
@@ -117,7 +119,7 @@ interface TeamMember {
   avatar?: string;
   role: string;
   department: string;
-  currentBalance: {
+  currentBalance?: {
     annual: number;
     sick: number;
     personal: number;
@@ -139,6 +141,8 @@ interface ManagerStats {
 
 const ManagerDashboard: React.FC = () => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [currentTab, setCurrentTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
@@ -180,12 +184,15 @@ const ManagerDashboard: React.FC = () => {
         api.get('/reports/manager-stats')
       ]);
 
-      setRequests(requestsRes.data.data || []);
-      setTeamMembers(teamRes.data.data || []);
+      setRequests(Array.isArray(requestsRes.data.data) ? requestsRes.data.data : []);
+      setTeamMembers(Array.isArray(teamRes.data.data) ? teamRes.data.data : []);
       setStats(statsRes.data.data || stats);
     } catch (error) {
       console.error('Failed to fetch manager data:', error);
       toast.error('Failed to load manager dashboard data');
+      // Ensure we set empty arrays on error
+      setRequests([]);
+      setTeamMembers([]);
     } finally {
       setLoading(false);
     }
@@ -243,7 +250,7 @@ const ManagerDashboard: React.FC = () => {
     return dayjs(startDate).diff(dayjs(), 'day');
   };
 
-  const filteredRequests = requests.filter(request => {
+  const filteredRequests = (Array.isArray(requests) ? requests : []).filter(request => {
     if (statusFilter !== 'all' && request.status !== statusFilter) return false;
     if (typeFilter !== 'all' && request.leaveType !== typeFilter) return false;
     if (urgencyFilter !== 'all' && request.urgency !== urgencyFilter) return false;
@@ -416,7 +423,7 @@ const ManagerDashboard: React.FC = () => {
               </Button>
             </Box>
 
-            <TableContainer>
+            <TableContainer sx={{ overflowX: 'auto' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -601,7 +608,7 @@ const ManagerDashboard: React.FC = () => {
               </Grid>
             </Grid>
 
-            <TableContainer>
+            <TableContainer sx={{ overflowX: 'auto' }}>
               <Table>
                 <TableHead>
                   <TableRow>
@@ -690,19 +697,19 @@ const ManagerDashboard: React.FC = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                           <Typography variant="body2">Annual</Typography>
                           <Typography variant="body2" fontWeight="medium">
-                            {member.currentBalance.annual} days
+                            {member.currentBalance?.annual ?? 'N/A'} days
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                           <Typography variant="body2">Sick</Typography>
                           <Typography variant="body2" fontWeight="medium">
-                            {member.currentBalance.sick} days
+                            {member.currentBalance?.sick ?? 'N/A'} days
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                           <Typography variant="body2">Personal</Typography>
                           <Typography variant="body2" fontWeight="medium">
-                            {member.currentBalance.personal} days
+                            {member.currentBalance?.personal ?? 'N/A'} days
                           </Typography>
                         </Box>
                       </Box>

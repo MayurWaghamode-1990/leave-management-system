@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
 import LeaveCalendar from '@/components/calendar/LeaveCalendar';
+import BigCalendarView from '@/components/calendar/BigCalendarView';
 import TimelineView from '@/components/calendar/TimelineView';
 import { useCalendarData } from '@/hooks/useCalendarData';
 
@@ -269,12 +270,16 @@ const CalendarPage: React.FC = () => {
           scrollButtons="auto"
         >
           <Tab
-            label={user?.role === 'EMPLOYEE' ? 'My Calendar' : 'Team Calendar'}
+            label="Grid View"
             icon={<CalendarMonth />}
+          />
+          <Tab
+            label="Calendar View"
+            icon={<Event />}
           />
           {isManager && (
             <>
-              <Tab label="Department View" icon={<People />} />
+              <Tab label="Team View" icon={<People />} />
               <Tab label="Timeline View" icon={<Timeline />} />
             </>
           )}
@@ -282,6 +287,7 @@ const CalendarPage: React.FC = () => {
       </Paper>
 
       {/* Calendar Views */}
+      {/* Grid View */}
       <TabPanel value={currentTab} index={0}>
         {currentLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -295,22 +301,40 @@ const CalendarPage: React.FC = () => {
         )}
       </TabPanel>
 
+      {/* Big Calendar View */}
+      <TabPanel value={currentTab} index={1}>
+        {currentLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <BigCalendarView
+            leaves={personalEvents}
+            showTeamLeaves={false}
+            height={700}
+          />
+        )}
+      </TabPanel>
+
       {isManager && (
         <>
-          <TabPanel value={currentTab} index={1}>
+          {/* Team View */}
+          <TabPanel value={currentTab} index={2}>
             {teamLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                 <CircularProgress />
               </Box>
             ) : (
-              <LeaveCalendar
+              <BigCalendarView
                 leaves={teamEvents}
                 showTeamLeaves={true}
+                height={700}
               />
             )}
           </TabPanel>
 
-          <TabPanel value={currentTab} index={2}>
+          {/* Timeline View */}
+          <TabPanel value={currentTab} index={3}>
             {teamLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                 <CircularProgress />

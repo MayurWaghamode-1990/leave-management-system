@@ -23,8 +23,8 @@ class WebSocketService {
 
   private connect() {
     try {
-      // Use the backend Socket.IO URL
-      const serverUrl = 'http://localhost:3002';
+      // Use the backend Socket.IO URL - use environment variable or default to 3004
+      const serverUrl = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:3006';
 
       this.socket = io(serverUrl, {
         transports: ['websocket', 'polling'],

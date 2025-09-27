@@ -38,12 +38,15 @@ import api from '@/config/api';
 interface LeaveDraft {
   id: string;
   employeeId: string;
+  type?: string;
   leaveType?: string;
   startDate?: string;
   endDate?: string;
+  totalDays?: number;
   isHalfDay?: boolean;
   reason?: string;
   templateId?: string;
+  completionPercent?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -91,13 +94,19 @@ const DraftsPage: React.FC = () => {
 
   const handleSaveDraft = async () => {
     try {
+      // Calculate completion percentage based on required fields
+      const requiredFields = [formData.leaveType, formData.startDate, formData.reason];
+      const completedFields = requiredFields.filter(field => field).length;
+      const completionPercent = Math.round((completedFields / requiredFields.length) * 100);
+
       const draftData = {
         id: editingDraft?.id,
-        leaveType: formData.leaveType || undefined,
-        startDate: formData.startDate?.toISOString().split('T')[0],
-        endDate: formData.endDate?.toISOString().split('T')[0],
+        type: formData.leaveType || null,
+        startDate: formData.startDate?.toISOString().split('T')[0] || null,
+        endDate: formData.endDate?.toISOString().split('T')[0] || null,
         isHalfDay: formData.isHalfDay,
-        reason: formData.reason || undefined
+        reason: formData.reason || null,
+        completionPercent
       };
 
       const response = await api.post('/leaves/drafts', draftData);
@@ -170,6 +179,15 @@ const DraftsPage: React.FC = () => {
   };
 
   const getDraftCompleteness = (draft: LeaveDraft) => {
+    // Use backend-calculated completion percentage if available
+    if (draft.completionPercent !== undefined) {
+      return {
+        percentage: draft.completionPercent,
+        isComplete: draft.completionPercent === 100
+      };
+    }
+
+    // Fallback to frontend calculation
     const fields = [draft.leaveType, draft.startDate, draft.reason];
     const completedFields = fields.filter(field => field).length;
     return {
@@ -181,11 +199,12 @@ const DraftsPage: React.FC = () => {
   const createNewDraft = async () => {
     try {
       const draftData = {
-        leaveType: undefined,
+        type: undefined,
         startDate: undefined,
         endDate: undefined,
         isHalfDay: false,
-        reason: undefined
+        reason: undefined,
+        completionPercent: 0
       };
 
       const response = await api.post('/leaves/drafts', draftData);
@@ -309,13 +328,21 @@ const DraftsPage: React.FC = () => {
 
                       <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
                         <Chip
-                          label={getLeaveTypeLabel(draft.leaveType)}
+                          label={getLeaveTypeLabel(draft.leaveType || draft.type)}
                           size="small"
-                          color={draft.leaveType ? 'primary' : 'default'}
+                          color={(draft.leaveType || draft.type) ? 'primary' : 'default'}
                           variant="outlined"
                         />
                         {draft.isHalfDay && (
                           <Chip label="Half Day" size="small" variant="outlined" />
+                        )}
+                        {draft.totalDays !== undefined && (
+                          <Chip
+                            label={`${draft.totalDays} day${draft.totalDays !== 1 ? 's' : ''}`}
+                            size="small"
+                            color="info"
+                            variant="outlined"
+                          />
                         )}
                         {completeness.isComplete && (
                           <Chip label="Ready to Submit" size="small" color="success" />

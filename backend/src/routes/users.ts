@@ -192,38 +192,105 @@ router.get('/team',
       // Fallback to mock data if database fails
       const mockTeamMembers = [
         {
-          id: '1',
+          id: 'user-hr-admin',
           name: 'Admin User',
           avatar: null,
           role: 'HR_ADMIN',
+          department: 'Human Resources',
+          email: 'admin@company.com',
+          joiningDate: '2023-01-15',
+          pendingRequests: 0,
+          onLeave: false,
+          currentBalance: {
+            annual: 25,
+            sick: 12,
+            personal: 5
+          },
           isActive: true
         },
         {
-          id: '2',
+          id: 'user-employee-1',
           name: 'John Doe',
           avatar: null,
           role: 'EMPLOYEE',
+          department: 'Engineering',
+          email: 'john.doe@company.com',
+          joiningDate: '2023-03-01',
+          pendingRequests: 2,
+          onLeave: false,
+          currentBalance: {
+            annual: 18,
+            sick: 10,
+            personal: 3
+          },
           isActive: true
         },
         {
-          id: '3',
+          id: 'user-employee-2',
           name: 'Jane Smith',
           avatar: null,
-          role: 'MANAGER',
+          role: 'EMPLOYEE',
+          department: 'Marketing',
+          email: 'jane.smith@company.com',
+          joiningDate: '2023-02-15',
+          pendingRequests: 1,
+          onLeave: false,
+          currentBalance: {
+            annual: 20,
+            sick: 8,
+            personal: 4
+          },
           isActive: true
         },
         {
-          id: '4',
+          id: 'user-employee-3',
           name: 'Mike Johnson',
           avatar: null,
           role: 'EMPLOYEE',
+          department: 'Sales',
+          email: 'mike.johnson@company.com',
+          joiningDate: '2023-04-01',
+          pendingRequests: 1,
+          onLeave: false,
+          currentBalance: {
+            annual: 22,
+            sick: 11,
+            personal: 5
+          },
           isActive: true
         },
         {
-          id: '5',
+          id: 'user-employee-4',
           name: 'Sarah Wilson',
           avatar: null,
           role: 'EMPLOYEE',
+          department: 'Finance',
+          email: 'sarah.wilson@company.com',
+          joiningDate: '2023-05-15',
+          pendingRequests: 1,
+          onLeave: false,
+          currentBalance: {
+            annual: 19,
+            sick: 9,
+            personal: 3
+          },
+          isActive: true
+        },
+        {
+          id: 'user-employee-5',
+          name: 'David Brown',
+          avatar: null,
+          role: 'EMPLOYEE',
+          department: 'Operations',
+          email: 'david.brown@company.com',
+          joiningDate: '2023-06-01',
+          pendingRequests: 1,
+          onLeave: false,
+          currentBalance: {
+            annual: 21,
+            sick: 12,
+            personal: 4
+          },
           isActive: true
         }
       ];

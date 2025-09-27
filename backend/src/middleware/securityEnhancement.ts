@@ -48,7 +48,7 @@ export const createRateLimiters = () => {
   // Authentication rate limiting (stricter)
   const authRateLimit = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Limit each IP/user to 10 authentication requests per window
+    max: process.env.NODE_ENV === 'development' ? 1000 : 10, // Much more lenient in development for testing
     message: {
       success: false,
       message: 'Too many authentication attempts. Please try again later.',

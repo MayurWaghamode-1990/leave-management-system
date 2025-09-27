@@ -96,6 +96,11 @@ const getNavigationItems = (unreadCount: number, pendingApprovals: number): Navi
     path: '/delegations',
   },
   {
+    text: 'Leave Without Pay',
+    icon: <Assignment />,
+    path: '/lwp',
+  },
+  {
     text: 'Manager Dashboard',
     icon: <SupervisorAccount />,
     path: '/manager/dashboard',

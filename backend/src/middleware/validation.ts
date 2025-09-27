@@ -456,7 +456,7 @@ function validateEnum(
   enumValues: string[] | number[],
   location: 'body' | 'query' | 'params'
 ): ValidationErrorDetail | null {
-  if (!enumValues.includes(value)) {
+  if (!enumValues.includes(value as any)) {
     return {
       field,
       value,

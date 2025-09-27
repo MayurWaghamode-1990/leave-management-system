@@ -1,4 +1,5 @@
-import { PrismaClient, UserRole, LeaveType, Region } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { UserRole, LeaveType, Region } from '../types/enums';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -160,6 +161,43 @@ async function main() {
       maxCarryForward: 40,
       requiresDocumentation: true,
       documentationThreshold: 3,
+      location: 'Chicago',
+      region: Region.USA,
+      effectiveFrom: new Date('2024-01-01')
+    },
+    {
+      name: 'India Leave Without Pay Policy',
+      leaveType: LeaveType.LEAVE_WITHOUT_PAY,
+      entitlementDays: 365, // No fixed limit, but max 1 year continuous
+      accrualRate: 0,
+      maxCarryForward: 0,
+      requiresDocumentation: true,
+      documentationThreshold: 1, // Always requires documentation
+      maxConsecutiveDays: 365,
+      location: 'Bengaluru',
+      region: Region.INDIA,
+      effectiveFrom: new Date('2024-01-01')
+    },
+    {
+      name: 'USA Leave Without Pay Policy',
+      leaveType: LeaveType.LEAVE_WITHOUT_PAY,
+      entitlementDays: 365, // No fixed limit, but max 1 year continuous
+      accrualRate: 0,
+      maxCarryForward: 0,
+      requiresDocumentation: true,
+      documentationThreshold: 1, // Always requires documentation
+      maxConsecutiveDays: 365,
+      location: 'Chicago',
+      region: Region.USA,
+      effectiveFrom: new Date('2024-01-01')
+    },
+    {
+      name: 'USA PTO Policy (PTO)',
+      leaveType: LeaveType.PTO,
+      entitlementDays: 20, // Base PTO for AVP and below
+      accrualRate: 1.67,
+      maxCarryForward: 5,
+      requiresDocumentation: false,
       location: 'Chicago',
       region: Region.USA,
       effectiveFrom: new Date('2024-01-01')

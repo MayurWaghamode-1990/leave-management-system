@@ -38,6 +38,7 @@ model User {
   cancellationApprovals LeaveCancellationRequest[] @relation("CancellationApprovals")
   modificationRequests LeaveModificationRequest[] @relation("ModificationRequests")
   modificationApprovals LeaveModificationRequest[] @relation("ModificationApprovals")
+  leaveTemplates       LeaveTemplate[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -166,6 +167,37 @@ model Holiday {
   updatedAt   DateTime    @updatedAt
 
   @@map("holidays")
+}
+
+// Leave Template Model
+model LeaveTemplate {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  category    String      @default("PERSONAL")
+
+  // Template data
+  leaveType   String
+  duration    Int?        // Number of days (null for variable duration)
+  reason      String
+  isHalfDay   Boolean     @default(false)
+
+  // Sharing and visibility
+  isPublic    Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  usageCount  Int         @default(0)
+
+  // Owner information
+  createdBy   String
+  owner       User        @relation(fields: [createdBy], references: [id])
+
+  // Tags for better categorization
+  tags        String?     // JSON array of tags
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("leave_templates")
 }
 
 // Notification Model

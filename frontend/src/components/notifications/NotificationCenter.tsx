@@ -94,9 +94,19 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const settingsOpen = Boolean(settingsAnchorEl);
 
   useEffect(() => {
-    // Initialize audio for notification sounds
-    audioRef.current = new Audio('/notification-sound.mp3');
-    audioRef.current.volume = 0.3;
+    // Initialize audio for notification sounds (optional)
+    try {
+      audioRef.current = new Audio('/notification-sound.mp3');
+      audioRef.current.volume = 0.3;
+      // Test if the audio can be loaded
+      audioRef.current.addEventListener('error', () => {
+        console.warn('Notification sound file not found, audio notifications disabled');
+        audioRef.current = null;
+      });
+    } catch (error) {
+      console.warn('Audio notifications not supported:', error);
+      audioRef.current = null;
+    }
 
     // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
@@ -121,7 +131,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
   const handleNewNotification = (notification: any) => {
     // Play sound if enabled
     if (settings.sound && audioRef.current) {
-      audioRef.current.play().catch(console.error);
+      audioRef.current.play().catch((error) => {
+        console.warn('Could not play notification sound:', error);
+      });
     }
 
     // Show desktop notification if enabled and permitted
@@ -328,7 +340,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({
           ) : (
             <List sx={{ p: 0 }}>
               {filteredNotifications.map((notification, index) => (
-                <React.Fragment key={notification.id}>
+                <React.Fragment key={`${notification.id}-${index}`}>
                   <ListItem
                     button
                     onClick={() => handleNotificationClick(notification.id)}

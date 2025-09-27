@@ -1,0 +1,105 @@
+{
+  "testExecutionDate": "2025-09-24T10:12:07.919Z",
+  "testUser": "engineering.manager@company.com",
+  "summary": {
+    "totalTests": 8,
+    "testsWithIssues": 1,
+    "criticalIssues": 2
+  },
+  "identifiedIssues": [
+    "System allows multiple leave types for same dates"
+  ],
+  "detailedResults": [
+    {
+      "test": "Leave Type Retention",
+      "leaveType": "CASUAL_LEAVE",
+      "expectedType": "CASUAL_LEAVE",
+      "actualType": "CASUAL_LEAVE",
+      "retained": true,
+      "requestId": "7",
+      "issue": null
+    },
+    {
+      "test": "Leave Type Retention",
+      "leaveType": "SICK_LEAVE",
+      "expectedType": "SICK_LEAVE",
+      "actualType": "SICK_LEAVE",
+      "retained": true,
+      "requestId": "8",
+      "issue": null
+    },
+    {
+      "test": "Leave Type Retention",
+      "leaveType": "EARNED_LEAVE",
+      "expectedType": "EARNED_LEAVE",
+      "actualType": "EARNED_LEAVE",
+      "retained": true,
+      "requestId": "9",
+      "issue": null
+    },
+    {
+      "test": "Leave Type Retention",
+      "leaveType": "COMPENSATORY_OFF",
+      "expectedType": "COMPENSATORY_OFF",
+      "actualType": "COMPENSATORY_OFF",
+      "retained": true,
+      "requestId": "10",
+      "issue": null
+    },
+    {
+      "test": "Multiple Leave Types Same Date",
+      "dateRange": {
+        "start": "2025-10-14",
+        "end": "2025-10-16"
+      },
+      "attempts": [
+        {
+          "type": "CASUAL_LEAVE",
+          "id": "11",
+          "success": true
+        },
+        {
+          "type": "EARNED_LEAVE",
+          "id": "12",
+          "success": true
+        },
+        {
+          "type": "COMPENSATORY_OFF",
+          "id": "13",
+          "success": true
+        }
+      ],
+      "successCount": 3,
+      "allowsMultiple": true,
+      "issue": "System allows multiple leave types for same dates"
+    },
+    {
+      "test": "Leave Balance Deduction",
+      "initialBalance": 12,
+      "requestedDays": 2,
+      "expectedFinalBalance": 10,
+      "actualFinalBalance": 12,
+      "expectedDeduction": 2,
+      "actualDeduction": 0,
+      "deductionWorking": false,
+      "leaveRequestId": "14"
+    },
+    {
+      "test": "Half Day Leave",
+      "requestId": "15",
+      "totalDays": 0.5,
+      "isHalfDay": true,
+      "correctCalculation": true,
+      "issue": null
+    },
+    {
+      "test": "Leave Cancellation",
+      "requestId": "16",
+      "cancellationWorking": true
+    }
+  ],
+  "recommendations": [
+    "Add date range overlap validation to prevent multiple leave types for same period",
+    "Implement proper leave balance deduction logic after leave approval"
+  ]
+}

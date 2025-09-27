@@ -26,7 +26,10 @@ import {
   Fab,
   LinearProgress,
   IconButton,
-  Tooltip
+  Tooltip,
+  useMediaQuery,
+  useTheme,
+  Collapse
 } from '@mui/material';
 import {
   Add,
@@ -37,7 +40,8 @@ import {
   CheckCircle,
   Cancel,
   Schedule,
-  BarChart
+  BarChart,
+  Description
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -47,6 +51,7 @@ import toast from 'react-hot-toast';
 
 import api from '@/config/api';
 import { LeaveType, LeaveStatus } from '@/types';
+import TemplateSelector from '@/components/templates/TemplateSelector';
 
 interface LeaveRequest {
   id: string;
@@ -74,12 +79,15 @@ interface LeaveBalance {
 }
 
 const LeavesPage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+  const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -112,6 +120,27 @@ const LeavesPage: React.FC = () => {
   useEffect(() => {
     fetchLeaveRequests();
     fetchLeaveBalances();
+  }, []);
+
+  // Listen for template usage events
+  useEffect(() => {
+    const handleTemplateUse = (event: CustomEvent) => {
+      const templateData = event.detail;
+      setFormData({
+        leaveType: templateData.leaveType as LeaveType,
+        startDate: dayjs(),
+        endDate: templateData.duration ? dayjs().add(templateData.duration - 1, 'day') : dayjs(),
+        reason: templateData.reason,
+        isHalfDay: templateData.isHalfDay || false
+      });
+      setDialogOpen(true);
+    };
+
+    window.addEventListener('useLeaveTemplate', handleTemplateUse as EventListener);
+
+    return () => {
+      window.removeEventListener('useLeaveTemplate', handleTemplateUse as EventListener);
+    };
   }, []);
 
   const fetchLeaveRequests = async () => {
@@ -147,6 +176,17 @@ const LeavesPage: React.FC = () => {
       isHalfDay: false
     });
     setOpenDialog(true);
+  };
+
+  const handleSelectTemplate = (template: any) => {
+    setFormData({
+      leaveType: template.leaveType as LeaveType,
+      startDate: dayjs(),
+      endDate: template.duration ? dayjs().add(template.duration - 1, 'day') : dayjs(),
+      reason: template.reason,
+      isHalfDay: template.isHalfDay || false
+    });
+    setTemplateSelectorOpen(false);
   };
 
   const handleEditRequest = (request: LeaveRequest) => {
@@ -189,19 +229,42 @@ const LeavesPage: React.FC = () => {
         isHalfDay: formData.isHalfDay
       };
 
+      let response;
       if (dialogMode === 'create') {
-        await api.post('/leaves', requestData);
-        toast.success('Leave request submitted successfully');
+        response = await api.post('/leaves', requestData);
       } else if (dialogMode === 'edit' && selectedRequest) {
-        await api.put(`/leaves/${selectedRequest.id}`, requestData);
-        toast.success('Leave request updated successfully');
+        response = await api.put(`/leaves/${selectedRequest.id}`, requestData);
       }
 
-      setOpenDialog(false);
-      fetchLeaveRequests();
-      fetchLeaveBalances();
+      // Only show success if the request was actually successful
+      if (response && response.data.success) {
+        if (dialogMode === 'create') {
+          toast.success('Leave request submitted successfully');
+        } else {
+          toast.success('Leave request updated successfully');
+        }
+
+        // Close dialog and refresh data only on success
+        setOpenDialog(false);
+        await fetchLeaveRequests();
+        await fetchLeaveBalances();
+      } else {
+        throw new Error('Request was not successful');
+      }
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to submit request';
+      // Enhanced error handling for different types of conflicts
+      let errorMessage = 'Failed to submit request';
+
+      if (error.response?.status === 409) {
+        // Handle overlap conflicts specifically
+        errorMessage = error.response?.data?.message || 'Leave request conflicts with existing request. Please choose different dates.';
+      } else if (error.response?.status === 400) {
+        // Handle validation errors
+        errorMessage = error.response?.data?.message || 'Invalid request data. Please check your inputs.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -299,94 +362,186 @@ const LeavesPage: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               My Leave Requests
             </Typography>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Leave Type</TableCell>
-                    <TableCell>Start Date</TableCell>
-                    <TableCell>End Date</TableCell>
-                    <TableCell>Days</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Applied Date</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {leaveRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
-                      </TableCell>
-                      <TableCell>{dayjs(request.startDate).format('MMM DD, YYYY')}</TableCell>
-                      <TableCell>{dayjs(request.endDate).format('MMM DD, YYYY')}</TableCell>
-                      <TableCell>
-                        {request.totalDays} {request.isHalfDay && '(Half Day)'}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={request.status}
-                          color={statusColors[request.status] as any}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{dayjs(request.appliedDate).format('MMM DD, YYYY')}</TableCell>
-                      <TableCell>
-                        <Box display="flex" gap={1}>
-                          <Tooltip title="View Details">
-                            <IconButton
+
+            {isMobile ? (
+              // Mobile Card Layout
+              <Box>
+                {leaveRequests.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <Typography variant="body2" color="textSecondary">
+                      No leave requests found. Click "Apply for Leave" to create your first request.
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Grid container spacing={2}>
+                    {leaveRequests.map((request, index) => (
+                      <Grid item xs={12} key={`${request.id}-${index}`}>
+                        <Card variant="outlined" sx={{ p: 2 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight="medium">
+                                {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
+                              </Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                {dayjs(request.startDate).format('MMM DD')} - {dayjs(request.endDate).format('MMM DD, YYYY')}
+                              </Typography>
+                            </Box>
+                            <Chip
+                              label={request.status}
+                              color={statusColors[request.status] as any}
                               size="small"
-                              onClick={() => handleViewRequest(request)}
-                            >
-                              <Visibility />
-                            </IconButton>
-                          </Tooltip>
-                          {request.status === LeaveStatus.PENDING && (
-                            <>
-                              <Tooltip title="Edit">
+                            />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                            <Typography variant="body2">
+                              <strong>{request.totalDays} days</strong> {request.isHalfDay && '(Half Day)'}
+                            </Typography>
+                            <Box display="flex" gap={1}>
+                              <Tooltip title="View Details">
                                 <IconButton
                                   size="small"
-                                  onClick={() => handleEditRequest(request)}
+                                  onClick={() => handleViewRequest(request)}
                                 >
-                                  <Edit />
+                                  <Visibility />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Cancel">
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() => handleCancelRequest(request.id)}
-                                >
-                                  <Cancel />
-                                </IconButton>
-                              </Tooltip>
-                            </>
-                          )}
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {leaveRequests.length === 0 && (
+                              {request.status === LeaveStatus.PENDING && (
+                                <>
+                                  <Tooltip title="Edit">
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleEditRequest(request)}
+                                    >
+                                      <Edit />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Cancel">
+                                    <IconButton
+                                      size="small"
+                                      color="error"
+                                      onClick={() => handleCancelRequest(request.id)}
+                                    >
+                                      <Cancel />
+                                    </IconButton>
+                                  </Tooltip>
+                                </>
+                              )}
+                            </Box>
+                          </Box>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </Box>
+            ) : (
+              // Desktop Table Layout
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <Table>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
-                        <Typography variant="body2" color="textSecondary">
-                          No leave requests found. Click "Apply for Leave" to create your first request.
-                        </Typography>
-                      </TableCell>
+                      <TableCell>Leave Type</TableCell>
+                      <TableCell>Start Date</TableCell>
+                      <TableCell>End Date</TableCell>
+                      <TableCell>Days</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>Applied Date</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {leaveRequests.map((request, index) => (
+                      <TableRow key={`${request.id}-${index}`}>
+                        <TableCell>
+                          {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
+                        </TableCell>
+                        <TableCell>{dayjs(request.startDate).format('MMM DD, YYYY')}</TableCell>
+                        <TableCell>{dayjs(request.endDate).format('MMM DD, YYYY')}</TableCell>
+                        <TableCell>
+                          {request.totalDays} {request.isHalfDay && '(Half Day)'}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={request.status}
+                            color={statusColors[request.status] as any}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
+                          {dayjs(request.appliedDate).format('MMM DD, YYYY')}
+                        </TableCell>
+                        <TableCell>
+                          <Box display="flex" gap={1}>
+                            <Tooltip title="View Details">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleViewRequest(request)}
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </Tooltip>
+                            {request.status === LeaveStatus.PENDING && (
+                              <>
+                                <Tooltip title="Edit">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleEditRequest(request)}
+                                  >
+                                    <Edit />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Cancel">
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleCancelRequest(request.id)}
+                                  >
+                                    <Cancel />
+                                  </IconButton>
+                                </Tooltip>
+                              </>
+                            )}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {leaveRequests.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          <Typography variant="body2" color="textSecondary">
+                            No leave requests found. Click "Apply for Leave" to create your first request.
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </CardContent>
         </Card>
 
         {/* Leave Request Dialog */}
         <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
           <DialogTitle>
-            {dialogMode === 'create' && 'Apply for Leave'}
-            {dialogMode === 'edit' && 'Edit Leave Request'}
-            {dialogMode === 'view' && 'Leave Request Details'}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6">
+                {dialogMode === 'create' && 'Apply for Leave'}
+                {dialogMode === 'edit' && 'Edit Leave Request'}
+                {dialogMode === 'view' && 'Leave Request Details'}
+              </Typography>
+              {(dialogMode === 'create' || dialogMode === 'edit') && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Description />}
+                  onClick={() => setTemplateSelectorOpen(true)}
+                >
+                  Use Template
+                </Button>
+              )}
+            </Box>
           </DialogTitle>
           <DialogContent dividers>
             {dialogMode === 'view' && selectedRequest ? (
@@ -456,7 +611,7 @@ const LeavesPage: React.FC = () => {
                     </TextField>
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid item xs={12} sm={6}>
                     <DatePicker
                       label="Start Date"
                       value={formData.startDate}
@@ -470,7 +625,7 @@ const LeavesPage: React.FC = () => {
                     />
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid item xs={12} sm={6}>
                     <DatePicker
                       label="End Date"
                       value={formData.endDate}
@@ -531,6 +686,13 @@ const LeavesPage: React.FC = () => {
             )}
           </DialogActions>
         </Dialog>
+
+        {/* Template Selector Dialog */}
+        <TemplateSelector
+          open={templateSelectorOpen}
+          onClose={() => setTemplateSelectorOpen(false)}
+          onSelectTemplate={handleSelectTemplate}
+        />
       </Box>
     </LocalizationProvider>
   );

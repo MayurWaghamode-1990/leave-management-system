@@ -175,7 +175,7 @@ const NotificationBell: React.FC = () => {
           </MenuItem>
         ) : (
           displayNotifications.map((notification, index) => (
-            <React.Fragment key={notification.id}>
+            <React.Fragment key={`${notification.id}-${index}`}>
               <MenuItem
                 onClick={() => {
                   if (!notification.read) {

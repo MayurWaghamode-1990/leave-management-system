@@ -7,6 +7,7 @@ import { validate } from '../middleware/validation';
 import { authSchemas } from '../schemas/validationSchemas';
 import { logger } from '../utils/logger';
 import { userService } from '../services/userService';
+import { prisma } from '../index';
 
 const router = express.Router();
 

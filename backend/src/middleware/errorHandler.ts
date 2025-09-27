@@ -201,7 +201,7 @@ export const errorHandler = (
       params: req.params,
       body: sanitizeRequestBody(req.body),
       userId: (req as any).user?.id,
-      sessionId: req.sessionID
+      sessionId: (req as any).sessionID || 'unknown'
     },
     performance: {
       responseTime: Date.now() - (req as any).startTime,

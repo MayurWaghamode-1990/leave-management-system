@@ -119,8 +119,8 @@ const DelegationsPage: React.FC = () => {
 
       const delegationData = {
         delegateId: formData.delegateId,
-        startDate: formData.startDate.toISOString().split('T')[0],
-        endDate: formData.endDate.toISOString().split('T')[0],
+        startDate: formData.startDate.format('YYYY-MM-DD'),
+        endDate: formData.endDate.format('YYYY-MM-DD'),
         reason: formData.reason
       };
 

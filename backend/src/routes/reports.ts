@@ -530,6 +530,56 @@ router.get('/kpis',
   })
 );
 
+// Get manager-specific statistics
+router.get('/manager-stats',
+  authorize('MANAGER', 'HR_ADMIN'),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Filter reports for current manager's team (mock data)
+    const teamReports = mockLeaveReports.filter(report => {
+      // In real implementation, filter by manager's team
+      return true; // For now, include all reports
+    });
+
+    // Get current month reports
+    const currentMonthReports = teamReports.filter(report => {
+      const reportDate = new Date(report.appliedDate);
+      return reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear;
+    });
+
+    // Calculate stats
+    const totalTeamMembers = 15; // Mock team size
+    const pendingApprovals = teamReports.filter(r => r.status === 'PENDING').length;
+    const approvedThisMonth = currentMonthReports.filter(r => r.status === 'APPROVED').length;
+    const rejectedThisMonth = currentMonthReports.filter(r => r.status === 'REJECTED').length;
+
+    // Calculate team members currently on leave
+    const today = new Date();
+    const teamOnLeave = teamReports.filter(report => {
+      if (report.status !== 'APPROVED') return false;
+      const startDate = new Date(report.startDate);
+      const endDate = new Date(report.endDate);
+      return startDate <= today && endDate >= today;
+    }).length;
+
+    const stats = {
+      totalTeamMembers,
+      pendingApprovals,
+      approvedThisMonth,
+      rejectedThisMonth,
+      teamOnLeave
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  })
+);
+
 // Get calendar statistics for team calendar view
 router.get('/calendar-stats',
   authorize('MANAGER', 'HR_ADMIN', 'IT_ADMIN'),
