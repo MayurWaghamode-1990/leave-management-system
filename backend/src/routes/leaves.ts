@@ -849,11 +849,29 @@ router.post('/validate',
     // Validate using policy engine
     const validationResult = await leaveValidationEngine.validateLeaveRequest(validationRequest);
 
+    // Get current leave balances for the employee
+    const leaveBalances = await leaveValidationEngine.getLeaveEntitlements(req.user!.userId);
+
+    // Calculate the balance after this leave (if approved)
+    const effectiveDays = (validationRequest as any).adjustedTotalDays || validationRequest.totalDays;
+    const currentBalance = leaveBalances[leaveType as LeaveType];
+    const balanceAfterLeave = currentBalance ? {
+      ...currentBalance,
+      available: currentBalance.available - effectiveDays,
+      used: currentBalance.used + effectiveDays
+    } : null;
+
     res.json({
       success: true,
       data: {
         validation: validationResult,
-        calculatedDays: validationRequest.totalDays
+        calculatedDays: validationRequest.totalDays,
+        adjustedDays: (validationRequest as any).adjustedTotalDays,
+        leaveBalances: {
+          current: currentBalance,
+          afterLeave: balanceAfterLeave,
+          allBalances: leaveBalances
+        }
       }
     });
   })
@@ -2274,6 +2292,62 @@ router.post('/modification-requests/:id/approve',
   })
 );
 
+// Get leave status overview for dashboard
+router.get('/status-overview',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const currentYear = new Date().getFullYear();
+
+      const [
+        pendingCount,
+        approvedCount,
+        rejectedCount,
+        totalBalance,
+        usedBalance
+      ] = await Promise.all([
+        prisma.leaveRequest.count({
+          where: { employeeId: userId, status: 'PENDING' }
+        }),
+        prisma.leaveRequest.count({
+          where: { employeeId: userId, status: 'APPROVED' }
+        }),
+        prisma.leaveRequest.count({
+          where: { employeeId: userId, status: 'REJECTED' }
+        }),
+        prisma.leaveBalance.aggregate({
+          where: { employeeId: userId, year: currentYear },
+          _sum: { totalEntitlement: true }
+        }),
+        prisma.leaveBalance.aggregate({
+          where: { employeeId: userId, year: currentYear },
+          _sum: { used: true }
+        })
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          pending: pendingCount,
+          approved: approvedCount,
+          rejected: rejectedCount,
+          totalRequests: pendingCount + approvedCount + rejectedCount,
+          totalBalance: totalBalance._sum.totalEntitlement || 0,
+          usedBalance: usedBalance._sum.used || 0,
+          availableBalance: (totalBalance._sum.totalEntitlement || 0) - (usedBalance._sum.used || 0)
+        },
+        message: 'Leave status overview retrieved successfully'
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch leave status overview',
+        error: error?.message || 'Unknown error'
+      });
+    }
+  })
+);
+
 // Get specific leave request
 router.get('/:id',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -2358,6 +2432,499 @@ router.delete('/:id',
       success: true,
       message: 'Leave request cancelled successfully'
     });
+  })
+);
+
+// Get all leave applications (for status page)
+router.get('/all-applications',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user!.userId;
+    const userRole = req.user!.role;
+
+    // Determine which applications to show based on role
+    let applications: LeaveRequest[];
+
+    if (userRole === 'HR_ADMIN' || userRole === 'ADMIN') {
+      // HR/Admin can see all applications
+      applications = mockLeaveRequests;
+    } else if (userRole === 'MANAGER') {
+      // Managers can see their team's applications + their own
+      // For simplicity, show all for now - in real implementation, filter by team
+      applications = mockLeaveRequests;
+    } else {
+      // Regular employees can only see their own applications
+      applications = mockLeaveRequests.filter(req => req.employeeId === userId);
+    }
+
+    // Get user details for employee information
+    const userMap = new Map();
+    mockUsers.forEach(user => {
+      userMap.set(user.id, user);
+    });
+
+    // Transform applications for frontend
+    const transformedApplications = applications.map(app => {
+      const employee = userMap.get(app.employeeId);
+
+      return {
+        id: app.id,
+        employeeId: app.employeeId,
+        employeeName: employee?.name || 'Unknown User',
+        employeeEmail: employee?.email || '',
+        department: employee?.department,
+        leaveType: app.leaveType,
+        startDate: app.startDate,
+        endDate: app.endDate,
+        totalDays: app.totalDays,
+        isHalfDay: app.isHalfDay,
+        halfDayPeriod: app.isHalfDay ? 'FIRST_HALF' : undefined,
+        reason: app.reason,
+        status: app.status,
+        appliedDate: app.appliedDate,
+        approvedBy: app.approvedBy,
+        approvedAt: app.approvedAt,
+        rejectedAt: app.status === 'REJECTED' ? app.approvedAt : undefined,
+        cancelledAt: app.status === 'CANCELLED' ? app.approvedAt : undefined,
+        comments: app.comments,
+        documents: [],
+        history: [
+          {
+            id: `${app.id}-applied`,
+            action: 'Application submitted',
+            performedBy: employee?.name || 'Unknown User',
+            performedAt: app.appliedDate,
+            comments: undefined,
+            oldStatus: undefined,
+            newStatus: 'PENDING' as LeaveStatus
+          },
+          ...(app.approvedAt ? [{
+            id: `${app.id}-processed`,
+            action: app.status === 'APPROVED' ? 'Application approved' :
+                   app.status === 'REJECTED' ? 'Application rejected' :
+                   app.status === 'CANCELLED' ? 'Application cancelled' : 'Status updated',
+            performedBy: app.approvedBy || 'System',
+            performedAt: app.approvedAt,
+            comments: app.comments,
+            oldStatus: 'PENDING' as LeaveStatus,
+            newStatus: app.status as LeaveStatus
+          }] : [])
+        ]
+      };
+    });
+
+    // Sort by application date (newest first)
+    transformedApplications.sort((a, b) =>
+      new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime()
+    );
+
+    res.json({
+      success: true,
+      message: 'Leave applications retrieved successfully',
+      data: transformedApplications
+    });
+  })
+);
+
+// Update application status
+router.patch('/:id/status',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { status, comments } = req.body;
+    const userId = req.user!.userId;
+
+    const requestIndex = mockLeaveRequests.findIndex(req => req.id === id);
+    if (requestIndex === -1) {
+      throw new AppError('Leave request not found', 404);
+    }
+
+    const request = mockLeaveRequests[requestIndex];
+
+    // Update the request
+    mockLeaveRequests[requestIndex] = {
+      ...request,
+      status: status,
+      approvedBy: userId,
+      approvedAt: new Date().toISOString(),
+      comments: comments
+    };
+
+    res.json({
+      success: true,
+      message: `Leave request ${status.toLowerCase()} successfully`,
+      data: mockLeaveRequests[requestIndex]
+    });
+  })
+);
+
+// Get leave status overview for dashboard
+router.get('/status-overview',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user!.userId;
+
+    // Get all user's leave requests
+    const userRequests = mockLeaveRequests.filter(req => req.employeeId === userId);
+
+    // Calculate statistics
+    const stats = {
+      approved: userRequests.filter(req => req.status === 'APPROVED').length,
+      pending: userRequests.filter(req => req.status === 'PENDING').length,
+      rejected: userRequests.filter(req => req.status === 'REJECTED').length,
+      cancelled: userRequests.filter(req => req.status === 'CANCELLED').length,
+      total: userRequests.length
+    };
+
+    // Calculate approval rate
+    const approvalRate = stats.total > 0 ? (stats.approved / (stats.approved + stats.rejected)) * 100 : 0;
+
+    // Calculate average processing days (simplified calculation)
+    const processedRequests = userRequests.filter(req => req.approvedAt || req.status === 'REJECTED');
+    const averageProcessingDays = processedRequests.length > 0
+      ? processedRequests.reduce((sum, req) => {
+          const appliedDate = new Date(req.appliedDate);
+          const processedDate = req.approvedAt ? new Date(req.approvedAt) : new Date();
+          const daysDiff = Math.ceil((processedDate.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
+          return sum + daysDiff;
+        }, 0) / processedRequests.length
+      : 0;
+
+    // Get recent requests (last 10)
+    const recentRequests = userRequests
+      .sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime())
+      .slice(0, 10)
+      .map(request => ({
+        id: request.id,
+        type: request.leaveType,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        totalDays: request.totalDays,
+        status: request.status,
+        appliedDate: request.appliedDate,
+        approvedDate: request.approvedAt,
+        rejectedDate: request.status === 'REJECTED' ? request.approvedAt : undefined,
+        reason: request.reason,
+        comments: request.comments
+      }));
+
+    res.json({
+      success: true,
+      message: 'Leave status overview retrieved successfully',
+      data: {
+        stats,
+        recentRequests,
+        approvalRate: Math.round(approvalRate * 10) / 10, // Round to 1 decimal place
+        averageProcessingDays: Math.round(averageProcessingDays * 10) / 10
+      }
+    });
+  })
+);
+
+// Get yearwise leave balances
+router.get('/yearwise-balances',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user!.userId;
+
+    try {
+      // Get user's leave balances - for now using mock data
+      const userBalances = mockLeaveBalances.filter(bal => bal.employeeId === userId);
+
+      // Group by year and create comprehensive yearwise data
+      const yearwiseBalances = [];
+      const currentYear = new Date().getFullYear();
+      const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+
+      for (const year of years) {
+        const yearBalances = userBalances.filter(bal => bal.year === year);
+
+        // If no balances for this year, create default ones
+        if (yearBalances.length === 0 && year <= currentYear) {
+          // Create default balances for past and current year
+          Object.values(LeaveType).forEach(leaveType => {
+            const defaultEntitlement = getDefaultEntitlement(leaveType);
+            yearBalances.push({
+              id: `${userId}-${year}-${leaveType}`,
+              employeeId: userId,
+              leaveType,
+              totalEntitlement: defaultEntitlement,
+              used: Math.floor(Math.random() * (defaultEntitlement / 2)), // Random usage for demo
+              available: defaultEntitlement - Math.floor(Math.random() * (defaultEntitlement / 2)),
+              carryForward: year > currentYear - 2 ? Math.floor(Math.random() * 5) : 0,
+              year,
+              accrued: defaultEntitlement,
+              pending: 0,
+              expired: year < currentYear ? Math.floor(Math.random() * 3) : 0,
+              encashed: year < currentYear ? Math.floor(Math.random() * 2) : 0,
+              lastUpdated: new Date().toISOString()
+            });
+          });
+        }
+
+        // Create transactions for the year
+        const transactions = [];
+        yearBalances.forEach(balance => {
+          // Add accrual transaction
+          transactions.push({
+            id: `${balance.id}-accrual`,
+            leaveType: balance.leaveType,
+            transactionType: 'ACCRUAL',
+            amount: balance.accrued,
+            date: `${year}-01-01T00:00:00Z`,
+            description: `Annual accrual for ${year}`,
+            referenceId: null,
+            approvedBy: 'System'
+          });
+
+          // Add usage transactions if any
+          if (balance.used > 0) {
+            transactions.push({
+              id: `${balance.id}-usage`,
+              leaveType: balance.leaveType,
+              transactionType: 'USAGE',
+              amount: -balance.used,
+              date: `${year}-06-15T00:00:00Z`,
+              description: `Leave usage throughout ${year}`,
+              referenceId: null,
+              approvedBy: null
+            });
+          }
+
+          // Add carry forward if any
+          if (balance.carryForward > 0) {
+            transactions.push({
+              id: `${balance.id}-carryforward`,
+              leaveType: balance.leaveType,
+              transactionType: 'CARRY_FORWARD',
+              amount: balance.carryForward,
+              date: `${year}-01-01T00:00:00Z`,
+              description: `Carried forward from ${year - 1}`,
+              referenceId: null,
+              approvedBy: 'System'
+            });
+          }
+
+          // Add expiry if any
+          if (balance.expired > 0) {
+            transactions.push({
+              id: `${balance.id}-expiry`,
+              leaveType: balance.leaveType,
+              transactionType: 'EXPIRY',
+              amount: -balance.expired,
+              date: `${year}-12-31T00:00:00Z`,
+              description: `Expired leaves at end of ${year}`,
+              referenceId: null,
+              approvedBy: 'System'
+            });
+          }
+
+          // Add encashment if any
+          if (balance.encashed > 0) {
+            transactions.push({
+              id: `${balance.id}-encashment`,
+              leaveType: balance.leaveType,
+              transactionType: 'ENCASHMENT',
+              amount: -balance.encashed,
+              date: `${year}-12-31T00:00:00Z`,
+              description: `Leave encashment for ${year}`,
+              referenceId: null,
+              approvedBy: 'HR'
+            });
+          }
+        });
+
+        // Calculate summary
+        const summary = {
+          totalEntitled: yearBalances.reduce((sum, bal) => sum + bal.totalEntitlement, 0),
+          totalUsed: yearBalances.reduce((sum, bal) => sum + bal.used, 0),
+          totalAvailable: yearBalances.reduce((sum, bal) => sum + bal.available, 0),
+          totalCarriedForward: yearBalances.reduce((sum, bal) => sum + bal.carryForward, 0),
+          totalExpired: yearBalances.reduce((sum, bal) => sum + (bal.expired || 0), 0),
+          totalEncashed: yearBalances.reduce((sum, bal) => sum + (bal.encashed || 0), 0)
+        };
+
+        yearwiseBalances.push({
+          year,
+          balances: yearBalances.map(bal => ({
+            id: bal.id,
+            leaveType: bal.leaveType,
+            year: bal.year,
+            totalEntitlement: bal.totalEntitlement,
+            used: bal.used,
+            available: bal.available,
+            carryForward: bal.carryForward,
+            pending: bal.pending || 0,
+            accrued: bal.accrued || bal.totalEntitlement,
+            expired: bal.expired || 0,
+            encashed: bal.encashed || 0,
+            lastUpdated: bal.lastUpdated || new Date().toISOString()
+          })),
+          transactions,
+          summary
+        });
+      }
+
+      // Filter out future years with no data
+      const filteredYearwiseBalances = yearwiseBalances.filter(yb =>
+        yb.year <= currentYear || yb.balances.some(b => b.totalEntitlement > 0)
+      );
+
+      res.json({
+        success: true,
+        message: 'Yearwise leave balances retrieved successfully',
+        data: filteredYearwiseBalances
+      });
+
+    } catch (error) {
+      console.error('Error fetching yearwise balances:', error);
+      throw new AppError('Failed to fetch yearwise balances', 500);
+    }
+  })
+);
+
+// Helper function to get default entitlements
+function getDefaultEntitlement(leaveType: LeaveType): number {
+  const defaults: Record<LeaveType, number> = {
+    [LeaveType.SICK_LEAVE]: 12,
+    [LeaveType.CASUAL_LEAVE]: 12,
+    [LeaveType.EARNED_LEAVE]: 21,
+    [LeaveType.MATERNITY_LEAVE]: 84,
+    [LeaveType.PATERNITY_LEAVE]: 15,
+    [LeaveType.COMPENSATORY_OFF]: 0, // Earned through overtime
+    [LeaveType.BEREAVEMENT_LEAVE]: 5,
+    [LeaveType.MARRIAGE_LEAVE]: 5
+  };
+  return defaults[leaveType] || 0;
+}
+
+// Get booked leaves for dashboard
+router.get('/booked-leaves',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      // Get all approved leaves for the user
+      const approvedLeaves = await prisma.leaveRequest.findMany({
+        where: {
+          employeeId: userId,
+          status: 'APPROVED'
+        },
+        orderBy: {
+          startDate: 'asc'
+        }
+      });
+
+      // Categorize leaves
+      const upcoming = approvedLeaves.filter(leave =>
+        new Date(leave.startDate) > today
+      );
+
+      const current = approvedLeaves.filter(leave => {
+        const startDate = new Date(leave.startDate);
+        const endDate = new Date(leave.endDate);
+        return startDate <= today && endDate >= today;
+      });
+
+      const thisMonth = approvedLeaves.filter(leave => {
+        const startDate = new Date(leave.startDate);
+        return startDate >= startOfMonth && startDate <= endOfMonth;
+      });
+
+      // Calculate summary
+      const summary = {
+        totalBookedDays: approvedLeaves.reduce((sum, leave) => sum + leave.totalDays, 0),
+        upcomingDays: upcoming.reduce((sum, leave) => sum + leave.totalDays, 0),
+        currentCount: current.length
+      };
+
+      // Transform data for frontend
+      const transformLeave = (leave: any) => ({
+        id: leave.id,
+        type: leave.leaveType,
+        startDate: leave.startDate.toISOString(),
+        endDate: leave.endDate.toISOString(),
+        totalDays: leave.totalDays,
+        status: leave.status,
+        appliedDate: leave.appliedDate.toISOString(),
+        approvedDate: leave.approvedAt?.toISOString(),
+        reason: leave.reason,
+        isHalfDay: leave.isHalfDay,
+        halfDayPeriod: leave.halfDayPeriod
+      });
+
+      res.json({
+        success: true,
+        message: 'Booked leaves retrieved successfully',
+        data: {
+          upcoming: upcoming.map(transformLeave),
+          current: current.map(transformLeave),
+          thisMonth: thisMonth.map(transformLeave),
+          summary
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch booked leaves',
+        error: error?.message || 'Unknown error'
+      });
+    }
+  })
+);
+
+// Get leave status overview for dashboard
+router.get('/status-overview',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const currentYear = new Date().getFullYear();
+
+      const [
+        pendingCount,
+        approvedCount,
+        rejectedCount,
+        totalBalance,
+        usedBalance
+      ] = await Promise.all([
+        prisma.leaveRequest.count({
+          where: { employeeId: userId, status: 'PENDING' }
+        }),
+        prisma.leaveRequest.count({
+          where: { employeeId: userId, status: 'APPROVED' }
+        }),
+        prisma.leaveRequest.count({
+          where: { employeeId: userId, status: 'REJECTED' }
+        }),
+        prisma.leaveBalance.aggregate({
+          where: { employeeId: userId, year: currentYear },
+          _sum: { totalEntitlement: true }
+        }),
+        prisma.leaveBalance.aggregate({
+          where: { employeeId: userId, year: currentYear },
+          _sum: { used: true }
+        })
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          pending: pendingCount,
+          approved: approvedCount,
+          rejected: rejectedCount,
+          totalRequests: pendingCount + approvedCount + rejectedCount,
+          totalBalance: totalBalance._sum.totalEntitlement || 0,
+          usedBalance: usedBalance._sum.used || 0,
+          availableBalance: (totalBalance._sum.totalEntitlement || 0) - (usedBalance._sum.used || 0)
+        },
+        message: 'Leave status overview retrieved successfully'
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch leave status overview',
+        error: error?.message || 'Unknown error'
+      });
+    }
   })
 );
 
