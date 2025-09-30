@@ -140,6 +140,9 @@ class LeaveService {
   // Create new leave request
   async createLeaveRequest(data: CreateLeaveRequestData) {
     try {
+      // CRITICAL FIX: Check for overlapping leave requests
+      await this.validateDateRangeOverlap(data.employeeId, data.startDate, data.endDate);
+
       // Check if employee has sufficient balance
       const balance = await this.getLeaveBalance(data.employeeId, data.leaveType, new Date().getFullYear());
 
@@ -458,6 +461,62 @@ class LeaveService {
       };
     } catch (error) {
       logger.error('Error fetching leave statistics:', error);
+      throw error;
+    }
+  }
+
+  // CRITICAL FIX: Validate date range overlap to prevent multiple leaves for same dates
+  async validateDateRangeOverlap(employeeId: string, startDate: Date, endDate: Date, excludeLeaveId?: string) {
+    try {
+      const where: any = {
+        employeeId,
+        status: { in: ['PENDING', 'APPROVED'] },
+        OR: [
+          {
+            // New request starts within existing leave period
+            startDate: { lte: startDate },
+            endDate: { gte: startDate }
+          },
+          {
+            // New request ends within existing leave period
+            startDate: { lte: endDate },
+            endDate: { gte: endDate }
+          },
+          {
+            // New request completely encompasses existing leave
+            startDate: { gte: startDate },
+            endDate: { lte: endDate }
+          }
+        ]
+      };
+
+      // Exclude current leave request if updating
+      if (excludeLeaveId) {
+        where.id = { not: excludeLeaveId };
+      }
+
+      const overlappingLeaves = await prisma.leaveRequest.findMany({
+        where,
+        select: {
+          id: true,
+          leaveType: true,
+          startDate: true,
+          endDate: true,
+          status: true
+        }
+      });
+
+      if (overlappingLeaves.length > 0) {
+        const overlappingDetails = overlappingLeaves.map(leave =>
+          `${leave.leaveType} from ${leave.startDate.toDateString()} to ${leave.endDate.toDateString()} (${leave.status})`
+        ).join(', ');
+
+        throw new Error(`Leave request overlaps with existing leave(s): ${overlappingDetails}`);
+      }
+
+      return true;
+    } catch (error) {
+      logger.error('Error validating date range overlap:', error);
       throw error;
     }
   }
