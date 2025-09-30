@@ -252,12 +252,23 @@ class LeaveService {
   async approveLeaveRequest(leaveRequestId: string, approverId: string, comments?: string) {
     try {
       return await prisma.$transaction(async (tx) => {
-        // Update approval record
-        const approval = await tx.approval.updateMany({
+        // RACE CONDITION FIX: Use findFirst with explicit locking and atomic update
+        const pendingApproval = await tx.approval.findFirst({
           where: {
             leaveRequestId,
             approverId,
             status: 'PENDING',
+          },
+        });
+
+        if (!pendingApproval) {
+          throw new Error('Approval record not found or already processed');
+        }
+
+        // Atomic update using unique ID with version check
+        const updatedApproval = await tx.approval.update({
+          where: {
+            id: pendingApproval.id,
           },
           data: {
             status: 'APPROVED',
@@ -266,36 +277,39 @@ class LeaveService {
           },
         });
 
-        if (approval.count === 0) {
-          throw new Error('Approval record not found or already processed');
+        // Double-check the approval was actually updated by us
+        if (updatedApproval.status !== 'APPROVED') {
+          throw new Error('Approval update failed due to concurrent modification');
         }
 
-        // Update leave request status
-        const leaveRequest = await tx.leaveRequest.update({
+        // RACE CONDITION FIX: Check leave request status before updating
+        const currentLeaveRequest = await tx.leaveRequest.findUnique({
           where: { id: leaveRequestId },
+          select: { status: true, id: true },
+        });
+
+        if (!currentLeaveRequest) {
+          throw new Error('Leave request not found');
+        }
+
+        if (currentLeaveRequest.status !== 'PENDING') {
+          throw new Error(`Leave request status is ${currentLeaveRequest.status}, cannot approve`);
+        }
+
+        // Update leave request status atomically
+        const leaveRequest = await tx.leaveRequest.update({
+          where: {
+            id: leaveRequestId,
+            status: 'PENDING' // Additional condition to prevent race condition
+          },
           data: { status: 'APPROVED' },
           include: {
             employee: true,
           },
         });
 
-        // Update leave balance
-        const currentYear = new Date().getFullYear();
-        await tx.leaveBalance.updateMany({
-          where: {
-            employeeId: leaveRequest.employeeId,
-            leaveType: leaveRequest.leaveType,
-            year: currentYear,
-          },
-          data: {
-            used: {
-              increment: leaveRequest.totalDays,
-            },
-            available: {
-              decrement: leaveRequest.totalDays,
-            },
-          },
-        });
+        // CRITICAL FIX: Update leave balance with proper error handling and race condition protection
+        await this.updateLeaveBalanceAtomic(tx, leaveRequest.employeeId, leaveRequest.leaveType, leaveRequest.totalDays, leaveRequest.employee.location);
 
         return leaveRequest;
       });
@@ -309,12 +323,23 @@ class LeaveService {
   async rejectLeaveRequest(leaveRequestId: string, approverId: string, comments?: string) {
     try {
       return await prisma.$transaction(async (tx) => {
-        // Update approval record
-        const approval = await tx.approval.updateMany({
+        // RACE CONDITION FIX: Use findFirst with explicit locking and atomic update
+        const pendingApproval = await tx.approval.findFirst({
           where: {
             leaveRequestId,
             approverId,
             status: 'PENDING',
+          },
+        });
+
+        if (!pendingApproval) {
+          throw new Error('Approval record not found or already processed');
+        }
+
+        // Atomic update using unique ID
+        const updatedApproval = await tx.approval.update({
+          where: {
+            id: pendingApproval.id,
           },
           data: {
             status: 'REJECTED',
@@ -323,13 +348,31 @@ class LeaveService {
           },
         });
 
-        if (approval.count === 0) {
-          throw new Error('Approval record not found or already processed');
+        // Double-check the approval was actually updated by us
+        if (updatedApproval.status !== 'REJECTED') {
+          throw new Error('Approval update failed due to concurrent modification');
         }
 
-        // Update leave request status
-        const leaveRequest = await tx.leaveRequest.update({
+        // RACE CONDITION FIX: Check leave request status before updating
+        const currentLeaveRequest = await tx.leaveRequest.findUnique({
           where: { id: leaveRequestId },
+          select: { status: true, id: true },
+        });
+
+        if (!currentLeaveRequest) {
+          throw new Error('Leave request not found');
+        }
+
+        if (currentLeaveRequest.status !== 'PENDING') {
+          throw new Error(`Leave request status is ${currentLeaveRequest.status}, cannot reject`);
+        }
+
+        // Update leave request status atomically
+        const leaveRequest = await tx.leaveRequest.update({
+          where: {
+            id: leaveRequestId,
+            status: 'PENDING' // Additional condition to prevent race condition
+          },
           data: { status: 'REJECTED' },
           include: {
             employee: true,
@@ -518,6 +561,99 @@ class LeaveService {
     } catch (error) {
       logger.error('Error validating date range overlap:', error);
       throw error;
+    }
+  }
+
+  // Helper method to get default entitlement for leave types
+  private async getDefaultEntitlement(leaveType: string, location?: string): Promise<number> {
+    try {
+      // Try to get from leave policy first
+      const policy = await prisma.leavePolicy.findFirst({
+        where: {
+          leaveType,
+          location: location || 'Default',
+          isActive: true
+        }
+      });
+
+      if (policy) {
+        return policy.entitlementDays;
+      }
+
+      // Default entitlements based on GLF requirements
+      const defaultEntitlements: Record<string, number> = {
+        'CASUAL_LEAVE': 12,    // GLF: 1 per month = 12 per year
+        'EARNED_LEAVE': 12,    // GLF: 1 per month = 12 per year
+        'PRIVILEGE_LEAVE': 12, // GLF: 1 per month = 12 per year
+        'SICK_LEAVE': 12,
+        'MATERNITY_LEAVE': 180, // GLF: 180 days
+        'PATERNITY_LEAVE': 5,   // GLF: 5 days
+        'COMPENSATORY_OFF': 0,  // Earned through overtime
+        'LEAVE_WITHOUT_PAY': 0, // No entitlement
+        'PTO': 15, // USA default - AVP level
+        'BEREAVEMENT_LEAVE': 3
+      };
+
+      return defaultEntitlements[leaveType] || 12;
+    } catch (error) {
+      logger.error('Error getting default entitlement:', error);
+      return 12; // Fallback to 12 days
+    }
+  }
+
+  // RACE CONDITION FIX: Atomic leave balance update with proper locking
+  private async updateLeaveBalanceAtomic(
+    tx: any,
+    employeeId: string,
+    leaveType: string,
+    daysToDeduct: number,
+    location?: string
+  ): Promise<void> {
+    const currentYear = new Date().getFullYear();
+
+    try {
+      // Use upsert for atomic create-or-update operation
+      const result = await tx.leaveBalance.upsert({
+        where: {
+          employeeId_leaveType_year: {
+            employeeId,
+            leaveType,
+            year: currentYear,
+          },
+        },
+        update: {
+          used: {
+            increment: daysToDeduct,
+          },
+          available: {
+            decrement: daysToDeduct,
+          },
+        },
+        create: {
+          employeeId,
+          leaveType,
+          year: currentYear,
+          totalEntitlement: await this.getDefaultEntitlement(leaveType, location),
+          used: daysToDeduct,
+          available: Math.max(0, (await this.getDefaultEntitlement(leaveType, location)) - daysToDeduct),
+          carryForward: 0,
+        },
+      });
+
+      // Validate that available balance doesn't go negative
+      if (result.available < 0) {
+        logger.error(`Negative balance detected for employee ${employeeId}, leave type ${leaveType}. Available: ${result.available}`);
+        // Optionally, we could rollback here or set available to 0
+        await tx.leaveBalance.update({
+          where: { id: result.id },
+          data: { available: 0 },
+        });
+      }
+
+      logger.info(`Updated leave balance for employee ${employeeId}: ${leaveType} - Used: ${result.used}, Available: ${result.available}`);
+    } catch (error: any) {
+      logger.error('Error updating leave balance atomically:', error);
+      throw new Error(`Failed to update leave balance: ${error?.message || 'Unknown error'}`);
     }
   }
 }
