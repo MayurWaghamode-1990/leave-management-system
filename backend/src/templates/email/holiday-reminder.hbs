@@ -1,0 +1,109 @@
+{{#> base }}
+  {{#*inline "content"}}
+    <tr>
+      <td style="padding: 20px; font-family: Arial, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <div style="background-color: #4caf50; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">🎉 Upcoming Holiday</h1>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hello {{employeeName}},</h2>
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              We wanted to remind you about an upcoming holiday:
+            </p>
+
+            <!-- Holiday Details -->
+            <div style="background-color: #e8f5e8; padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #4caf50;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333; width: 30%;">Holiday:</td>
+                  <td style="padding: 8px 0; color: #666; font-size: 18px; font-weight: bold;">{{holidayName}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333;">Date:</td>
+                  <td style="padding: 8px 0; color: #666;">{{formatDate holidayDate}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333;">Days Until:</td>
+                  <td style="padding: 8px 0; color: #666;">{{daysUntilHoliday}} days</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333;">Location:</td>
+                  <td style="padding: 8px 0; color: #666;">{{location}}</td>
+                </tr>
+                {{#if isOptional}}
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333;">Type:</td>
+                  <td style="padding: 8px 0; color: #ff9800; font-weight: bold;">Optional Holiday</td>
+                </tr>
+                {{/if}}
+              </table>
+            </div>
+
+            {{#if isOptional}}
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #856404;">📋 Optional Holiday</h4>
+              <p style="margin: 0; color: #856404;">
+                This is an optional holiday. You can choose to take this day off based on your personal preference and work requirements.
+                Please coordinate with your manager and team before taking this day off.
+              </p>
+            </div>
+            {{else}}
+            <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #0c5460;">🏢 Public Holiday</h4>
+              <p style="margin: 0; color: #0c5460;">
+                This is a public holiday. The office will be closed on this day. Enjoy your time off!
+              </p>
+            </div>
+            {{/if}}
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              {{#if isOptional}}
+              If you plan to take this optional holiday, please submit your leave request in advance through the leave management system.
+              {{else}}
+              Please plan your work accordingly as the office will remain closed on this day.
+              {{/if}}
+            </p>
+
+            <!-- Action Button -->
+            <div style="text-align: center; margin: 30px 0;">
+              {{#if isOptional}}
+              <a href="{{portalUrl}}/leaves/apply" style="background-color: #4caf50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">
+                Apply for Leave
+              </a>
+              {{/if}}
+              <a href="{{portalUrl}}/calendar" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+                View Calendar
+              </a>
+            </div>
+
+            <!-- Additional Tips -->
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #495057;">💡 Tips:</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #666;">
+                <li>Plan your tasks and deadlines accordingly</li>
+                <li>Inform your team about any pending work</li>
+                {{#if isOptional}}
+                <li>Check with your manager before taking optional holidays</li>
+                {{/if}}
+                <li>Set up out-of-office messages if needed</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; text-align: center; border-top: 1px solid #e9ecef;">
+            <p style="margin: 0; color: #666; font-size: 14px;">
+              This is an automated reminder from {{companyName}} Leave Management System.<br>
+              Please do not reply to this email.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  {{/inline}}
+{{/base}}

@@ -1,0 +1,112 @@
+{{#> base }}
+  {{#*inline "content"}}
+    <tr>
+      <td style="padding: 20px; font-family: Arial, sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <div style="background-color: #ff9800; color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px;">⏰ Comp Off Expiring Soon</h1>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hello {{employeeName}},</h2>
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              This is a reminder that your compensatory off hours are about to expire. Please use them before the expiration date to avoid losing them.
+            </p>
+
+            <!-- Comp Off Details -->
+            <div style="background-color: #fff3cd; padding: 20px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333; width: 30%;">Comp Off Hours:</td>
+                  <td style="padding: 8px 0; color: #666; font-size: 18px; font-weight: bold;">{{compOffHours}} hours</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333;">Expiry Date:</td>
+                  <td style="padding: 8px 0; color: #d32f2f; font-weight: bold;">{{formatDate expiryDate}}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; font-weight: bold; color: #333;">Days Remaining:</td>
+                  <td style="padding: 8px 0; color: {{#if (lt daysUntilExpiry 7)}}#d32f2f{{else}}#ff9800{{/if}}; font-weight: bold;">{{daysUntilExpiry}} days</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Work Log Details -->
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+              <h4 style="margin: 0 0 15px 0; color: #333;">📋 Work Log Details:</h4>
+              {{#each workLogDetails}}
+              <div style="background-color: white; padding: 12px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid #007bff;">
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 4px 0; font-weight: bold; color: #333; width: 25%;">Date:</td>
+                    <td style="padding: 4px 0; color: #666;">{{formatDate workDate}}</td>
+                    <td style="padding: 4px 0; font-weight: bold; color: #333; width: 25%;">Hours:</td>
+                    <td style="padding: 4px 0; color: #666;">{{hoursWorked}}h</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 4px 0; font-weight: bold; color: #333;">Type:</td>
+                    <td style="padding: 4px 0; color: #666;" colspan="3">{{workType}}</td>
+                  </tr>
+                </table>
+              </div>
+              {{/each}}
+            </div>
+
+            <!-- Urgency Alert -->
+            {{#if (lt daysUntilExpiry 7)}}
+            <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #721c24;">🚨 Urgent Action Required</h4>
+              <p style="margin: 0; color: #721c24; font-weight: bold;">
+                Your comp off expires in {{daysUntilExpiry}} days! Please apply for leave immediately to avoid losing these hours.
+              </p>
+            </div>
+            {{else}}
+            <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #0c5460;">📅 Reminder</h4>
+              <p style="margin: 0; color: #0c5460;">
+                You have {{daysUntilExpiry}} days to use your comp off. Plan your leave accordingly to make the most of your earned time off.
+              </p>
+            </div>
+            {{/if}}
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+              To apply for comp off, please use the leave management system. You can convert your comp off hours into leave days based on the company policy.
+            </p>
+
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="{{portalUrl}}/compoff/application" style="background-color: #ff9800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">
+                Apply for Comp Off
+              </a>
+              <a href="{{portalUrl}}/compoff/balance" style="background-color: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">
+                View Balance
+              </a>
+            </div>
+
+            <!-- Policy Reminder -->
+            <div style="background-color: #e2e3e5; padding: 15px; border-radius: 4px; margin-top: 20px;">
+              <h4 style="margin: 0 0 10px 0; color: #383d41;">📖 Policy Reminder:</h4>
+              <ul style="margin: 0; padding-left: 20px; color: #666;">
+                <li>Comp off hours expire 3 months after approval</li>
+                <li>Minimum 5 hours required for half-day comp off</li>
+                <li>8 hours required for full-day comp off</li>
+                <li>Expired comp off cannot be recovered or carried forward</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 0 0 8px 8px; text-align: center; border-top: 1px solid #e9ecef;">
+            <p style="margin: 0; color: #666; font-size: 14px;">
+              This is an automated reminder from {{companyName}} Leave Management System.<br>
+              Please do not reply to this email.
+            </p>
+          </div>
+        </div>
+      </td>
+    </tr>
+  {{/inline}}
+{{/base}}

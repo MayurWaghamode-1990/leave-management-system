@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import handlebars from 'handlebars';
 import { createEmailTransporter, isEmailDemoMode, emailConfig } from '../config/email';
+import { emailActionTokenService } from './emailActionTokenService';
 import { logger } from '../utils/logger';
 
 interface EmailTemplate {
@@ -25,6 +26,25 @@ interface LeaveEmailData {
   rejectedBy?: string;
   submittedDate?: string;
   leaveRequestId: string;
+}
+
+interface ApprovalEmailData extends LeaveEmailData {
+  approverName: string;
+  approverEmail: string;
+  approverId: string;
+  currentLevel: number;
+  totalLevels: number;
+  isCompOffRequest: boolean;
+  department: string;
+  employeeId: string;
+  appliedDate: string;
+  previousApprovals?: Array<{
+    level: number;
+    approverName: string;
+    approverRole: string;
+    comments?: string;
+    approvedAt: Date;
+  }>;
 }
 
 interface EmailQueueItem {
@@ -68,7 +88,8 @@ class EmailService {
       const templateFiles = [
         'leave-approved.hbs',
         'leave-rejected.hbs',
-        'leave-request-submitted.hbs'
+        'leave-request-submitted.hbs',
+        'approval-request.hbs'
       ];
 
       templateFiles.forEach(file => {
@@ -334,6 +355,59 @@ class EmailService {
     this.emailQueue.push(emailItem);
   }
 
+  // Send approval request email with action buttons
+  async sendApprovalRequestEmail(data: ApprovalEmailData): Promise<boolean> {
+    try {
+      // Generate secure action URLs
+      const tokenData = {
+        leaveRequestId: data.leaveRequestId,
+        approverId: data.approverId,
+        level: data.currentLevel,
+        action: 'APPROVE' as const
+      };
+
+      const { approveUrl, rejectUrl, tokenExpiry } = emailActionTokenService.generateApprovalUrls(tokenData);
+      const dashboardUrl = emailActionTokenService.generateDashboardUrl(data.leaveRequestId);
+
+      // Prepare email data with handlebars helpers
+      const emailData = {
+        ...data,
+        subject: `${data.isCompOffRequest ? 'Comp Off' : 'Leave'} Approval Required - ${data.employeeName} (${data.leaveType})`,
+        approveUrl,
+        rejectUrl,
+        dashboardUrl,
+        tokenExpiry: tokenExpiry.toLocaleString(),
+        // Helper functions for handlebars
+        eq: (a: any, b: any) => a === b,
+        gte: (a: any, b: any) => a >= b,
+        formatDate: (date: Date) => date ? new Date(date).toLocaleString() : ''
+      };
+
+      // Register Handlebars helpers
+      handlebars.registerHelper('eq', (a, b) => a === b);
+      handlebars.registerHelper('gte', (a, b) => a >= b);
+      handlebars.registerHelper('formatDate', (date) => date ? new Date(date).toLocaleString() : '');
+
+      const email = this.generateEmail('approval-request', emailData);
+      const result = await this.sendEmailWithRetry(data.approverEmail, email.subject, email.html, email.text);
+
+      // Log the token generation
+      if (result.success) {
+        await emailActionTokenService.logEmailAction(
+          data.leaveRequestId,
+          data.approverId,
+          'TOKEN_GENERATED',
+          `Approval email sent for Level ${data.currentLevel}`
+        );
+      }
+
+      return result.success;
+    } catch (error) {
+      logger.error('Failed to send approval request email:', error);
+      return false;
+    }
+  }
+
   // Test email functionality
   async sendTestEmail(to: string): Promise<boolean> {
     try {
@@ -345,13 +419,297 @@ class EmailService {
         <p>Timestamp: ${new Date().toISOString()}</p>
       `;
 
-      return await this.sendEmail(to, subject, html, html);
+      const result = await this.sendEmailWithRetry(to, subject, html, html);
+      return result.success;
     } catch (error) {
       logger.error('Failed to send test email:', error);
       return false;
     }
   }
+
+  /**
+   * Send leave cancellation notification
+   */
+  async sendLeaveCancellationNotification(data: LeaveEmailData & {
+    cancelledBy: string;
+    cancellationReason?: string;
+    hrEmail?: string;
+  }) {
+    try {
+      const template = this.getTemplate('leave-cancelled');
+      if (!template) {
+        throw new Error('Leave cancellation template not found');
+      }
+
+      const emailData = {
+        ...data,
+        formatDate: (date: string) => new Date(date).toLocaleDateString(),
+        companyName: emailConfig.companyName
+      };
+
+      const emailContent = template(emailData);
+
+      // Send to employee
+      await this.addToQueue({
+        to: data.employeeEmail,
+        subject: `Leave Cancelled - ${data.leaveType} from ${data.startDate} to ${data.endDate}`,
+        html: emailContent,
+        priority: 'high'
+      });
+
+      // CC to Manager and HR
+      const ccEmails = [];
+      if (data.managerEmail) ccEmails.push(data.managerEmail);
+      if (data.hrEmail) ccEmails.push(data.hrEmail);
+
+      for (const email of ccEmails) {
+        await this.addToQueue({
+          to: email,
+          subject: `Leave Cancelled - ${data.employeeName} (${data.leaveType})`,
+          html: emailContent,
+          priority: 'normal'
+        });
+      }
+
+      logger.info('Leave cancellation notification sent', {
+        employeeEmail: data.employeeEmail,
+        leaveRequestId: data.leaveRequestId,
+        ccEmails
+      });
+    } catch (error) {
+      logger.error('Failed to send leave cancellation notification:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send holiday reminder notifications
+   */
+  async sendHolidayReminder(data: {
+    employeeEmail: string;
+    employeeName: string;
+    holidayName: string;
+    holidayDate: string;
+    daysUntilHoliday: number;
+    location: 'India' | 'USA';
+    isOptional?: boolean;
+  }) {
+    try {
+      const template = this.getTemplate('holiday-reminder');
+      if (!template) {
+        throw new Error('Holiday reminder template not found');
+      }
+
+      const emailData = {
+        ...data,
+        formatDate: (date: string) => new Date(date).toLocaleDateString(),
+        companyName: emailConfig.companyName
+      };
+
+      const emailContent = template(emailData);
+
+      await this.addToQueue({
+        to: data.employeeEmail,
+        subject: `Upcoming Holiday: ${data.holidayName} in ${data.daysUntilHoliday} days`,
+        html: emailContent,
+        priority: 'low'
+      });
+
+      logger.info('Holiday reminder sent', {
+        employeeEmail: data.employeeEmail,
+        holidayName: data.holidayName,
+        holidayDate: data.holidayDate
+      });
+    } catch (error) {
+      logger.error('Failed to send holiday reminder:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send comp off expiration reminders
+   */
+  async sendCompOffExpirationReminder(data: {
+    employeeEmail: string;
+    employeeName: string;
+    compOffHours: number;
+    expiryDate: string;
+    daysUntilExpiry: number;
+    workLogDetails: Array<{
+      workDate: string;
+      hoursWorked: number;
+      workType: string;
+    }>;
+  }) {
+    try {
+      const template = this.getTemplate('comp-off-expiration');
+      if (!template) {
+        throw new Error('Comp off expiration template not found');
+      }
+
+      const emailData = {
+        ...data,
+        formatDate: (date: string) => new Date(date).toLocaleDateString(),
+        companyName: emailConfig.companyName
+      };
+
+      const emailContent = template(emailData);
+
+      await this.addToQueue({
+        to: data.employeeEmail,
+        subject: `Comp Off Expiring Soon - ${data.compOffHours}h expires in ${data.daysUntilExpiry} days`,
+        html: emailContent,
+        priority: 'high'
+      });
+
+      logger.info('Comp off expiration reminder sent', {
+        employeeEmail: data.employeeEmail,
+        compOffHours: data.compOffHours,
+        expiryDate: data.expiryDate
+      });
+    } catch (error) {
+      logger.error('Failed to send comp off expiration reminder:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Enhanced method to send notifications with CC functionality
+   */
+  async sendNotificationWithCC(data: {
+    to: string;
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    templateName: string;
+    templateData: any;
+    priority?: 'high' | 'normal' | 'low';
+  }) {
+    try {
+      const template = this.getTemplate(data.templateName);
+      if (!template) {
+        throw new Error(`Template '${data.templateName}' not found`);
+      }
+
+      const emailData = {
+        ...data.templateData,
+        formatDate: (date: string) => new Date(date).toLocaleDateString(),
+        companyName: emailConfig.companyName
+      };
+
+      const emailContent = template(emailData);
+
+      // Send to primary recipient
+      await this.addToQueue({
+        to: data.to,
+        subject: data.subject,
+        html: emailContent,
+        priority: data.priority || 'normal'
+      });
+
+      // Send to CC recipients
+      if (data.cc && data.cc.length > 0) {
+        for (const ccEmail of data.cc) {
+          await this.addToQueue({
+            to: ccEmail,
+            subject: `CC: ${data.subject}`,
+            html: emailContent,
+            priority: 'low'
+          });
+        }
+      }
+
+      // Send to BCC recipients
+      if (data.bcc && data.bcc.length > 0) {
+        for (const bccEmail of data.bcc) {
+          await this.addToQueue({
+            to: bccEmail,
+            subject: `BCC: ${data.subject}`,
+            html: emailContent,
+            priority: 'low'
+          });
+        }
+      }
+
+      logger.info('Notification with CC sent', {
+        to: data.to,
+        cc: data.cc,
+        bcc: data.bcc,
+        templateName: data.templateName
+      });
+    } catch (error) {
+      logger.error('Failed to send notification with CC:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk send holiday notifications to all employees
+   */
+  async sendBulkHolidayNotifications(data: {
+    employees: Array<{
+      email: string;
+      name: string;
+      location: 'India' | 'USA';
+    }>;
+    holidayName: string;
+    holidayDate: string;
+    daysUntilHoliday: number;
+    isOptional?: boolean;
+  }) {
+    try {
+      const template = this.getTemplate('holiday-reminder');
+      if (!template) {
+        throw new Error('Holiday reminder template not found');
+      }
+
+      let sentCount = 0;
+      let failedCount = 0;
+
+      for (const employee of data.employees) {
+        try {
+          const emailData = {
+            employeeEmail: employee.email,
+            employeeName: employee.name,
+            location: employee.location,
+            holidayName: data.holidayName,
+            holidayDate: data.holidayDate,
+            daysUntilHoliday: data.daysUntilHoliday,
+            isOptional: data.isOptional,
+            formatDate: (date: string) => new Date(date).toLocaleDateString(),
+            companyName: emailConfig.companyName
+          };
+
+          const emailContent = template(emailData);
+
+          await this.addToQueue({
+            to: employee.email,
+            subject: `Upcoming Holiday: ${data.holidayName} in ${data.daysUntilHoliday} days`,
+            html: emailContent,
+            priority: 'low'
+          });
+
+          sentCount++;
+        } catch (error) {
+          logger.error(`Failed to send holiday reminder to ${employee.email}:`, error);
+          failedCount++;
+        }
+      }
+
+      logger.info('Bulk holiday notifications processed', {
+        totalEmployees: data.employees.length,
+        sentCount,
+        failedCount,
+        holidayName: data.holidayName
+      });
+
+      return { sentCount, failedCount, totalEmployees: data.employees.length };
+    } catch (error) {
+      logger.error('Failed to send bulk holiday notifications:', error);
+      throw error;
+    }
+  }
 }
 
 export const emailService = new EmailService();
-export type { LeaveEmailData };
+export type { LeaveEmailData, ApprovalEmailData };

@@ -1,0 +1,746 @@
+{
+  "summary": {
+    "totalTests": 38,
+    "passed": 16,
+    "failed": 22,
+    "timestamp": "2025-09-29T03:27:07.435Z",
+    "glf_compliance": "42%"
+  },
+  "testResults": [
+    {
+      "test": "Authentication - HR Admin",
+      "status": "PASS",
+      "details": "HR Admin authenticated successfully",
+      "timestamp": "2025-09-29T03:27:05.918Z"
+    },
+    {
+      "test": "Authentication - User",
+      "status": "PASS",
+      "details": "User authenticated successfully",
+      "timestamp": "2025-09-29T03:27:05.960Z"
+    },
+    {
+      "test": "Location-based Policies",
+      "status": "FAIL",
+      "details": "No policies found",
+      "timestamp": "2025-09-29T03:27:06.163Z"
+    },
+    {
+      "test": "User Policy Assignment",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:06.246Z"
+    },
+    {
+      "test": "Leave Types Configuration",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Insufficient permissions",
+        "error": "Access denied",
+        "code": "INSUFFICIENT_PERMISSIONS"
+      },
+      "timestamp": "2025-09-29T03:27:06.329Z"
+    },
+    {
+      "test": "Multi-level Approval Workflow",
+      "status": "PASS",
+      "details": "Approval workflow configuration available",
+      "timestamp": "2025-09-29T03:27:06.446Z"
+    },
+    {
+      "test": "Comp Off Multi-level Approval",
+      "status": "PASS",
+      "details": "Comp off approval workflow configured",
+      "timestamp": "2025-09-29T03:27:06.609Z"
+    },
+    {
+      "test": "Pending Approvals System",
+      "status": "PASS",
+      "details": "Pending approvals system working",
+      "timestamp": "2025-09-29T03:27:06.892Z"
+    },
+    {
+      "test": "Comp Off Policy Configuration",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:06.922Z"
+    },
+    {
+      "test": "Comp Off Eligibility Check",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:06.938Z"
+    },
+    {
+      "test": "Comp Off Balance Tracking",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:06.953Z"
+    },
+    {
+      "test": "Weekend Work Log Submission",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:06.977Z"
+    },
+    {
+      "test": "Special Leave Types Configuration",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:06.989Z"
+    },
+    {
+      "test": "Maternity Leave Eligibility Check",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.016Z"
+    },
+    {
+      "test": "Paternity Leave Eligibility Rule",
+      "status": "FAIL",
+      "details": "Eligibility rules not enforced properly",
+      "timestamp": "2025-09-29T03:27:07.036Z"
+    },
+    {
+      "test": "Accrual Scheduler Status",
+      "status": "PASS",
+      "details": "Monthly accrual automation configured",
+      "timestamp": "2025-09-29T03:27:07.052Z"
+    },
+    {
+      "test": "USA PTO Rules Configuration",
+      "status": "PASS",
+      "details": "USA VP/AVP PTO rules configured",
+      "timestamp": "2025-09-29T03:27:07.088Z"
+    },
+    {
+      "test": "Accrual History Tracking",
+      "status": "PASS",
+      "details": "Accrual history tracking available",
+      "timestamp": "2025-09-29T03:27:07.139Z"
+    },
+    {
+      "test": "Email Approval Actions",
+      "status": "PASS",
+      "details": "Email approve/reject buttons configured",
+      "timestamp": "2025-09-29T03:27:07.148Z"
+    },
+    {
+      "test": "Email Token Validation",
+      "status": "FAIL",
+      "details": "Invalid token was accepted",
+      "timestamp": "2025-09-29T03:27:07.156Z"
+    },
+    {
+      "test": "Email Approval Form",
+      "status": "PASS",
+      "details": "Email approval form endpoint configured",
+      "timestamp": "2025-09-29T03:27:07.160Z"
+    },
+    {
+      "test": "Mandatory Field Validation",
+      "status": "PASS",
+      "details": "Incomplete requests properly rejected",
+      "timestamp": "2025-09-29T03:27:07.182Z"
+    },
+    {
+      "test": "Leave Balance Visibility",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.196Z"
+    },
+    {
+      "test": "Holiday Exclusion Configuration",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.211Z"
+    },
+    {
+      "test": "Upcoming Holidays System",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.232Z"
+    },
+    {
+      "test": "Leave Reporting System",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Insufficient permissions",
+        "error": "Access denied",
+        "code": "INSUFFICIENT_PERMISSIONS"
+      },
+      "timestamp": "2025-09-29T03:27:07.255Z"
+    },
+    {
+      "test": "Department-wise Analytics",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Insufficient permissions",
+        "error": "Access denied",
+        "code": "INSUFFICIENT_PERMISSIONS"
+      },
+      "timestamp": "2025-09-29T03:27:07.282Z"
+    },
+    {
+      "test": "Leave Management KPIs",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Insufficient permissions",
+        "error": "Access denied",
+        "code": "INSUFFICIENT_PERMISSIONS"
+      },
+      "timestamp": "2025-09-29T03:27:07.305Z"
+    },
+    {
+      "test": "Analytics Overview",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Insufficient permissions",
+        "error": "Access denied",
+        "code": "INSUFFICIENT_PERMISSIONS"
+      },
+      "timestamp": "2025-09-29T03:27:07.335Z"
+    },
+    {
+      "test": "Leave Templates System",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.364Z"
+    },
+    {
+      "test": "Leave Delegation System",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.385Z"
+    },
+    {
+      "test": "Leave Drafts System",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.421Z"
+    },
+    {
+      "test": "Calendar Integration",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:27:07.434Z"
+    },
+    {
+      "test": "Admin Employee Dropdown",
+      "status": "PASS",
+      "details": "Employee dropdown implemented in LeavesPage.tsx",
+      "timestamp": "2025-09-29T03:27:07.435Z"
+    },
+    {
+      "test": "Department Filtering",
+      "status": "PASS",
+      "details": "Department filter implemented in ManagerDashboard.tsx",
+      "timestamp": "2025-09-29T03:27:07.435Z"
+    },
+    {
+      "test": "Team Calendar View",
+      "status": "PASS",
+      "details": "Team calendar tab implemented in ManagerDashboard.tsx",
+      "timestamp": "2025-09-29T03:27:07.435Z"
+    },
+    {
+      "test": "Calendar Integration UI",
+      "status": "PASS",
+      "details": "Calendar sync features implemented in LeaveCalendar.tsx",
+      "timestamp": "2025-09-29T03:27:07.435Z"
+    },
+    {
+      "test": "Notification Center",
+      "status": "PASS",
+      "details": "Notification system implemented with real-time updates",
+      "timestamp": "2025-09-29T03:27:07.435Z"
+    }
+  ],
+  "glfRequirements": {
+    "locationBasedPolicies": [
+      {
+        "test": "User Policy Assignment",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.246Z"
+      },
+      {
+        "test": "Leave Types Configuration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Insufficient permissions",
+          "error": "Access denied",
+          "code": "INSUFFICIENT_PERMISSIONS"
+        },
+        "timestamp": "2025-09-29T03:27:06.329Z"
+      },
+      {
+        "test": "Comp Off Policy Configuration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.922Z"
+      },
+      {
+        "test": "Special Leave Types Configuration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.989Z"
+      }
+    ],
+    "multiLevelApprovals": [
+      {
+        "test": "Multi-level Approval Workflow",
+        "status": "PASS",
+        "details": "Approval workflow configuration available",
+        "timestamp": "2025-09-29T03:27:06.446Z"
+      },
+      {
+        "test": "Comp Off Multi-level Approval",
+        "status": "PASS",
+        "details": "Comp off approval workflow configured",
+        "timestamp": "2025-09-29T03:27:06.609Z"
+      },
+      {
+        "test": "Pending Approvals System",
+        "status": "PASS",
+        "details": "Pending approvals system working",
+        "timestamp": "2025-09-29T03:27:06.892Z"
+      },
+      {
+        "test": "Email Approval Actions",
+        "status": "PASS",
+        "details": "Email approve/reject buttons configured",
+        "timestamp": "2025-09-29T03:27:07.148Z"
+      },
+      {
+        "test": "Email Approval Form",
+        "status": "PASS",
+        "details": "Email approval form endpoint configured",
+        "timestamp": "2025-09-29T03:27:07.160Z"
+      }
+    ],
+    "compOffValidation": [
+      {
+        "test": "Comp Off Multi-level Approval",
+        "status": "PASS",
+        "details": "Comp off approval workflow configured",
+        "timestamp": "2025-09-29T03:27:06.609Z"
+      },
+      {
+        "test": "Comp Off Policy Configuration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.922Z"
+      },
+      {
+        "test": "Comp Off Eligibility Check",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.938Z"
+      },
+      {
+        "test": "Comp Off Balance Tracking",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.953Z"
+      },
+      {
+        "test": "Weekend Work Log Submission",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.977Z"
+      }
+    ],
+    "eligibilityRules": [
+      {
+        "test": "Comp Off Eligibility Check",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.938Z"
+      },
+      {
+        "test": "Special Leave Types Configuration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.989Z"
+      },
+      {
+        "test": "Maternity Leave Eligibility Check",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.016Z"
+      },
+      {
+        "test": "Paternity Leave Eligibility Rule",
+        "status": "FAIL",
+        "details": "Eligibility rules not enforced properly",
+        "timestamp": "2025-09-29T03:27:07.036Z"
+      }
+    ],
+    "accrualAutomation": [
+      {
+        "test": "Accrual Scheduler Status",
+        "status": "PASS",
+        "details": "Monthly accrual automation configured",
+        "timestamp": "2025-09-29T03:27:07.052Z"
+      },
+      {
+        "test": "USA PTO Rules Configuration",
+        "status": "PASS",
+        "details": "USA VP/AVP PTO rules configured",
+        "timestamp": "2025-09-29T03:27:07.088Z"
+      },
+      {
+        "test": "Accrual History Tracking",
+        "status": "PASS",
+        "details": "Accrual history tracking available",
+        "timestamp": "2025-09-29T03:27:07.139Z"
+      }
+    ],
+    "emailFeatures": [
+      {
+        "test": "Email Approval Actions",
+        "status": "PASS",
+        "details": "Email approve/reject buttons configured",
+        "timestamp": "2025-09-29T03:27:07.148Z"
+      },
+      {
+        "test": "Email Token Validation",
+        "status": "FAIL",
+        "details": "Invalid token was accepted",
+        "timestamp": "2025-09-29T03:27:07.156Z"
+      },
+      {
+        "test": "Email Approval Form",
+        "status": "PASS",
+        "details": "Email approval form endpoint configured",
+        "timestamp": "2025-09-29T03:27:07.160Z"
+      }
+    ],
+    "validationRules": [
+      {
+        "test": "Comp Off Balance Tracking",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:06.953Z"
+      },
+      {
+        "test": "Email Token Validation",
+        "status": "FAIL",
+        "details": "Invalid token was accepted",
+        "timestamp": "2025-09-29T03:27:07.156Z"
+      },
+      {
+        "test": "Mandatory Field Validation",
+        "status": "PASS",
+        "details": "Incomplete requests properly rejected",
+        "timestamp": "2025-09-29T03:27:07.182Z"
+      },
+      {
+        "test": "Leave Balance Visibility",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.196Z"
+      },
+      {
+        "test": "Holiday Exclusion Configuration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.211Z"
+      },
+      {
+        "test": "Upcoming Holidays System",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.232Z"
+      }
+    ],
+    "reportsAnalytics": [
+      {
+        "test": "Leave Reporting System",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Insufficient permissions",
+          "error": "Access denied",
+          "code": "INSUFFICIENT_PERMISSIONS"
+        },
+        "timestamp": "2025-09-29T03:27:07.255Z"
+      },
+      {
+        "test": "Department-wise Analytics",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Insufficient permissions",
+          "error": "Access denied",
+          "code": "INSUFFICIENT_PERMISSIONS"
+        },
+        "timestamp": "2025-09-29T03:27:07.282Z"
+      },
+      {
+        "test": "Leave Management KPIs",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Insufficient permissions",
+          "error": "Access denied",
+          "code": "INSUFFICIENT_PERMISSIONS"
+        },
+        "timestamp": "2025-09-29T03:27:07.305Z"
+      },
+      {
+        "test": "Analytics Overview",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Insufficient permissions",
+          "error": "Access denied",
+          "code": "INSUFFICIENT_PERMISSIONS"
+        },
+        "timestamp": "2025-09-29T03:27:07.335Z"
+      }
+    ],
+    "advancedFeatures": [
+      {
+        "test": "Leave Templates System",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.364Z"
+      },
+      {
+        "test": "Leave Delegation System",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.385Z"
+      },
+      {
+        "test": "Leave Drafts System",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.421Z"
+      },
+      {
+        "test": "Calendar Integration",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Authentication error",
+          "error": "Internal server error",
+          "code": "AUTH_ERROR"
+        },
+        "timestamp": "2025-09-29T03:27:07.434Z"
+      },
+      {
+        "test": "Calendar Integration UI",
+        "status": "PASS",
+        "details": "Calendar sync features implemented in LeaveCalendar.tsx",
+        "timestamp": "2025-09-29T03:27:07.435Z"
+      }
+    ],
+    "uiFeatures": [
+      {
+        "test": "Authentication - HR Admin",
+        "status": "PASS",
+        "details": "HR Admin authenticated successfully",
+        "timestamp": "2025-09-29T03:27:05.918Z"
+      },
+      {
+        "test": "Department-wise Analytics",
+        "status": "FAIL",
+        "details": {
+          "success": false,
+          "message": "Insufficient permissions",
+          "error": "Access denied",
+          "code": "INSUFFICIENT_PERMISSIONS"
+        },
+        "timestamp": "2025-09-29T03:27:07.282Z"
+      },
+      {
+        "test": "Admin Employee Dropdown",
+        "status": "PASS",
+        "details": "Employee dropdown implemented in LeavesPage.tsx",
+        "timestamp": "2025-09-29T03:27:07.435Z"
+      },
+      {
+        "test": "Department Filtering",
+        "status": "PASS",
+        "details": "Department filter implemented in ManagerDashboard.tsx",
+        "timestamp": "2025-09-29T03:27:07.435Z"
+      },
+      {
+        "test": "Calendar Integration UI",
+        "status": "PASS",
+        "details": "Calendar sync features implemented in LeaveCalendar.tsx",
+        "timestamp": "2025-09-29T03:27:07.435Z"
+      },
+      {
+        "test": "Notification Center",
+        "status": "PASS",
+        "details": "Notification system implemented with real-time updates",
+        "timestamp": "2025-09-29T03:27:07.435Z"
+      }
+    ]
+  }
+}

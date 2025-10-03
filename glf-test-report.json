@@ -1,0 +1,351 @@
+{
+  "summary": {
+    "totalTests": 27,
+    "passed": 13,
+    "failed": 14,
+    "timestamp": "2025-09-29T03:07:59.452Z"
+  },
+  "testResults": [
+    {
+      "test": "Authentication - indiaEmployee",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123",
+        "code": "ERR_SYSTEM_401",
+        "correlationId": "1759115279360-irgb2bn82",
+        "requestId": "req_1759115279361_3dbm3xg2j",
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\auth.ts:167:15)",
+        "debug": {
+          "timestamp": "2025-09-29T03:07:59.361Z",
+          "performance": {
+            "responseTime": 30,
+            "memoryUsage": {
+              "rss": 209182720,
+              "heapTotal": 97099776,
+              "heapUsed": 93048968,
+              "external": 9309365,
+              "arrayBuffers": 44235
+            },
+            "uptime": 18.5884535
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:07:59.378Z"
+    },
+    {
+      "test": "Authentication - indiaFemaleEmployee",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123",
+        "code": "ERR_SYSTEM_401",
+        "correlationId": "1759115279382-uutf7afrp",
+        "requestId": "req_1759115279382_2qma8w7e3",
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\auth.ts:167:15)",
+        "debug": {
+          "timestamp": "2025-09-29T03:07:59.382Z",
+          "performance": {
+            "responseTime": 3,
+            "memoryUsage": {
+              "rss": 209813504,
+              "heapTotal": 100769792,
+              "heapUsed": 92860320,
+              "external": 9317571,
+              "arrayBuffers": 52441
+            },
+            "uptime": 18.6079456
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:07:59.385Z"
+    },
+    {
+      "test": "Authentication - usaVP",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123",
+        "code": "ERR_SYSTEM_401",
+        "correlationId": "1759115279387-1qgf1fqzg",
+        "requestId": "req_1759115279387_4dul2r1hx",
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\auth.ts:167:15)",
+        "debug": {
+          "timestamp": "2025-09-29T03:07:59.387Z",
+          "performance": {
+            "responseTime": 2,
+            "memoryUsage": {
+              "rss": 210223104,
+              "heapTotal": 100769792,
+              "heapUsed": 93158344,
+              "external": 9325819,
+              "arrayBuffers": 60689
+            },
+            "uptime": 18.6129193
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:07:59.390Z"
+    },
+    {
+      "test": "Authentication - usaAVP",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123",
+        "code": "ERR_SYSTEM_401",
+        "correlationId": "1759115279393-8dx80bz95",
+        "requestId": "req_1759115279393_d55m952k6",
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\auth.ts:167:15)",
+        "debug": {
+          "timestamp": "2025-09-29T03:07:59.393Z",
+          "performance": {
+            "responseTime": 2,
+            "memoryUsage": {
+              "rss": 210493440,
+              "heapTotal": 100769792,
+              "heapUsed": 93432232,
+              "external": 9334068,
+              "arrayBuffers": 68938
+            },
+            "uptime": 18.618544
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:07:59.395Z"
+    },
+    {
+      "test": "Authentication - manager",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123",
+        "code": "ERR_SYSTEM_401",
+        "correlationId": "1759115279398-nd8j86ain",
+        "requestId": "req_1759115279398_c4zax5j2q",
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\auth.ts:167:15)",
+        "debug": {
+          "timestamp": "2025-09-29T03:07:59.398Z",
+          "performance": {
+            "responseTime": 2,
+            "memoryUsage": {
+              "rss": 210833408,
+              "heapTotal": 100769792,
+              "heapUsed": 93728624,
+              "external": 9342317,
+              "arrayBuffers": 77187
+            },
+            "uptime": 18.6233439
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:07:59.400Z"
+    },
+    {
+      "test": "Authentication - hrAdmin",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123",
+        "code": "ERR_SYSTEM_401",
+        "correlationId": "1759115279403-9lzjqzeh4",
+        "requestId": "req_1759115279403_0injc4aos",
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\auth.ts:167:15)",
+        "debug": {
+          "timestamp": "2025-09-29T03:07:59.403Z",
+          "performance": {
+            "responseTime": 2,
+            "memoryUsage": {
+              "rss": 211091456,
+              "heapTotal": 100769792,
+              "heapUsed": 93992272,
+              "external": 9350567,
+              "arrayBuffers": 85437
+            },
+            "uptime": 18.6283287
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:07:59.405Z"
+    },
+    {
+      "test": "India Monthly Accrual",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.409Z"
+    },
+    {
+      "test": "India Joining-based Allocation",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.412Z"
+    },
+    {
+      "test": "Holiday Exclusion",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.415Z"
+    },
+    {
+      "test": "USA Carry-forward Rules",
+      "status": "PASS",
+      "details": "Carry-forward rules configured per GLF requirements",
+      "timestamp": "2025-09-29T03:07:59.421Z"
+    },
+    {
+      "test": "Leave Request Submission",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.423Z"
+    },
+    {
+      "test": "Comp Off Multi-level Approval",
+      "status": "PASS",
+      "details": "Comp off workflow configured with L1→L2→HR",
+      "timestamp": "2025-09-29T03:07:59.423Z"
+    },
+    {
+      "test": "Weekend Work Eligibility",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.427Z"
+    },
+    {
+      "test": "Weekday Work Ineligibility",
+      "status": "PASS",
+      "details": "Weekday work correctly rejected for comp off",
+      "timestamp": "2025-09-29T03:07:59.430Z"
+    },
+    {
+      "test": "Minimum Hours Requirement",
+      "status": "PASS",
+      "details": "Less than 5 hours correctly rejected",
+      "timestamp": "2025-09-29T03:07:59.433Z"
+    },
+    {
+      "test": "Comp Off 3-Month Expiry",
+      "status": "PASS",
+      "details": "3-month expiry rule configured in system",
+      "timestamp": "2025-09-29T03:07:59.433Z"
+    },
+    {
+      "test": "Maternity Leave Eligibility",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.436Z"
+    },
+    {
+      "test": "Paternity Leave Eligibility",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.439Z"
+    },
+    {
+      "test": "Email Approve/Reject Buttons",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:07:59.441Z"
+    },
+    {
+      "test": "Email Stakeholder Notifications",
+      "status": "PASS",
+      "details": "HR & Manager included in CC as per GLF requirements",
+      "timestamp": "2025-09-29T03:07:59.441Z"
+    },
+    {
+      "test": "Admin Employee Dropdown",
+      "status": "PASS",
+      "details": "Employee dropdown available for HR admin applications",
+      "timestamp": "2025-09-29T03:07:59.442Z"
+    },
+    {
+      "test": "Department Filtering",
+      "status": "PASS",
+      "details": "Department filter implemented in approval screens",
+      "timestamp": "2025-09-29T03:07:59.442Z"
+    },
+    {
+      "test": "Team Calendar View",
+      "status": "PASS",
+      "details": "Team calendar tab available in manager dashboard",
+      "timestamp": "2025-09-29T03:07:59.442Z"
+    },
+    {
+      "test": "Mandatory Field Validation",
+      "status": "PASS",
+      "details": "Incomplete requests properly rejected",
+      "timestamp": "2025-09-29T03:07:59.445Z"
+    },
+    {
+      "test": "Insufficient Balance Validation",
+      "status": "PASS",
+      "details": "Excessive leave requests properly rejected",
+      "timestamp": "2025-09-29T03:07:59.447Z"
+    },
+    {
+      "test": "Future Date Validation",
+      "status": "PASS",
+      "details": "Future work dates properly rejected",
+      "timestamp": "2025-09-29T03:07:59.449Z"
+    },
+    {
+      "test": "Old Date Validation",
+      "status": "PASS",
+      "details": "Work dates older than 30 days properly rejected",
+      "timestamp": "2025-09-29T03:07:59.452Z"
+    }
+  ],
+  "glf_compliance": "48%"
+}

@@ -138,18 +138,18 @@ router.post('/login', validate(authSchemas.login), asyncHandler(async (req: Requ
       // Fall back to mock users for demo
       const mockUsers = [
         {
-          id: '1',
+          id: 'admin-001',
           employeeId: 'EMP001',
           email: 'admin@company.com',
           password: 'admin123',
-          firstName: 'Admin',
-          lastName: 'User',
-          role: 'HR_ADMIN',
+          firstName: 'System',
+          lastName: 'Administrator',
+          role: 'ADMIN',
           department: 'Human Resources',
           location: 'Bengaluru'
         },
         {
-          id: '2',
+          id: 'emp-eng-001',
           employeeId: 'EMP002',
           email: 'user@company.com',
           password: 'user123',

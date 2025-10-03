@@ -23,6 +23,10 @@ model User {
   joiningDate       DateTime  @default(now())
   status            String    @default("ACTIVE")
   lastLogin         DateTime?
+  gender            String?   // MALE, FEMALE, OTHER
+  maritalStatus     String?   // SINGLE, MARRIED, DIVORCED, WIDOWED
+  country           String?   // USA, INDIA - for region-specific leave policies
+  designation       String?   // AVP, VP, MANAGER, SENIOR_MANAGER, etc. - for USA PTO policies
 
   // Relations
   reportingManager  User?     @relation("UserHierarchy", fields: [reportingManagerId], references: [id])
@@ -40,10 +44,20 @@ model User {
   modificationApprovals LeaveModificationRequest[] @relation("ModificationApprovals")
   leaveTemplates       LeaveTemplate[]
   calendarIntegrations CalendarIntegration[]
+  monthlyAccruals      MonthlyAccrual[] @relation("MonthlyAccruals")
+  compOffWorkLogs      CompOffWorkLog[] @relation("CompOffWorkLogs")
+  compOffVerifications CompOffWorkLog[] @relation("CompOffVerifications")
+  compOffRequests      CompOffRequest[] @relation("CompOffRequests")
+  compOffApprovals     CompOffApproval[] @relation("CompOffApprovals")
+  compOffBalances      CompOffBalance[] @relation("CompOffBalances")
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  @@index([reportingManagerId])
+  @@index([role])
+  @@index([location])
+  @@index([department])
   @@map("users")
 }
 
@@ -90,6 +104,12 @@ model LeaveRequest {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
+  // Performance indexes for frequently queried fields
+  @@index([status])
+  @@index([appliedDate])
+  @@index([employeeId, status])
+  @@index([leaveType])
+  @@index([startDate, endDate])
   @@map("leave_requests")
 }
 
@@ -110,6 +130,8 @@ model Approval {
   updatedAt       DateTime        @updatedAt
 
   @@unique([leaveRequestId, level])
+  @@index([status])
+  @@index([approverId, status])
   @@map("approvals")
 }
 
@@ -130,6 +152,9 @@ model LeaveBalance {
   updatedAt           DateTime    @updatedAt
 
   @@unique([employeeId, leaveType, year])
+  @@index([employeeId])
+  @@index([leaveType])
+  @@index([year])
   @@map("leave_balances")
 }
 
@@ -366,4 +391,140 @@ model CalendarIntegration {
 
   @@unique([userId, provider], name: "userId_provider")
   @@map("calendar_integrations")
+}
+
+// Monthly Accrual Tracking Model for India
+model MonthlyAccrual {
+  id              String   @id @default(cuid())
+  employeeId      String
+  year            Int
+  month           Int      // 1-12
+  casualLeave     Float    @default(0)  // CL accrued this month
+  privilegeLeave  Float    @default(0)  // PL accrued this month
+  proRated        Boolean  @default(false) // If joining mid-month
+  joiningDate     DateTime?
+  processedAt     DateTime @default(now())
+  status          String   @default("PROCESSED") // PROCESSED, PENDING, FAILED
+
+  // Relations
+  employee        User     @relation("MonthlyAccruals", fields: [employeeId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([employeeId, year, month])
+  @@map("monthly_accruals")
+}
+
+// Leave Accrual Rules Model
+model LeaveAccrualRule {
+  id                String   @id @default(cuid())
+  region            String   // INDIA, USA
+  leaveType         String
+  monthlyAccrual    Float    // Amount credited per month
+  joiningDayProRate Boolean  @default(true) // Pro-rate based on joining day
+  carryForwardRules String   // JSON: rules for carry forward
+  expiryRules       String   // JSON: rules for expiry
+  isActive          Boolean  @default(true)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([region, leaveType])
+  @@map("leave_accrual_rules")
+}
+
+// Comp Off Work Log Model - Track weekend/holiday work for comp off eligibility
+model CompOffWorkLog {
+  id              String   @id @default(cuid())
+  employeeId      String
+  workDate        DateTime
+  hoursWorked     Float    // Actual hours worked
+  workType        String   // WEEKEND, HOLIDAY, EXTENDED_HOURS
+  workDescription String   // Description of work performed
+  projectDetails  String?  // Project or task details
+  isVerified      Boolean  @default(false) // Manager verification
+  verifiedBy      String?  // Manager who verified
+  verifiedAt      DateTime?
+  compOffEarned   Float    @default(0) // Comp off days earned (calculated)
+  status          String   @default("PENDING") // PENDING, VERIFIED, REJECTED, CONSUMED
+
+  // Relations
+  employee        User     @relation("CompOffWorkLogs", fields: [employeeId], references: [id])
+  verifier        User?    @relation("CompOffVerifications", fields: [verifiedBy], references: [id])
+  compOffRequests CompOffRequest[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("comp_off_work_logs")
+}
+
+// Comp Off Request Model - Comprehensive comp off leave requests
+model CompOffRequest {
+  id                String   @id @default(cuid())
+  employeeId        String
+  workLogId         String   // Reference to the work log that earned this comp off
+  hoursToRedeem     Float    // Hours being redeemed for comp off
+  daysRequested     Float    // Calculated comp off days (based on policy)
+  startDate         DateTime
+  endDate           DateTime
+  reason            String
+  isHalfDay         Boolean  @default(false)
+  status            String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
+  appliedDate       DateTime @default(now())
+  approvedDate      DateTime?
+  expiryDate        DateTime // 3 months from approval date
+  isExpired         Boolean  @default(false)
+
+  // Relations
+  employee          User     @relation("CompOffRequests", fields: [employeeId], references: [id])
+  workLog           CompOffWorkLog @relation(fields: [workLogId], references: [id])
+  approvals         CompOffApproval[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("comp_off_requests")
+}
+
+// Comp Off Approval Model - Multi-level approval for comp off requests
+model CompOffApproval {
+  id              String   @id @default(cuid())
+  compOffRequestId String
+  approverId      String
+  level           Int      @default(1)
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  comments        String?
+  approvedAt      DateTime?
+
+  // Relations
+  compOffRequest  CompOffRequest @relation(fields: [compOffRequestId], references: [id])
+  approver        User     @relation("CompOffApprovals", fields: [approverId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([compOffRequestId, level])
+  @@map("comp_off_approvals")
+}
+
+// Comp Off Balance Model - Track available comp off balance per employee
+model CompOffBalance {
+  id              String   @id @default(cuid())
+  employeeId      String
+  year            Int
+  totalEarned     Float    @default(0) // Total comp off days earned
+  totalUsed       Float    @default(0) // Total comp off days used
+  available       Float    @default(0) // Available comp off days
+  expired         Float    @default(0) // Expired comp off days
+
+  // Relations
+  employee        User     @relation("CompOffBalances", fields: [employeeId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([employeeId, year])
+  @@map("comp_off_balances")
 }

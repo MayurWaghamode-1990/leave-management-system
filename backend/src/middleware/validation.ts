@@ -99,7 +99,7 @@ export const validate = (schema: ValidationSchema) => {
 /**
  * Validate request against schema
  */
-function validateRequest(req: Request, schema: ValidationSchema): ValidationResult {
+export function validateRequest(req: Request, schema: ValidationSchema): ValidationResult {
   const errors: ValidationErrorDetail[] = [];
 
   // Validate body
@@ -456,7 +456,7 @@ function validateEnum(
   enumValues: string[] | number[],
   location: 'body' | 'query' | 'params'
 ): ValidationErrorDetail | null {
-  if (!enumValues.includes(value as any)) {
+  if (!enumValues.includes(value)) {
     return {
       field,
       value,

@@ -15,11 +15,19 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:dev": "tsx src/scripts/dev-seed.ts",
-    "db:admin-demo": "tsx prisma/admin-demo-seed.ts"
+    "db:admin-demo": "tsx prisma/admin-demo-seed.ts",
+    "seed:usa": "tsx src/scripts/seed-usa-employees.ts",
+    "test:accrual": "tsx src/scripts/test-accrual.ts",
+    "test:usa-pto": "tsx src/scripts/test-usa-pto.ts",
+    "test:multi-level-approvals": "tsx src/scripts/test-multi-level-approvals.ts",
+    "test:enhanced-email-notifications": "tsx src/scripts/test-enhanced-email-notifications.ts",
+    "test:special-leave-types": "tsx src/scripts/test-special-leave-types.ts",
+    "test:enhanced-lwp": "tsx src/scripts/test-enhanced-lwp.ts"
   },
   "dependencies": {
     "@azure/msal-node": "^3.8.0",
     "@prisma/client": "^5.22.0",
+    "@types/node-cron": "^3.0.11",
     "@types/uuid": "^10.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -36,6 +44,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.15.0",
+    "node-cron": "^4.2.1",
     "node-ical": "^0.21.0",
     "nodemailer": "^6.10.1",
     "socket.io": "^4.8.1",

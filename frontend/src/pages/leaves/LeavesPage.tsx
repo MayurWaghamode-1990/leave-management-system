@@ -88,6 +88,8 @@ const LeavesPage: React.FC = () => {
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | 'view'>('create');
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
+  const [employees, setEmployees] = useState<Array<{id: string, firstName: string, lastName: string, employeeId: string}>>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -95,7 +97,8 @@ const LeavesPage: React.FC = () => {
     startDate: null as Dayjs | null,
     endDate: null as Dayjs | null,
     reason: '',
-    isHalfDay: false
+    isHalfDay: false,
+    employeeId: '' // For admin applications
   });
 
   const leaveTypeOptions = [
@@ -120,7 +123,14 @@ const LeavesPage: React.FC = () => {
   useEffect(() => {
     fetchLeaveRequests();
     fetchLeaveBalances();
+    fetchCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (currentUser?.role === 'HR_ADMIN') {
+      fetchEmployees();
+    }
+  }, [currentUser]);
 
   // Listen for template usage events
   useEffect(() => {
@@ -131,7 +141,8 @@ const LeavesPage: React.FC = () => {
         startDate: dayjs(),
         endDate: templateData.duration ? dayjs().add(templateData.duration - 1, 'day') : dayjs(),
         reason: templateData.reason,
-        isHalfDay: templateData.isHalfDay || false
+        isHalfDay: templateData.isHalfDay || false,
+        employeeId: ''
       });
       setDialogOpen(true);
     };
@@ -166,6 +177,27 @@ const LeavesPage: React.FC = () => {
     }
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        setCurrentUser(JSON.parse(userStr));
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await api.get('/users');
+      setEmployees(response.data.data || []);
+    } catch (error) {
+      toast.error('Failed to fetch employees');
+      console.error('Error fetching employees:', error);
+    }
+  };
+
   const handleCreateRequest = () => {
     setDialogMode('create');
     setFormData({
@@ -173,7 +205,8 @@ const LeavesPage: React.FC = () => {
       startDate: null,
       endDate: null,
       reason: '',
-      isHalfDay: false
+      isHalfDay: false,
+      employeeId: ''
     });
     setOpenDialog(true);
   };
@@ -184,7 +217,8 @@ const LeavesPage: React.FC = () => {
       startDate: dayjs(),
       endDate: template.duration ? dayjs().add(template.duration - 1, 'day') : dayjs(),
       reason: template.reason,
-      isHalfDay: template.isHalfDay || false
+      isHalfDay: template.isHalfDay || false,
+      employeeId: ''
     });
     setTemplateSelectorOpen(false);
   };
@@ -214,6 +248,12 @@ const LeavesPage: React.FC = () => {
       return;
     }
 
+    // For admin users, validate employee selection
+    if (currentUser?.role === 'HR_ADMIN' && !formData.employeeId) {
+      toast.error('Please select an employee');
+      return;
+    }
+
     if (formData.reason.trim().length < 10) {
       toast.error('Reason must be at least 10 characters long');
       return;
@@ -226,7 +266,8 @@ const LeavesPage: React.FC = () => {
         startDate: formData.startDate.format('YYYY-MM-DD'),
         endDate: formData.endDate.format('YYYY-MM-DD'),
         reason: formData.reason.trim(),
-        isHalfDay: formData.isHalfDay
+        isHalfDay: formData.isHalfDay,
+        ...(currentUser?.role === 'HR_ADMIN' && formData.employeeId && { employeeId: formData.employeeId })
       };
 
       let response;
@@ -610,6 +651,29 @@ const LeavesPage: React.FC = () => {
                       ))}
                     </TextField>
                   </Grid>
+
+                  {currentUser?.role === 'HR_ADMIN' && (
+                    <Grid item xs={12}>
+                      <TextField
+                        select
+                        fullWidth
+                        label="Select Employee"
+                        value={formData.employeeId}
+                        onChange={(e) => setFormData(prev => ({ ...prev, employeeId: e.target.value }))}
+                        required
+                        helperText="Choose the employee to apply leave for"
+                      >
+                        <MenuItem value="">
+                          <em>Select an employee</em>
+                        </MenuItem>
+                        {employees.map((employee) => (
+                          <MenuItem key={employee.id} value={employee.id}>
+                            {employee.firstName} {employee.lastName} ({employee.employeeId})
+                          </MenuItem>
+                        ))}
+                      </TextField>
+                    </Grid>
+                  )}
 
                   <Grid item xs={12} sm={6}>
                     <DatePicker

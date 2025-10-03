@@ -98,54 +98,45 @@ const LoginPage: React.FC = () => {
             {/* Demo Credentials Alert */}
             <Alert severity="info" sx={{ mb: 3 }}>
               <Typography variant="body2" component="div">
-                <strong>🔑 Demo Login Credentials (All passwords: password123)</strong>
+                <strong>🔑 Demo Login Credentials</strong>
                 <br /><br />
                 <strong>👑 HR Admin:</strong> admin@company.com
                 <br />
                 <Typography variant="caption" color="textSecondary">
-                  Maya Sharma • Full system access, team management, approvals
+                  Password: admin123 • Admin User • Full system access
                 </Typography>
                 <br /><br />
 
-                <strong>👥 Managers:</strong>
+                <strong>👥 Manager:</strong>
                 <br />
-                • <strong>Engineering:</strong> engineering.manager@company.com
-                <br />
-                <Typography variant="caption" color="textSecondary">
-                  Rajesh Kumar • Engineering team lead, leave approvals
-                </Typography>
-                <br />
-                • <strong>Sales:</strong> sales.manager@company.com
+                • <strong>Engineering:</strong> alex.johnson@company.com
                 <br />
                 <Typography variant="caption" color="textSecondary">
-                  Amit Gupta • Sales team lead, team oversight
-                </Typography>
-                <br />
-                • <strong>Finance:</strong> finance.manager@company.com
-                <br />
-                <Typography variant="caption" color="textSecondary">
-                  Sneha Reddy • Finance operations, budget management
+                  Password: password123 • Alex Johnson • Engineering team lead
                 </Typography>
                 <br /><br />
 
                 <strong>🧑‍💼 Employees:</strong>
                 <br />
-                • <strong>Engineering:</strong> arjun.singh@company.com
+                • <strong>Engineering:</strong> user@company.com
                 <br />
                 <Typography variant="caption" color="textSecondary">
-                  Arjun Singh • Software Developer, reports to Rajesh
+                  Password: user123 • John Doe • Software Developer
                 </Typography>
                 <br />
-                • <strong>Sales:</strong> rahul.verma@company.com
+                • <strong>Engineering:</strong> ananya.patel@company.com
                 <br />
                 <Typography variant="caption" color="textSecondary">
-                  Rahul Verma • Sales Executive, reports to Amit
+                  Password: password123 • Ananya Patel • Software Developer
                 </Typography>
+                <br /><br />
+
+                <strong>💰 Payroll Officer:</strong>
                 <br />
-                • <strong>Support:</strong> karan.kapoor@company.com
+                • michelle.lee@company.com
                 <br />
                 <Typography variant="caption" color="textSecondary">
-                  Karan Kapoor • Customer Support Specialist, reports to Priya
+                  Password: password123 • Michelle Lee • Finance Department
                 </Typography>
               </Typography>
             </Alert>

@@ -2,6 +2,7 @@ import express, { Response } from 'express';
 import { AuthenticatedRequest, authorize } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { LeaveStatus, LeaveType } from '@prisma/client';
+import { prisma } from '../index';
 
 const router = express.Router();
 
@@ -202,7 +203,7 @@ const mockLeaveReports: LeaveReport[] = [
 
 // Generate leave reports
 router.get('/leave-reports',
-  authorize('HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const {
       startDate,
@@ -281,7 +282,7 @@ router.get('/leave-reports',
 
 // Department-wise summary
 router.get('/department-summary',
-  authorize('HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const departmentStats: { [key: string]: DepartmentSummary } = {};
 
@@ -340,7 +341,7 @@ router.get('/department-summary',
 
 // Leave type analytics
 router.get('/leave-type-analytics',
-  authorize('HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const leaveTypeStats: { [key: string]: LeaveTypeAnalytics } = {};
 
@@ -385,7 +386,7 @@ router.get('/leave-type-analytics',
 
 // Monthly trends
 router.get('/monthly-trends',
-  authorize('HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear() } = req.query;
 
@@ -437,7 +438,7 @@ router.get('/monthly-trends',
 
 // Export data as CSV
 router.get('/export/csv',
-  authorize('HR_ADMIN'),
+  authorize('ADMIN', 'HR_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { type = 'leave-reports' } = req.query;
 
@@ -474,7 +475,7 @@ router.get('/export/csv',
 
 // Dashboard KPIs
 router.get('/kpis',
-  authorize('HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const totalRequests = mockLeaveReports.length;
     const approvedRequests = mockLeaveReports.filter(r => r.status === 'APPROVED').length;
@@ -532,7 +533,7 @@ router.get('/kpis',
 
 // Get manager-specific statistics
 router.get('/manager-stats',
-  authorize('MANAGER', 'HR_ADMIN'),
+  authorize('ADMIN', 'MANAGER', 'HR_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -582,7 +583,7 @@ router.get('/manager-stats',
 
 // Get calendar statistics for team calendar view
 router.get('/calendar-stats',
-  authorize('MANAGER', 'HR_ADMIN', 'IT_ADMIN'),
+  authorize('ADMIN', 'MANAGER', 'HR_ADMIN', 'IT_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { startDate, endDate } = req.query;
 
@@ -652,6 +653,590 @@ router.get('/calendar-stats',
       success: true,
       data: stats
     });
+  })
+);
+
+/**
+ * @swagger
+ * /api/v1/reports/analytics/overview:
+ *   get:
+ *     summary: Get leave analytics overview
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         description: Year for analytics
+ *       - in: query
+ *         name: department
+ *         schema:
+ *           type: string
+ *         description: Department filter
+ *       - in: query
+ *         name: period
+ *         schema:
+ *           type: string
+ *           enum: [week, month, quarter, year]
+ *         description: Period for grouping
+ *     responses:
+ *       200:
+ *         description: Analytics overview retrieved successfully
+ *       403:
+ *         description: Insufficient permissions
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/analytics/overview',
+  authorize('ADMIN', 'HR_ADMIN'),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { year = new Date().getFullYear(), department, period = 'month' } = req.query;
+
+    // Build date filter
+    const startDate = new Date(`${year}-01-01`);
+    const endDate = new Date(`${year}-12-31`);
+
+    // Build department filter
+    const departmentFilter = department ? { department: department as string } : {};
+
+    try {
+      // Get total applications
+      const totalApplications = await prisma.leaveRequest.count({
+        where: {
+          ...departmentFilter,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+
+      // Get approved applications
+      const approvedApplications = await prisma.leaveRequest.count({
+        where: {
+          ...departmentFilter,
+          status: LeaveStatus.APPROVED,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+
+      // Get rejected applications
+      const rejectedApplications = await prisma.leaveRequest.count({
+        where: {
+          ...departmentFilter,
+          status: LeaveStatus.REJECTED,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+
+      // Get pending applications
+      const pendingApplications = await prisma.leaveRequest.count({
+        where: {
+          ...departmentFilter,
+          status: LeaveStatus.PENDING,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+
+      // Get total days requested and approved
+      const daysSummary = await prisma.leaveRequest.aggregate({
+        where: {
+          ...departmentFilter,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        },
+        _sum: {
+          totalDays: true
+        }
+      });
+
+      const approvedDaysSummary = await prisma.leaveRequest.aggregate({
+        where: {
+          ...departmentFilter,
+          status: LeaveStatus.APPROVED,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        },
+        _sum: {
+          totalDays: true
+        }
+      });
+
+      // Calculate approval rate and utilization
+      const approvalRate = totalApplications > 0 ? (approvedApplications / totalApplications) * 100 : 0;
+      const totalDaysRequested = daysSummary._sum.totalDays || 0;
+      const totalDaysApproved = approvedDaysSummary._sum.totalDays || 0;
+      const utilizationRate = totalDaysRequested > 0 ? (totalDaysApproved / totalDaysRequested) * 100 : 0;
+
+      res.status(200).json({
+        success: true,
+        data: {
+          period: `${year}`,
+          totalApplications,
+          approvedApplications,
+          rejectedApplications,
+          pendingApplications,
+          totalDaysRequested,
+          totalDaysApproved,
+          approvalRate: parseFloat(approvalRate.toFixed(1)),
+          utilizationRate: parseFloat(utilizationRate.toFixed(1))
+        },
+        message: 'Analytics overview retrieved successfully'
+      });
+    } catch (error) {
+      console.error('Analytics overview error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve analytics overview',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  })
+);
+
+/**
+ * @swagger
+ * /api/v1/reports/analytics/trends:
+ *   get:
+ *     summary: Get leave trends analytics
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         description: Year for trends
+ *       - in: query
+ *         name: months
+ *         schema:
+ *           type: integer
+ *           default: 12
+ *         description: Number of months to include
+ *     responses:
+ *       200:
+ *         description: Trends analytics retrieved successfully
+ */
+router.get('/analytics/trends',
+  authorize('ADMIN', 'HR_ADMIN'),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { year = new Date().getFullYear(), months = 12 } = req.query;
+
+    const trends = [];
+    const currentDate = new Date();
+
+    for (let i = parseInt(months as string) - 1; i >= 0; i--) {
+      const monthDate = new Date(parseInt(year as string), currentDate.getMonth() - i, 1);
+      const nextMonthDate = new Date(parseInt(year as string), currentDate.getMonth() - i + 1, 1);
+
+      const monthName = monthDate.toLocaleString('default', { month: 'short' });
+
+      // Get leave type counts for this month
+      const leaveTypeCounts = await prisma.leaveRequest.groupBy({
+        by: ['leaveType'],
+        where: {
+          createdAt: {
+            gte: monthDate,
+            lt: nextMonthDate
+          }
+        },
+        _count: {
+          id: true
+        }
+      });
+
+      // Get total applications and approval rate
+      const totalLeaves = await prisma.leaveRequest.count({
+        where: {
+          createdAt: {
+            gte: monthDate,
+            lt: nextMonthDate
+          }
+        }
+      });
+
+      const approvedLeaves = await prisma.leaveRequest.count({
+        where: {
+          createdAt: {
+            gte: monthDate,
+            lt: nextMonthDate
+          },
+          status: LeaveStatus.APPROVED
+        }
+      });
+
+      const approvalRate = totalLeaves > 0 ? (approvedLeaves / totalLeaves) * 100 : 0;
+
+      // Build leave type breakdown
+      const leaveBreakdown = {
+        sickLeaves: 0,
+        casualLeaves: 0,
+        earnedLeaves: 0,
+        compOffLeaves: 0,
+        maternityLeaves: 0
+      };
+
+      leaveTypeCounts.forEach(count => {
+        switch (count.leaveType) {
+          case LeaveType.SICK_LEAVE:
+            leaveBreakdown.sickLeaves = count._count.id;
+            break;
+          case LeaveType.CASUAL_LEAVE:
+            leaveBreakdown.casualLeaves = count._count.id;
+            break;
+          case LeaveType.EARNED_LEAVE:
+            leaveBreakdown.earnedLeaves = count._count.id;
+            break;
+          case LeaveType.COMPENSATORY_OFF:
+            leaveBreakdown.compOffLeaves = count._count.id;
+            break;
+          case LeaveType.MATERNITY_LEAVE:
+            leaveBreakdown.maternityLeaves = count._count.id;
+            break;
+        }
+      });
+
+      trends.push({
+        month: monthName,
+        year: monthDate.getFullYear(),
+        totalLeaves,
+        ...leaveBreakdown,
+        utilizationPercentage: 75, // Mock data - calculate based on actual business logic
+        approvalRate: parseFloat(approvalRate.toFixed(1))
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: trends,
+      message: 'Trends analytics retrieved successfully'
+    });
+  })
+);
+
+/**
+ * @swagger
+ * /api/v1/reports/analytics/departments:
+ *   get:
+ *     summary: Get department-wise leave statistics
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         description: Year for department stats
+ *     responses:
+ *       200:
+ *         description: Department statistics retrieved successfully
+ */
+router.get('/analytics/departments',
+  authorize('ADMIN', 'HR_ADMIN'),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { year = new Date().getFullYear() } = req.query;
+
+    const startDate = new Date(`${year}-01-01`);
+    const endDate = new Date(`${year}-12-31`);
+
+    // Get unique departments
+    const departments = await prisma.user.findMany({
+      where: {
+        department: {
+          not: null
+        }
+      },
+      select: {
+        department: true
+      },
+      distinct: ['department']
+    });
+
+    const departmentStats = [];
+
+    for (const dept of departments) {
+      if (!dept.department) continue;
+
+      // Get employee count
+      const employeeCount = await prisma.user.count({
+        where: {
+          department: dept.department
+        }
+      });
+
+      // Get total applications for this department
+      const totalApplications = await prisma.leaveRequest.count({
+        where: {
+          employee: {
+            department: dept.department
+          },
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+
+      // Get pending applications
+      const pendingApplications = await prisma.leaveRequest.count({
+        where: {
+          employee: {
+            department: dept.department
+          },
+          status: LeaveStatus.PENDING,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        }
+      });
+
+      // Get total days
+      const totalDaysResult = await prisma.leaveRequest.aggregate({
+        where: {
+          employee: {
+            department: dept.department
+          },
+          status: LeaveStatus.APPROVED,
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        },
+        _sum: {
+          totalDays: true
+        }
+      });
+
+      const totalDays = totalDaysResult._sum.totalDays || 0;
+      const avgDaysPerEmployee = employeeCount > 0 ? totalDays / employeeCount : 0;
+
+      // Get most common leave type
+      const leaveTypeCounts = await prisma.leaveRequest.groupBy({
+        by: ['leaveType'],
+        where: {
+          employee: {
+            department: dept.department
+          },
+          createdAt: {
+            gte: startDate,
+            lte: endDate
+          }
+        },
+        _count: {
+          id: true
+        },
+        orderBy: {
+          _count: {
+            id: 'desc'
+          }
+        },
+        take: 1
+      });
+
+      const topLeaveType = leaveTypeCounts.length > 0 ?
+        leaveTypeCounts[0].leaveType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) :
+        'N/A';
+
+      departmentStats.push({
+        department: dept.department,
+        employeeCount,
+        totalApplications,
+        avgDaysPerEmployee: parseFloat(avgDaysPerEmployee.toFixed(1)),
+        utilizationRate: parseFloat((Math.random() * 20 + 70).toFixed(1)), // Mock utilization rate
+        topLeaveType,
+        pendingApplications
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: departmentStats,
+      message: 'Department statistics retrieved successfully'
+    });
+  })
+);
+
+/**
+ * @swagger
+ * /api/v1/reports/analytics/leave-types:
+ *   get:
+ *     summary: Get leave type breakdown analytics
+ *     tags: [Reports]
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         description: Year for leave type breakdown
+ *     responses:
+ *       200:
+ *         description: Leave type breakdown retrieved successfully
+ */
+router.get('/analytics/leave-types',
+  authorize('ADMIN', 'HR_ADMIN'),
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    const { year = new Date().getFullYear() } = req.query;
+
+    const startDate = new Date(`${year}-01-01`);
+    const endDate = new Date(`${year}-12-31`);
+
+    // Get leave type counts and average duration
+    const leaveTypeStats = await prisma.leaveRequest.groupBy({
+      by: ['leaveType'],
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      _count: {
+        id: true
+      },
+      _avg: {
+        totalDays: true
+      }
+    });
+
+    const totalRequests = await prisma.leaveRequest.count({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+
+    const colorMap: { [key: string]: string } = {
+      'EARNED_LEAVE': '#4caf50',
+      'CASUAL_LEAVE': '#2196f3',
+      'SICK_LEAVE': '#ff9800',
+      'COMPENSATORY_OFF': '#9c27b0',
+      'MATERNITY_LEAVE': '#e91e63',
+      'PATERNITY_LEAVE': '#795548',
+      'BEREAVEMENT_LEAVE': '#607d8b',
+      'MARRIAGE_LEAVE': '#f44336'
+    };
+
+    const leaveTypeBreakdown = leaveTypeStats.map(stat => {
+      const percentage = totalRequests > 0 ? (stat._count.id / totalRequests) * 100 : 0;
+      const leaveTypeName = stat.leaveType.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+
+      return {
+        leaveType: leaveTypeName,
+        count: stat._count.id,
+        percentage: parseFloat(percentage.toFixed(1)),
+        avgDuration: parseFloat((stat._avg.totalDays || 0).toFixed(1)),
+        color: colorMap[stat.leaveType] || '#9e9e9e'
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: leaveTypeBreakdown,
+      message: 'Leave type breakdown retrieved successfully'
+    });
+  })
+);
+
+// Dashboard Metrics - for dashboard components
+router.get('/dashboard-metrics',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const currentYear = new Date().getFullYear();
+
+      // Get basic leave statistics
+      const [
+        totalRequests,
+        pendingRequests,
+        approvedRequests,
+        rejectedRequests,
+        totalEmployees
+      ] = await Promise.all([
+        prisma.leaveRequest.count(),
+        prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
+        prisma.leaveRequest.count({ where: { status: 'APPROVED' } }),
+        prisma.leaveRequest.count({ where: { status: 'REJECTED' } }),
+        prisma.user.count({ where: { role: { not: 'ADMIN' } } })
+      ]);
+
+      res.json({
+        success: true,
+        data: {
+          totalRequests,
+          pendingRequests,
+          approvedRequests,
+          rejectedRequests,
+          totalEmployees,
+          approvalRate: totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0,
+          averageProcessingTime: '2.5 days', // Mock data
+          popularLeaveType: 'Casual Leave' // Mock data
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch dashboard metrics',
+        error: error.message
+      });
+    }
+  })
+);
+
+// Analytics endpoint - for charts
+router.get('/analytics',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { range = '6months', metric = 'all' } = req.query;
+
+      // Mock analytics data
+      const analyticsData = {
+        leavesTrend: [
+          { month: 'Jan', approved: 45, pending: 12, rejected: 5 },
+          { month: 'Feb', approved: 52, pending: 8, rejected: 3 },
+          { month: 'Mar', approved: 48, pending: 15, rejected: 7 },
+          { month: 'Apr', approved: 61, pending: 10, rejected: 4 },
+          { month: 'May', approved: 55, pending: 18, rejected: 6 },
+          { month: 'Jun', approved: 67, pending: 9, rejected: 2 }
+        ],
+        leaveTypeDistribution: [
+          { type: 'Casual Leave', value: 35, color: '#8884d8' },
+          { type: 'Sick Leave', value: 25, color: '#82ca9d' },
+          { type: 'Annual Leave', value: 30, color: '#ffc658' },
+          { type: 'Emergency Leave', value: 10, color: '#ff7300' }
+        ],
+        departmentUsage: [
+          { department: 'Engineering', usage: 75 },
+          { department: 'Marketing', usage: 65 },
+          { department: 'Sales', usage: 80 },
+          { department: 'HR', usage: 45 }
+        ]
+      };
+
+      res.json({
+        success: true,
+        data: analyticsData,
+        range,
+        metric
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch analytics data',
+        error: error.message
+      });
+    }
   })
 );
 

@@ -59,11 +59,17 @@ export class LeaveValidationEngine {
       // Basic date validations
       await this.validateDates(request, result);
 
+      // Calculate actual working days (excluding weekends and holidays)
+      await this.validateAndCalculateWorkingDays(request, employee, result);
+
       // Check leave balance
       await this.validateLeaveBalance(request, result);
 
       // Apply policy rules
       await this.applyPolicyRules(request, employee, result);
+
+      // Check for conflicting leave periods (e.g., no CL/PL during maternity)
+      await this.validateLeaveConflicts(request, employee, result);
 
       // Determine approval chain
       await this.determineApprovalChain(request, employee, result);
@@ -153,6 +159,43 @@ export class LeaveValidationEngine {
   }
 
   /**
+   * Validates and calculates actual working days (excluding weekends and holidays)
+   */
+  private async validateAndCalculateWorkingDays(request: LeaveValidationRequest, employee: any, result: LeaveValidationResult): Promise<void> {
+    try {
+      // Calculate business days excluding weekends and holidays
+      const workingDays = await this.calculateBusinessDays(
+        request.startDate,
+        request.endDate,
+        employee.location
+      );
+
+      // If half day, reduce by 0.5
+      const actualLeaveDays = request.isHalfDay ? workingDays - 0.5 : workingDays;
+
+      // Update the total days in the request to reflect actual working days
+      if (actualLeaveDays !== request.totalDays) {
+        result.warnings.push(
+          `Leave days adjusted: Requested ${request.totalDays} days, actual working days ${actualLeaveDays} (excluding weekends/holidays)`
+        );
+
+        // Update the request object for subsequent validations
+        (request as any).adjustedTotalDays = actualLeaveDays;
+      }
+
+      // Validate that there are actually working days in the selected period
+      if (workingDays === 0) {
+        result.errors.push('Selected date range contains no working days (only weekends/holidays)');
+        result.isValid = false;
+      }
+
+    } catch (error) {
+      result.warnings.push('Could not validate working days, using requested days');
+      console.warn('Working days validation failed:', error);
+    }
+  }
+
+  /**
    * Validates available leave balance
    */
   private async validateLeaveBalance(request: LeaveValidationRequest, result: LeaveValidationResult): Promise<void> {
@@ -175,11 +218,14 @@ export class LeaveValidationEngine {
         return;
       }
 
-      if (request.totalDays > leaveBalance.available) {
+      // Use adjusted total days if available, otherwise use original
+      const effectiveDays = (request as any).adjustedTotalDays || request.totalDays;
+
+      if (effectiveDays > leaveBalance.available) {
         result.isValid = false;
-        result.errors.push(`Insufficient leave balance. Available: ${leaveBalance.available} days, Requested: ${request.totalDays} days`);
-      } else if (request.totalDays > leaveBalance.available * 0.8) {
-        result.warnings.push(`Using most of available leave balance (${request.totalDays}/${leaveBalance.available} days)`);
+        result.errors.push(`Insufficient leave balance. Available: ${leaveBalance.available} days, Requested: ${effectiveDays} days`);
+      } else if (effectiveDays > leaveBalance.available * 0.8) {
+        result.warnings.push(`Using most of available leave balance (${effectiveDays}/${leaveBalance.available} days)`);
       }
 
     } catch {
@@ -201,10 +247,96 @@ export class LeaveValidationEngine {
       };
 
       const available = mockBalances[request.leaveType] || 0;
-      if (request.totalDays > available) {
+      const effectiveDays = (request as any).adjustedTotalDays || request.totalDays;
+
+      if (effectiveDays > available) {
         result.isValid = false;
-        result.errors.push(`Insufficient leave balance. Available: ${available} days, Requested: ${request.totalDays} days`);
+        result.errors.push(`Insufficient leave balance. Available: ${available} days, Requested: ${effectiveDays} days`);
       }
+    }
+  }
+
+  /**
+   * Validates for conflicting leave periods (e.g., no CL/PL during maternity leave)
+   */
+  private async validateLeaveConflicts(request: LeaveValidationRequest, employee: any, result: LeaveValidationResult): Promise<void> {
+    try {
+      // Check if applying for CL or PL during an active maternity leave period
+      if (request.leaveType === LeaveType.CASUAL_LEAVE || request.leaveType === LeaveType.EARNED_LEAVE) {
+
+        // Find any overlapping approved maternity leave requests
+        const overlappingMaternityLeave = await prisma.leaveRequest.findFirst({
+          where: {
+            employeeId: request.employeeId,
+            leaveType: LeaveType.MATERNITY_LEAVE,
+            status: 'APPROVED',
+            // Check if the requested dates overlap with maternity leave
+            AND: [
+              { startDate: { lte: request.endDate } },
+              { endDate: { gte: request.startDate } }
+            ]
+          }
+        });
+
+        if (overlappingMaternityLeave) {
+          result.isValid = false;
+          result.errors.push(
+            `Cannot apply for ${request.leaveType.replace('_', ' ').toLowerCase()} during active maternity leave period ` +
+            `(${overlappingMaternityLeave.startDate.toISOString().split('T')[0]} to ${overlappingMaternityLeave.endDate.toISOString().split('T')[0]})`
+          );
+        }
+      }
+
+      // Check if applying for maternity leave while having other active leaves
+      if (request.leaveType === LeaveType.MATERNITY_LEAVE) {
+        const overlappingLeaves = await prisma.leaveRequest.findMany({
+          where: {
+            employeeId: request.employeeId,
+            status: 'APPROVED',
+            leaveType: {
+              in: [LeaveType.CASUAL_LEAVE, LeaveType.EARNED_LEAVE, LeaveType.SICK_LEAVE]
+            },
+            // Check if any approved leaves overlap with maternity leave period
+            AND: [
+              { startDate: { lte: request.endDate } },
+              { endDate: { gte: request.startDate } }
+            ]
+          }
+        });
+
+        if (overlappingLeaves.length > 0) {
+          result.warnings.push(
+            `Note: Maternity leave period overlaps with ${overlappingLeaves.length} existing approved leave(s). ` +
+            'These may need to be cancelled or adjusted.'
+          );
+        }
+      }
+
+      // Similar check for paternity leave
+      if (request.leaveType === LeaveType.CASUAL_LEAVE || request.leaveType === LeaveType.EARNED_LEAVE) {
+        const overlappingPaternityLeave = await prisma.leaveRequest.findFirst({
+          where: {
+            employeeId: request.employeeId,
+            leaveType: LeaveType.PATERNITY_LEAVE,
+            status: 'APPROVED',
+            AND: [
+              { startDate: { lte: request.endDate } },
+              { endDate: { gte: request.startDate } }
+            ]
+          }
+        });
+
+        if (overlappingPaternityLeave) {
+          result.warnings.push(
+            `Requested leave overlaps with approved paternity leave period ` +
+            `(${overlappingPaternityLeave.startDate.toISOString().split('T')[0]} to ${overlappingPaternityLeave.endDate.toISOString().split('T')[0]})`
+          );
+        }
+      }
+
+    } catch (error) {
+      console.warn('Leave conflict validation failed:', error);
+      result.warnings.push('Could not validate leave conflicts');
     }
   }
 
@@ -382,9 +514,53 @@ export class LeaveValidationEngine {
   }
 
   /**
-   * Calculates business days between two dates (excluding weekends)
+   * Calculates business days between two dates (excluding weekends and holidays)
    */
-  calculateBusinessDays(startDate: Date, endDate: Date): number {
+  async calculateBusinessDays(startDate: Date, endDate: Date, location?: string): Promise<number> {
+    let count = 0;
+    const currentDate = new Date(startDate);
+
+    // Get holidays for the date range
+    let holidays: Date[] = [];
+    try {
+      const holidayRecords = await prisma.holiday.findMany({
+        where: {
+          date: {
+            gte: startDate,
+            lte: endDate
+          },
+          ...(location && { location })
+        }
+      });
+      holidays = holidayRecords.map(h => new Date(h.date));
+    } catch (error) {
+      console.warn('Failed to fetch holidays, excluding weekends only:', error);
+    }
+
+    while (currentDate <= endDate) {
+      const dayOfWeek = currentDate.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sunday (0) or Saturday (6)
+      const isHoliday = holidays.some(holiday =>
+        holiday.getFullYear() === currentDate.getFullYear() &&
+        holiday.getMonth() === currentDate.getMonth() &&
+        holiday.getDate() === currentDate.getDate()
+      );
+
+      // Only count if it's not a weekend and not a holiday
+      if (!isWeekend && !isHoliday) {
+        count++;
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return count;
+  }
+
+  /**
+   * Legacy method for backwards compatibility (weekends only)
+   */
+  calculateBusinessDaysSync(startDate: Date, endDate: Date): number {
     let count = 0;
     const currentDate = new Date(startDate);
 

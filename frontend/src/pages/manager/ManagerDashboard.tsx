@@ -66,6 +66,7 @@ import toast from 'react-hot-toast';
 import api from '@/config/api';
 import { LeaveType, LeaveStatus } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import LeaveCalendar from '@/components/calendar/LeaveCalendar';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -147,6 +148,7 @@ const ManagerDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamLeaves, setTeamLeaves] = useState<any[]>([]);
   const [stats, setStats] = useState<ManagerStats>({
     totalTeamMembers: 0,
     pendingApprovals: 0,
@@ -169,10 +171,19 @@ const ManagerDashboard: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<LeaveType | 'all'>('all');
   const [dateFilter, setDateFilter] = useState<Dayjs | null>(null);
   const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'high' | 'urgent'>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchManagerData();
+    fetchTeamCalendarData();
   }, []);
+
+  // Fetch calendar data when calendar tab is selected
+  useEffect(() => {
+    if (currentTab === 2) {
+      fetchTeamCalendarData();
+    }
+  }, [currentTab]);
 
   const fetchManagerData = async () => {
     setLoading(true);
@@ -198,6 +209,30 @@ const ManagerDashboard: React.FC = () => {
     }
   };
 
+  const fetchTeamCalendarData = async () => {
+    try {
+      // Fetch all team leave requests for calendar view
+      const response = await api.get('/leaves?manager=true&include=all');
+      const leaves = response.data.data || [];
+
+      // Transform to calendar format
+      const calendarLeaves = leaves.map((leave: any) => ({
+        id: leave.id,
+        title: `${leave.employeeName || 'Unknown'} - ${leave.type}`,
+        startDate: new Date(leave.startDate),
+        endDate: new Date(leave.endDate),
+        type: leave.type,
+        status: leave.status,
+        employeeName: leave.employeeName
+      }));
+
+      setTeamLeaves(calendarLeaves);
+    } catch (error) {
+      console.error('Failed to fetch team calendar data:', error);
+      setTeamLeaves([]);
+    }
+  };
+
   const handleApprovalAction = async () => {
     if (!selectedRequest) return;
 
@@ -213,6 +248,7 @@ const ManagerDashboard: React.FC = () => {
       setApprovalComments('');
       setSelectedRequest(null);
       fetchManagerData();
+      fetchTeamCalendarData();
     } catch (error) {
       console.error(`Failed to ${approvalAction} request:`, error);
       toast.error(`Failed to ${approvalAction} leave request`);
@@ -255,11 +291,18 @@ const ManagerDashboard: React.FC = () => {
     if (typeFilter !== 'all' && request.leaveType !== typeFilter) return false;
     if (urgencyFilter !== 'all' && request.urgency !== urgencyFilter) return false;
     if (dateFilter && !dayjs(request.startDate).isSame(dateFilter, 'month')) return false;
+    if (departmentFilter !== 'all' && request.department !== departmentFilter) return false;
     return true;
   });
 
   const pendingRequests = requests.filter(r => r.status === 'PENDING');
   const urgentRequests = pendingRequests.filter(r => r.urgency === 'urgent' || getDaysUntilStart(r.startDate) <= 1);
+
+  // Get unique departments from team members and requests
+  const uniqueDepartments = [...new Set([
+    ...teamMembers.map(member => member.department).filter(Boolean),
+    ...requests.map(request => request.department).filter(Boolean)
+  ])];
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -395,6 +438,7 @@ const ManagerDashboard: React.FC = () => {
               />
               <Tab label="All Requests" />
               <Tab label="Team Overview" />
+              <Tab label="Team Calendar" />
               <Tab label="Analytics" />
             </Tabs>
           </Box>
@@ -593,6 +637,23 @@ const ManagerDashboard: React.FC = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
+                <FormControl fullWidth size="small">
+                  <InputLabel>Department</InputLabel>
+                  <Select
+                    value={departmentFilter}
+                    label="Department"
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                  >
+                    <MenuItem value="all">All Departments</MenuItem>
+                    {uniqueDepartments.map((dept) => (
+                      <MenuItem key={dept} value={dept}>
+                        {dept}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
                 <Button
                   variant="outlined"
                   fullWidth
@@ -601,6 +662,7 @@ const ManagerDashboard: React.FC = () => {
                     setTypeFilter('all');
                     setDateFilter(null);
                     setUrgencyFilter('all');
+                    setDepartmentFilter('all');
                   }}
                 >
                   Clear Filters
@@ -669,7 +731,28 @@ const ManagerDashboard: React.FC = () => {
           </TabPanel>
 
           {/* Team Overview Tab */}
+          {/* Team Calendar Tab */}
           <TabPanel value={currentTab} index={2}>
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Team Leave Calendar
+              </Typography>
+              <LeaveCalendar
+                leaves={teamLeaves}
+                showTeamLeaves={true}
+                onLeaveClick={(leave) => {
+                  // Find the corresponding request and open approval dialog
+                  const request = requests.find(r => r.id === leave.id);
+                  if (request) {
+                    setSelectedRequest(request);
+                    setApprovalDialog(true);
+                  }
+                }}
+              />
+            </Box>
+          </TabPanel>
+
+          <TabPanel value={currentTab} index={3}>
             <Grid container spacing={3}>
               {teamMembers.map((member) => (
                 <Grid item xs={12} md={6} lg={4} key={member.id}>
@@ -733,7 +816,7 @@ const ManagerDashboard: React.FC = () => {
           </TabPanel>
 
           {/* Analytics Tab */}
-          <TabPanel value={currentTab} index={3}>
+          <TabPanel value={currentTab} index={4}>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <Card>
@@ -806,7 +889,7 @@ const ManagerDashboard: React.FC = () => {
                       <Button
                         variant="outlined"
                         startIcon={<Timeline />}
-                        onClick={() => {/* View team calendar */}}
+                        onClick={() => setCurrentTab(2)}
                       >
                         Team Calendar
                       </Button>

@@ -34,7 +34,14 @@ import toast from 'react-hot-toast'
 import { useAuth } from '@/hooks/useAuth'
 import { LeaveStatus, LeaveType } from '@/types'
 import api from '@/config/api'
+import ErrorBoundary from '@/components/common/ErrorBoundary'
 import EnhancedLeaveBalance from '@/components/dashboard/EnhancedLeaveBalance'
+import LeavePolicyDisplay from '@/components/dashboard/LeavePolicyDisplay'
+import BookedLeavesSection from '@/components/dashboard/BookedLeavesSection'
+import ApprovedLeavesStatus from '@/components/dashboard/ApprovedLeavesStatus'
+import UpcomingHolidaysDisplay from '@/components/dashboard/UpcomingHolidaysDisplay'
+import AnalyticsCharts from '@/components/dashboard/AnalyticsCharts'
+import MetricsSummary from '@/components/dashboard/MetricsSummary'
 
 interface DashboardStats {
   personal: {
@@ -297,7 +304,9 @@ const DashboardPage: React.FC = () => {
 
         {/* Enhanced Leave Balance */}
         <Grid item xs={12} md={6}>
-          <EnhancedLeaveBalance />
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load leave balance</Alert>}>
+            <EnhancedLeaveBalance />
+          </ErrorBoundary>
         </Grid>
 
         {/* Recent Activity */}
@@ -383,8 +392,53 @@ const DashboardPage: React.FC = () => {
               <Button variant="outlined" href="/reports" color="info">
                 View Reports
               </Button>
+              <Button variant="outlined" href="/compoff/apply" color="secondary">
+                Apply Comp Off
+              </Button>
             </Box>
           </Paper>
+        </Grid>
+
+        {/* Enhanced Analytics Section */}
+        <Grid item xs={12}>
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load metrics summary</Alert>}>
+            <MetricsSummary />
+          </ErrorBoundary>
+        </Grid>
+
+        {/* Analytics Charts */}
+        <Grid item xs={12}>
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load analytics charts</Alert>}>
+            <AnalyticsCharts />
+          </ErrorBoundary>
+        </Grid>
+
+        {/* Leave and Comp Off Policy Display */}
+        <Grid item xs={12}>
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load policy display</Alert>}>
+            <LeavePolicyDisplay />
+          </ErrorBoundary>
+        </Grid>
+
+        {/* Booked Leaves Section */}
+        <Grid item xs={12} md={6}>
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load booked leaves</Alert>}>
+            <BookedLeavesSection />
+          </ErrorBoundary>
+        </Grid>
+
+        {/* Approved Leaves Status */}
+        <Grid item xs={12} md={6}>
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load approved leaves status</Alert>}>
+            <ApprovedLeavesStatus />
+          </ErrorBoundary>
+        </Grid>
+
+        {/* Upcoming Holidays Display */}
+        <Grid item xs={12} md={6}>
+          <ErrorBoundary fallback={<Alert severity="warning">Unable to load upcoming holidays</Alert>}>
+            <UpcomingHolidaysDisplay />
+          </ErrorBoundary>
         </Grid>
       </Grid>
     </Box>

@@ -30,6 +30,7 @@ import {
   Schedule,
   Handshake,
   SupervisorAccount,
+  AccessTime,
 } from '@mui/icons-material'
 
 import { useAuth } from '@/hooks/useAuth'
@@ -99,6 +100,11 @@ const getNavigationItems = (unreadCount: number, pendingApprovals: number): Navi
     text: 'Leave Without Pay',
     icon: <Assignment />,
     path: '/lwp',
+  },
+  {
+    text: 'Comp Off',
+    icon: <AccessTime />,
+    path: '/compoff/apply',
   },
   {
     text: 'Manager Dashboard',

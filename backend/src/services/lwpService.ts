@@ -1,8 +1,9 @@
-import { prisma } from '../config/database';
-import { LeaveRequest, User } from '@prisma/client';
-import { LeaveType, LeaveStatus } from '../types/enums';
+import { PrismaClient } from '@prisma/client';
+import { multiLevelApprovalService } from './multiLevelApprovalService';
+import { emailService } from './emailService';
 import { logger } from '../utils/logger';
-// import { PolicyEngine } from './policyEngine';
+
+const prisma = new PrismaClient();
 
 export interface LWPApplicationData {
   employeeId: string;

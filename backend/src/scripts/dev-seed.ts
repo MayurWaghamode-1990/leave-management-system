@@ -102,12 +102,30 @@ async function seedUsers() {
   ]
 
   for (const user of users) {
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: user,
-      create: user
-    })
-    console.log(`✅ Created/Updated user: ${user.firstName} ${user.lastName} (${user.email})`)
+    // First try to find by employeeId, then by email
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { employeeId: user.employeeId },
+          { email: user.email }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      // Update existing user
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: user
+      });
+      console.log(`✅ Updated user: ${user.firstName} ${user.lastName} (${user.email})`)
+    } else {
+      // Create new user
+      await prisma.user.create({
+        data: user
+      });
+      console.log(`✅ Created user: ${user.firstName} ${user.lastName} (${user.email})`)
+    }
   }
 }
 
@@ -119,44 +137,45 @@ async function seedPolicies() {
       id: 'policy-casual',
       name: 'Casual Leave Policy',
       leaveType: 'CASUAL_LEAVE',
-      description: 'Standard casual leave policy for all employees',
-      maxDaysPerYear: 12,
+      entitlementDays: 12,
       maxConsecutiveDays: 3,
-      carryForward: false,
-      applicableFrom: new Date('2024-01-01'),
+      location: 'Mumbai',
+      region: 'INDIA',
+      effectiveFrom: new Date('2024-01-01'),
       isActive: true
     },
     {
       id: 'policy-sick',
       name: 'Sick Leave Policy',
       leaveType: 'SICK_LEAVE',
-      description: 'Medical leave policy with doctor certificate requirement',
-      maxDaysPerYear: 15,
+      entitlementDays: 15,
       maxConsecutiveDays: 7,
-      carryForward: false,
-      applicableFrom: new Date('2024-01-01'),
+      location: 'Mumbai',
+      region: 'INDIA',
+      effectiveFrom: new Date('2024-01-01'),
       isActive: true
     },
     {
       id: 'policy-earned',
       name: 'Earned Leave Policy',
       leaveType: 'EARNED_LEAVE',
-      description: 'Annual earned leave with carry forward option',
-      maxDaysPerYear: 21,
+      entitlementDays: 21,
       maxConsecutiveDays: 15,
-      carryForward: true,
-      applicableFrom: new Date('2024-01-01'),
+      maxCarryForward: 5,
+      location: 'Mumbai',
+      region: 'INDIA',
+      effectiveFrom: new Date('2024-01-01'),
       isActive: true
     },
     {
       id: 'policy-comp-off',
       name: 'Compensatory Off Policy',
       leaveType: 'COMPENSATORY_OFF',
-      description: 'Compensation for overtime/weekend work',
-      maxDaysPerYear: 10,
+      entitlementDays: 10,
       maxConsecutiveDays: 2,
-      carryForward: false,
-      applicableFrom: new Date('2024-01-01'),
+      location: 'Mumbai',
+      region: 'INDIA',
+      effectiveFrom: new Date('2024-01-01'),
       isActive: true
     }
   ]
@@ -183,17 +202,27 @@ async function seedLeaveBalances() {
   for (const employee of employees) {
     for (const policy of policies) {
       const balance = {
-        userId: employee.id,
+        employeeId: employee.id,
         leaveType: policy.leaveType,
         year: 2024,
-        allocated: policy.maxDaysPerYear,
+        totalEntitlement: policy.entitlementDays,
         used: 0,
-        remaining: policy.maxDaysPerYear,
+        available: policy.entitlementDays,
         carryForward: 0
       }
 
-      await prisma.leaveBalance.create({ data: balance })
-      console.log(`✅ Created balance for ${employee.firstName} ${employee.lastName}: ${policy.leaveType} (${policy.maxDaysPerYear} days)`)
+      await prisma.leaveBalance.upsert({
+        where: {
+          employeeId_leaveType_year: {
+            employeeId: employee.id,
+            leaveType: policy.leaveType,
+            year: 2024
+          }
+        },
+        update: balance,
+        create: balance
+      })
+      console.log(`✅ Created balance for ${employee.firstName} ${employee.lastName}: ${policy.leaveType} (${policy.entitlementDays} days)`)
     }
   }
 }

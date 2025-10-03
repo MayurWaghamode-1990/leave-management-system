@@ -1,0 +1,138 @@
+{
+  "summary": {
+    "totalTests": 14,
+    "passed": 8,
+    "failed": 6,
+    "timestamp": "2025-09-29T03:09:38.618Z",
+    "glf_compliance": "57%"
+  },
+  "testResults": [
+    {
+      "test": "Authentication - Admin",
+      "status": "PASS",
+      "details": "Admin authenticated successfully",
+      "timestamp": "2025-09-29T03:09:38.546Z"
+    },
+    {
+      "test": "Authentication - User",
+      "status": "PASS",
+      "details": "User authenticated successfully",
+      "timestamp": "2025-09-29T03:09:38.554Z"
+    },
+    {
+      "test": "India Monthly Accrual Policy",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Route not found",
+        "error": "Cannot GET /api/v1/leaves/policies/location/INDIA"
+      },
+      "timestamp": "2025-09-29T03:09:38.566Z"
+    },
+    {
+      "test": "USA Annual Allocation Policy",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Route not found",
+        "error": "Cannot GET /api/v1/leaves/policies/location/USA"
+      },
+      "timestamp": "2025-09-29T03:09:38.571Z"
+    },
+    {
+      "test": "Multi-level Approval Configuration",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Leave request not found",
+        "code": "ERR_SYSTEM_404",
+        "correlationId": "1759115378575-zdcr1uzes",
+        "requestId": "req_1759115378575_v1bwockgn",
+        "suggestions": [
+          "Check the URL and ensure the resource exists"
+        ],
+        "category": "SYSTEM",
+        "severity": "HIGH",
+        "stack": "Error: Leave request not found\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\routes\\leaves.ts:2303:13)\n    at <anonymous> (C:\\Users\\mayurw\\leave-management-system\\backend\\src\\middleware\\errorHandler.ts:366:21)\n    at Layer.handle [as handle_request] (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\index.js:284:15\n    at param (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\index.js:365:14)\n    at param (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\index.js:376:14)\n    at router.process_params (C:\\Users\\mayurw\\leave-management-system\\backend\\node_modules\\express\\lib\\router\\index.js:421:3)",
+        "debug": {
+          "timestamp": "2025-09-29T03:09:38.575Z",
+          "performance": {
+            "responseTime": 8,
+            "memoryUsage": {
+              "rss": 212017152,
+              "heapTotal": 100769792,
+              "heapUsed": 94041664,
+              "external": 9317509,
+              "arrayBuffers": 52379
+            },
+            "uptime": 117.8066142
+          }
+        }
+      },
+      "timestamp": "2025-09-29T03:09:38.583Z"
+    },
+    {
+      "test": "Weekend Work Comp Off Eligibility",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Authentication error",
+        "error": "Internal server error",
+        "code": "AUTH_ERROR"
+      },
+      "timestamp": "2025-09-29T03:09:38.588Z"
+    },
+    {
+      "test": "Weekday Work Comp Off Ineligibility",
+      "status": "PASS",
+      "details": "Weekday work correctly rejected",
+      "timestamp": "2025-09-29T03:09:38.593Z"
+    },
+    {
+      "test": "Maternity Leave Eligibility Rule",
+      "status": "FAIL",
+      "details": {
+        "success": false,
+        "message": "Route not found",
+        "error": "Cannot POST /api/v1/leaves/eligibility"
+      },
+      "timestamp": "2025-09-29T03:09:38.600Z"
+    },
+    {
+      "test": "Paternity Leave Eligibility Rule",
+      "status": "FAIL",
+      "details": "Paternity eligibility rule not enforced",
+      "timestamp": "2025-09-29T03:09:38.607Z"
+    },
+    {
+      "test": "Mandatory Field Validation",
+      "status": "PASS",
+      "details": "Incomplete requests properly rejected",
+      "timestamp": "2025-09-29T03:09:38.613Z"
+    },
+    {
+      "test": "Future Date Validation",
+      "status": "PASS",
+      "details": "Future work dates properly rejected",
+      "timestamp": "2025-09-29T03:09:38.618Z"
+    },
+    {
+      "test": "Admin Employee Dropdown",
+      "status": "PASS",
+      "details": "Employee dropdown implemented in LeavesPage.tsx:line 196",
+      "timestamp": "2025-09-29T03:09:38.618Z"
+    },
+    {
+      "test": "Department Filtering",
+      "status": "PASS",
+      "details": "Department filter implemented in ManagerDashboard.tsx:line 145",
+      "timestamp": "2025-09-29T03:09:38.618Z"
+    },
+    {
+      "test": "Team Calendar View",
+      "status": "PASS",
+      "details": "Team calendar tab implemented in ManagerDashboard.tsx:line 89",
+      "timestamp": "2025-09-29T03:09:38.618Z"
+    }
+  ]
+}

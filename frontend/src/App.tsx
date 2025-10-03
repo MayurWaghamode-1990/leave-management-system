@@ -1,4 +1,3 @@
-import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useRealTimeNotifications } from './hooks/useRealTimeNotifications'
@@ -23,6 +22,10 @@ import DelegationsPage from './pages/delegations/DelegationsPage'
 import AdvancedRequestsPage from './pages/advanced-requests/AdvancedRequestsPage'
 import ManagerDashboard from './pages/manager/ManagerDashboard'
 import { LWPPage } from './pages/lwp/LWPPage'
+import CompOffApplicationPage from './pages/compoff/CompOffApplicationPage'
+import CompOffBalancePage from './pages/compoff/CompOffBalancePage'
+import CompOffApprovalStatusPage from './pages/compoff/CompOffApprovalStatusPage'
+import CompOffPolicyPage from './pages/compoff/CompOffPolicyPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 // Components
@@ -34,7 +37,7 @@ function App() {
   const { isLoading } = useAuth()
 
   // Initialize real-time notifications
-  const { isConnected } = useRealTimeNotifications()
+  const { isConnected: _isConnected } = useRealTimeNotifications()
 
   if (isLoading) {
     return <LoadingSpinner />
@@ -69,6 +72,14 @@ function App() {
         <Route path="advanced-requests" element={<AdvancedRequestsPage />} />
         <Route path="lwp" element={<LWPPage />} />
         <Route path="profile" element={<ProfilePage />} />
+
+        {/* Comp Off routes */}
+        <Route path="compoff">
+          <Route path="apply" element={<CompOffApplicationPage />} />
+          <Route path="balance" element={<CompOffBalancePage />} />
+          <Route path="approval-status" element={<CompOffApprovalStatusPage />} />
+          <Route path="policy" element={<CompOffPolicyPage />} />
+        </Route>
 
         {/* Manager routes */}
         <Route path="manager">

@@ -9,6 +9,7 @@ import swaggerSpecs from './config/swagger';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { databaseService } from './services/databaseService';
+import { accrualScheduler } from './services/accrualScheduler';
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -27,6 +28,14 @@ import leaveTemplatesRoutes from './routes/leaveTemplates';
 import lwpRoutes from './routes/lwp-simple';
 import calendarRoutes from './routes/calendar';
 import advancedReportsRoutes from './routes/advancedReports';
+import accrualRoutes from './routes/accrual';
+import usaPtoRoutes from './routes/usaPto';
+import multiLevelApprovalsRoutes from './routes/multiLevelApprovals';
+import emailActionsRoutes from './routes/emailActions';
+import specialLeaveTypesRoutes from './routes/specialLeaveTypes';
+import enhancedLwpRoutes from './routes/enhancedLwp';
+import compOffRoutes from './routes/compOff';
+import enhancedFeaturesRoutes from './routes/enhancedFeatures';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -168,6 +177,14 @@ app.use(`${API_PREFIX}/templates`, authenticate, leaveTemplatesRoutes);
 app.use(`${API_PREFIX}/lwp`, authenticate, lwpRoutes);
 app.use(`${API_PREFIX}/calendar`, calendarRoutes);
 app.use(`${API_PREFIX}/advanced-reports`, advancedReportsRoutes);
+app.use(`${API_PREFIX}/usa-pto`, authenticate, usaPtoRoutes);
+app.use(`${API_PREFIX}/multi-level-approvals`, authenticate, multiLevelApprovalsRoutes);
+app.use(`${API_PREFIX}/email-actions`, emailActionsRoutes); // No auth required for email token actions
+app.use(`${API_PREFIX}/special-leave-types`, authenticate, specialLeaveTypesRoutes);
+app.use(`${API_PREFIX}/enhanced-lwp`, authenticate, enhancedLwpRoutes);
+app.use(`${API_PREFIX}/comp-off`, compOffRoutes);
+app.use(`${API_PREFIX}/accrual`, accrualRoutes);
+app.use(`${API_PREFIX}/enhanced-features`, authenticate, enhancedFeaturesRoutes);
 // app.use(`${API_PREFIX}/files`, fileRoutes);  // Temporarily disabled due to middleware issue
 
 // 404 handler
@@ -227,12 +244,16 @@ async function startServer() {
     // Initialize database connection
     await databaseService.connect();
 
+    // Initialize accrual scheduler
+    accrualScheduler.init();
+
     server.listen(PORT, () => {
       logger.info(`🚀 Leave Management System API running on port ${PORT}`);
       logger.info(`📚 API documentation available at http://localhost:${PORT}${API_PREFIX}/docs`);
       logger.info(`🏥 Health check available at http://localhost:${PORT}/health`);
       logger.info(`🔌 WebSocket server ready for real-time notifications`);
       logger.info(`💾 Database connected and ready`);
+      logger.info(`📅 Accrual scheduler initialized and running`);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);

@@ -30,7 +30,8 @@ import {
   Cancel,
   Visibility,
   Schedule,
-  People
+  People,
+  CalendarMonth
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
@@ -39,6 +40,7 @@ import api from '@/config/api';
 import { LeaveType, LeaveStatus } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useApprovals, ApprovalRequest } from '@/contexts/ApprovalsContext';
+import TeamCalendarView from '@/components/approvals/TeamCalendarView';
 
 
 const ApprovalsPage: React.FC = () => {
@@ -197,104 +199,115 @@ const ApprovalsPage: React.FC = () => {
           <Tab label={`Pending (${pendingCount})`} />
           <Tab label={`Approved (${approvedCount})`} />
           <Tab label={`Rejected (${rejectedCount})`} />
+          <Tab
+            icon={<CalendarMonth />}
+            label="Team Calendar"
+            sx={{ minHeight: 48 }}
+          />
         </Tabs>
       </Card>
 
-      {/* Team Requests Table */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {tabValue === 1 && 'Pending Approval Requests'}
-            {tabValue === 2 && 'Approved Requests'}
-            {tabValue === 3 && 'Rejected Requests'}
-            {tabValue === 0 && 'All Team Leave Requests'}
-          </Typography>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Employee</TableCell>
-                  <TableCell>Leave Type</TableCell>
-                  <TableCell>Start Date</TableCell>
-                  <TableCell>End Date</TableCell>
-                  <TableCell>Days</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Applied Date</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {getFilteredRequests().map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell>
-                      Employee {request.employeeId === '1' ? 'Admin User' : 'John Doe'}
-                    </TableCell>
-                    <TableCell>
-                      {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
-                    </TableCell>
-                    <TableCell>{dayjs(request.startDate).format('MMM DD, YYYY')}</TableCell>
-                    <TableCell>{dayjs(request.endDate).format('MMM DD, YYYY')}</TableCell>
-                    <TableCell>
-                      {request.totalDays} {request.isHalfDay && '(Half Day)'}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={request.status}
-                        color={statusColors[request.status] as any}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{dayjs(request.appliedDate).format('MMM DD, YYYY')}</TableCell>
-                    <TableCell>
-                      <Box display="flex" gap={1}>
-                        <Tooltip title="View Details">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewRequest(request)}
-                          >
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
-                        {request.status === LeaveStatus.PENDING && (
-                          <>
-                            <Tooltip title="Approve">
-                              <IconButton
-                                size="small"
-                                color="success"
-                                onClick={() => handleApproveClick(request)}
-                              >
-                                <CheckCircle />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Reject">
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleRejectClick(request)}
-                              >
-                                <Cancel />
-                              </IconButton>
-                            </Tooltip>
-                          </>
-                        )}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {getFilteredRequests().length === 0 && (
+      {/* Content based on selected tab */}
+      {tabValue === 4 ? (
+        // Calendar View
+        <TeamCalendarView />
+      ) : (
+        // Team Requests Table
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {tabValue === 1 && 'Pending Approval Requests'}
+              {tabValue === 2 && 'Approved Requests'}
+              {tabValue === 3 && 'Rejected Requests'}
+              {tabValue === 0 && 'All Team Leave Requests'}
+            </Typography>
+            <TableContainer>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
-                      <Typography variant="body2" color="textSecondary">
-                        No leave requests found.
-                      </Typography>
-                    </TableCell>
+                    <TableCell>Employee</TableCell>
+                    <TableCell>Leave Type</TableCell>
+                    <TableCell>Start Date</TableCell>
+                    <TableCell>End Date</TableCell>
+                    <TableCell>Days</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Applied Date</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent>
-      </Card>
+                </TableHead>
+                <TableBody>
+                  {getFilteredRequests().map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell>
+                        Employee {request.employeeId === '1' ? 'Admin User' : 'John Doe'}
+                      </TableCell>
+                      <TableCell>
+                        {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
+                      </TableCell>
+                      <TableCell>{dayjs(request.startDate).format('MMM DD, YYYY')}</TableCell>
+                      <TableCell>{dayjs(request.endDate).format('MMM DD, YYYY')}</TableCell>
+                      <TableCell>
+                        {request.totalDays} {request.isHalfDay && '(Half Day)'}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={request.status}
+                          color={statusColors[request.status] as any}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{dayjs(request.appliedDate).format('MMM DD, YYYY')}</TableCell>
+                      <TableCell>
+                        <Box display="flex" gap={1}>
+                          <Tooltip title="View Details">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewRequest(request)}
+                            >
+                              <Visibility />
+                            </IconButton>
+                          </Tooltip>
+                          {request.status === LeaveStatus.PENDING && (
+                            <>
+                              <Tooltip title="Approve">
+                                <IconButton
+                                  size="small"
+                                  color="success"
+                                  onClick={() => handleApproveClick(request)}
+                                >
+                                  <CheckCircle />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Reject">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleRejectClick(request)}
+                                >
+                                  <Cancel />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          )}
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {getFilteredRequests().length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        <Typography variant="body2" color="textSecondary">
+                          No leave requests found.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Approval Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>

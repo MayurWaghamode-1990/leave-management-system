@@ -188,6 +188,56 @@ export const endpoints = {
     use: (id: string) => `/templates/${id}/use`,
     categories: '/templates/categories',
   },
+
+  // Comp Off
+  compOff: {
+    policy: '/comp-off/policy',
+    workLog: '/comp-off/work-log',
+    workLogs: '/comp-off/work-logs',
+    balance: '/comp-off/balance',
+    apply: '/comp-off/apply',
+    eligibility: '/comp-off/eligibility',
+    requests: '/comp-off/requests',
+    detail: (id: string) => `/comp-off/requests/${id}`,
+    approve: (id: string) => `/comp-off/requests/${id}/approve`,
+    reject: (id: string) => `/comp-off/requests/${id}/reject`,
+    verifyWorkLog: (id: string) => `/comp-off/work-log/${id}/verify`,
+    processExpiration: '/comp-off/process-expiration',
+  },
+
+  // Multi-level Approvals
+  multiLevelApprovals: {
+    workflowSummary: '/multi-level-approvals/workflow-summary',
+    compOffApprovals: '/multi-level-approvals/comp-off-approvals',
+  },
+
+  // Special Leave Types
+  specialLeaveTypes: {
+    checkEligibility: '/special-leave-types/check-eligibility',
+    list: '/special-leave-types',
+  },
+
+  // USA PTO
+  usaPto: {
+    rules: '/usa-pto/rules',
+    apply: '/usa-pto/apply',
+    balance: '/usa-pto/balance',
+  },
+
+  // Accrual
+  accrual: {
+    schedulerStatus: '/accrual/scheduler/status',
+    run: '/accrual/run',
+    history: '/accrual/history',
+  },
+
+  // Email Actions
+  emailActions: {
+    status: '/email-actions/status',
+    validateToken: '/email-actions/validate-token',
+    approve: '/email-actions/approve',
+    reject: '/email-actions/reject',
+  },
 } as const
 
 export type ApiEndpoints = typeof endpoints

@@ -1,0 +1,149 @@
+{{!-- Approval Request Email Template with Action Buttons --}}
+<div class="greeting">
+    Hello {{approverName}},
+</div>
+
+<div class="content">
+    <p>You have a new leave request that requires your approval:</p>
+
+    <div class="highlight-box">
+        <h3 style="margin: 0 0 15px 0; color: #1976d2;">
+            {{#if isCompOffRequest}}🏖️ Compensatory Off{{else}}📅 Leave{{/if}} Request - {{leaveType}}
+        </h3>
+
+        <table class="details-table" style="margin: 0;">
+            <tr>
+                <th>Employee</th>
+                <td>{{employeeName}} ({{employeeId}})</td>
+            </tr>
+            <tr>
+                <th>Department</th>
+                <td>{{department}}</td>
+            </tr>
+            <tr>
+                <th>Leave Type</th>
+                <td>
+                    {{leaveType}}
+                    {{#if isCompOffRequest}}
+                        <span class="status-badge status-pending">Multi-Level Approval</span>
+                    {{/if}}
+                </td>
+            </tr>
+            <tr>
+                <th>Duration</th>
+                <td>{{startDate}} to {{endDate}} ({{totalDays}} {{#if (eq totalDays 1)}}day{{else}}days{{/if}})</td>
+            </tr>
+            <tr>
+                <th>Applied Date</th>
+                <td>{{appliedDate}}</td>
+            </tr>
+            {{#if reason}}
+            <tr>
+                <th>Reason</th>
+                <td>{{reason}}</td>
+            </tr>
+            {{/if}}
+            {{#if isCompOffRequest}}
+            <tr>
+                <th>Approval Level</th>
+                <td>
+                    Level {{currentLevel}} of {{totalLevels}}
+                    {{#if (eq currentLevel 1)}}
+                        (Direct Manager)
+                    {{else if (eq currentLevel 2)}}
+                        (Senior Manager)
+                    {{else if (eq currentLevel 3)}}
+                        (HR Administrator)
+                    {{/if}}
+                </td>
+            </tr>
+            {{/if}}
+        </table>
+    </div>
+
+    {{#if previousApprovals}}
+    <div style="margin: 20px 0;">
+        <h4 style="color: #555; margin-bottom: 10px;">Previous Approvals:</h4>
+        {{#each previousApprovals}}
+        <div style="background-color: #f0f8f0; padding: 8px 12px; margin: 5px 0; border-radius: 4px; border-left: 3px solid #4caf50;">
+            ✅ <strong>Level {{level}}</strong>: {{approverName}} ({{approverRole}})
+            {{#if comments}}<br><em style="color: #666;">"{{comments}}"</em>{{/if}}
+            <small style="color: #888; float: right;">{{formatDate approvedAt}}</small>
+        </div>
+        {{/each}}
+    </div>
+    {{/if}}
+
+    <div style="text-align: center; margin: 30px 0;">
+        <h3 style="color: #333; margin-bottom: 20px;">Take Action:</h3>
+
+        <div style="margin-bottom: 15px;">
+            <a href="{{approveUrl}}" class="btn btn-success" style="margin-right: 15px;">
+                ✅ Approve Request
+            </a>
+            <a href="{{rejectUrl}}" class="btn btn-danger">
+                ❌ Reject Request
+            </a>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="{{dashboardUrl}}" class="btn" style="background-color: #607d8b;">
+                📋 View in Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ff9800;">
+        <p style="margin: 0; color: #666; font-size: 14px;">
+            <strong>Important:</strong>
+            {{#if isCompOffRequest}}
+            This is a compensatory off request that requires multi-level approval. After your approval, it will proceed to the next approval level.
+            {{else}}
+            Please review this request carefully. Your approval or rejection will be final for this leave request.
+            {{/if}}
+        </p>
+    </div>
+
+    {{#if isCompOffRequest}}
+    <div style="background-color: #e3f2fd; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2196f3;">
+        <h4 style="margin: 0 0 10px 0; color: #1976d2;">Multi-Level Approval Process:</h4>
+        <ol style="margin: 0; padding-left: 20px; color: #555;">
+            <li>
+                Level 1: Direct Manager
+                {{#if (gte currentLevel 2)}}
+                    <span style="color: #4caf50;">✅ Completed</span>
+                {{else if (eq currentLevel 1)}}
+                    <span style="color: #ff9800;">⏳ Current Level</span>
+                {{else}}
+                    <span style="color: #999;">⏸️ Pending</span>
+                {{/if}}
+            </li>
+            <li>
+                Level 2: Senior Manager
+                {{#if (gte currentLevel 3)}}
+                    <span style="color: #4caf50;">✅ Completed</span>
+                {{else if (eq currentLevel 2)}}
+                    <span style="color: #ff9800;">⏳ Current Level</span>
+                {{else}}
+                    <span style="color: #999;">⏸️ Pending</span>
+                {{/if}}
+            </li>
+            <li>
+                Level 3: HR Administrator
+                {{#if (gte currentLevel 4)}}
+                    <span style="color: #4caf50;">✅ Completed</span>
+                {{else if (eq currentLevel 3)}}
+                    <span style="color: #ff9800;">⏳ Current Level</span>
+                {{else}}
+                    <span style="color: #999;">⏸️ Pending</span>
+                {{/if}}
+            </li>
+        </ol>
+    </div>
+    {{/if}}
+</div>
+
+<div style="text-align: center; color: #888; font-size: 12px; margin-top: 30px;">
+    <p>Request ID: {{leaveRequestId}} | {{#if tokenExpiry}}Token expires: {{tokenExpiry}}{{/if}}</p>
+    <p>Need help? Contact <a href="mailto:hr@company.com" style="color: #1976d2;">HR Support</a></p>
+</div>

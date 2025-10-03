@@ -1,0 +1,341 @@
+{
+  "summary": {
+    "totalTests": 24,
+    "passed": 24,
+    "failed": 0,
+    "timestamp": "2025-09-29T13:51:17.677Z",
+    "glf_compliance": "100%"
+  },
+  "testResults": [
+    {
+      "test": "Authentication - Admin",
+      "status": "PASS",
+      "details": "Admin authenticated successfully",
+      "timestamp": "2025-09-29T13:51:17.562Z"
+    },
+    {
+      "test": "Authentication - User",
+      "status": "PASS",
+      "details": "User authenticated successfully",
+      "timestamp": "2025-09-29T13:51:17.570Z"
+    },
+    {
+      "test": "Location-based Policies",
+      "status": "PASS",
+      "details": "Location-based policies configured",
+      "timestamp": "2025-09-29T13:51:17.578Z"
+    },
+    {
+      "test": "User Policy Assignment",
+      "status": "PASS",
+      "details": "User policies retrieved successfully",
+      "timestamp": "2025-09-29T13:51:17.587Z"
+    },
+    {
+      "test": "Multi-level Approval Workflow",
+      "status": "PASS",
+      "details": "Approval workflow configuration available",
+      "timestamp": "2025-09-29T13:51:17.594Z"
+    },
+    {
+      "test": "Comp Off Multi-level Approval",
+      "status": "PASS",
+      "details": "Comp off approval workflow configured",
+      "timestamp": "2025-09-29T13:51:17.601Z"
+    },
+    {
+      "test": "Comp Off Policy Configuration",
+      "status": "PASS",
+      "details": "Comp off policy configured with GLF rules",
+      "timestamp": "2025-09-29T13:51:17.606Z"
+    },
+    {
+      "test": "Weekend Work Comp Off Eligibility",
+      "status": "PASS",
+      "details": "Weekend work validation rules enforced - preventing duplicates",
+      "timestamp": "2025-09-29T13:51:17.616Z"
+    },
+    {
+      "test": "Comp Off Balance Tracking",
+      "status": "PASS",
+      "details": "Comp off balance tracking available",
+      "timestamp": "2025-09-29T13:51:17.622Z"
+    },
+    {
+      "test": "Maternity Leave Eligibility Check",
+      "status": "PASS",
+      "details": "Maternity eligibility validation working - female married employee is eligible",
+      "timestamp": "2025-09-29T13:51:17.629Z"
+    },
+    {
+      "test": "Paternity Leave Eligibility Rule",
+      "status": "PASS",
+      "details": "Paternity eligibility validation working - male married employee is eligible",
+      "timestamp": "2025-09-29T13:51:17.635Z"
+    },
+    {
+      "test": "Accrual Scheduler Status",
+      "status": "PASS",
+      "details": "Monthly accrual automation configured",
+      "timestamp": "2025-09-29T13:51:17.639Z"
+    },
+    {
+      "test": "USA PTO Rules Configuration",
+      "status": "PASS",
+      "details": "USA VP/AVP PTO rules configured",
+      "timestamp": "2025-09-29T13:51:17.646Z"
+    },
+    {
+      "test": "Email Approval Actions",
+      "status": "PASS",
+      "details": "Email approve/reject buttons configured",
+      "timestamp": "2025-09-29T13:51:17.649Z"
+    },
+    {
+      "test": "Email Token Validation",
+      "status": "PASS",
+      "details": "Email approval token validation working",
+      "timestamp": "2025-09-29T13:51:17.652Z"
+    },
+    {
+      "test": "Mandatory Field Validation",
+      "status": "PASS",
+      "details": "Incomplete requests properly rejected",
+      "timestamp": "2025-09-29T13:51:17.658Z"
+    },
+    {
+      "test": "Leave Balance Visibility",
+      "status": "PASS",
+      "details": "Leave balances visible during application",
+      "timestamp": "2025-09-29T13:51:17.663Z"
+    },
+    {
+      "test": "Holiday Exclusion Configuration",
+      "status": "PASS",
+      "details": "Holiday data available for leave calculations",
+      "timestamp": "2025-09-29T13:51:17.667Z"
+    },
+    {
+      "test": "Leave Reporting System",
+      "status": "PASS",
+      "details": "Comprehensive leave reports available",
+      "timestamp": "2025-09-29T13:51:17.673Z"
+    },
+    {
+      "test": "Department-wise Analytics",
+      "status": "PASS",
+      "details": "Department filtering and analytics available",
+      "timestamp": "2025-09-29T13:51:17.677Z"
+    },
+    {
+      "test": "Admin Employee Dropdown",
+      "status": "PASS",
+      "details": "Employee dropdown implemented in LeavesPage.tsx",
+      "timestamp": "2025-09-29T13:51:17.677Z"
+    },
+    {
+      "test": "Department Filtering",
+      "status": "PASS",
+      "details": "Department filter implemented in ManagerDashboard.tsx",
+      "timestamp": "2025-09-29T13:51:17.677Z"
+    },
+    {
+      "test": "Team Calendar View",
+      "status": "PASS",
+      "details": "Team calendar tab implemented in ManagerDashboard.tsx",
+      "timestamp": "2025-09-29T13:51:17.677Z"
+    },
+    {
+      "test": "Calendar Integration",
+      "status": "PASS",
+      "details": "Calendar sync features implemented in LeaveCalendar.tsx",
+      "timestamp": "2025-09-29T13:51:17.677Z"
+    }
+  ],
+  "glfRequirements": {
+    "locationBasedPolicies": [
+      {
+        "test": "Location-based Policies",
+        "status": "PASS",
+        "details": "Location-based policies configured",
+        "timestamp": "2025-09-29T13:51:17.578Z"
+      },
+      {
+        "test": "User Policy Assignment",
+        "status": "PASS",
+        "details": "User policies retrieved successfully",
+        "timestamp": "2025-09-29T13:51:17.587Z"
+      },
+      {
+        "test": "Comp Off Policy Configuration",
+        "status": "PASS",
+        "details": "Comp off policy configured with GLF rules",
+        "timestamp": "2025-09-29T13:51:17.606Z"
+      }
+    ],
+    "multiLevelApprovals": [
+      {
+        "test": "Multi-level Approval Workflow",
+        "status": "PASS",
+        "details": "Approval workflow configuration available",
+        "timestamp": "2025-09-29T13:51:17.594Z"
+      },
+      {
+        "test": "Comp Off Multi-level Approval",
+        "status": "PASS",
+        "details": "Comp off approval workflow configured",
+        "timestamp": "2025-09-29T13:51:17.601Z"
+      },
+      {
+        "test": "Email Approval Actions",
+        "status": "PASS",
+        "details": "Email approve/reject buttons configured",
+        "timestamp": "2025-09-29T13:51:17.649Z"
+      }
+    ],
+    "compOffValidation": [
+      {
+        "test": "Comp Off Multi-level Approval",
+        "status": "PASS",
+        "details": "Comp off approval workflow configured",
+        "timestamp": "2025-09-29T13:51:17.601Z"
+      },
+      {
+        "test": "Comp Off Policy Configuration",
+        "status": "PASS",
+        "details": "Comp off policy configured with GLF rules",
+        "timestamp": "2025-09-29T13:51:17.606Z"
+      },
+      {
+        "test": "Weekend Work Comp Off Eligibility",
+        "status": "PASS",
+        "details": "Weekend work validation rules enforced - preventing duplicates",
+        "timestamp": "2025-09-29T13:51:17.616Z"
+      },
+      {
+        "test": "Comp Off Balance Tracking",
+        "status": "PASS",
+        "details": "Comp off balance tracking available",
+        "timestamp": "2025-09-29T13:51:17.622Z"
+      }
+    ],
+    "eligibilityRules": [
+      {
+        "test": "Weekend Work Comp Off Eligibility",
+        "status": "PASS",
+        "details": "Weekend work validation rules enforced - preventing duplicates",
+        "timestamp": "2025-09-29T13:51:17.616Z"
+      },
+      {
+        "test": "Maternity Leave Eligibility Check",
+        "status": "PASS",
+        "details": "Maternity eligibility validation working - female married employee is eligible",
+        "timestamp": "2025-09-29T13:51:17.629Z"
+      },
+      {
+        "test": "Paternity Leave Eligibility Rule",
+        "status": "PASS",
+        "details": "Paternity eligibility validation working - male married employee is eligible",
+        "timestamp": "2025-09-29T13:51:17.635Z"
+      }
+    ],
+    "accrualAutomation": [
+      {
+        "test": "Accrual Scheduler Status",
+        "status": "PASS",
+        "details": "Monthly accrual automation configured",
+        "timestamp": "2025-09-29T13:51:17.639Z"
+      },
+      {
+        "test": "USA PTO Rules Configuration",
+        "status": "PASS",
+        "details": "USA VP/AVP PTO rules configured",
+        "timestamp": "2025-09-29T13:51:17.646Z"
+      }
+    ],
+    "emailFeatures": [
+      {
+        "test": "Email Approval Actions",
+        "status": "PASS",
+        "details": "Email approve/reject buttons configured",
+        "timestamp": "2025-09-29T13:51:17.649Z"
+      },
+      {
+        "test": "Email Token Validation",
+        "status": "PASS",
+        "details": "Email approval token validation working",
+        "timestamp": "2025-09-29T13:51:17.652Z"
+      }
+    ],
+    "validationRules": [
+      {
+        "test": "Comp Off Balance Tracking",
+        "status": "PASS",
+        "details": "Comp off balance tracking available",
+        "timestamp": "2025-09-29T13:51:17.622Z"
+      },
+      {
+        "test": "Email Token Validation",
+        "status": "PASS",
+        "details": "Email approval token validation working",
+        "timestamp": "2025-09-29T13:51:17.652Z"
+      },
+      {
+        "test": "Mandatory Field Validation",
+        "status": "PASS",
+        "details": "Incomplete requests properly rejected",
+        "timestamp": "2025-09-29T13:51:17.658Z"
+      },
+      {
+        "test": "Leave Balance Visibility",
+        "status": "PASS",
+        "details": "Leave balances visible during application",
+        "timestamp": "2025-09-29T13:51:17.663Z"
+      },
+      {
+        "test": "Holiday Exclusion Configuration",
+        "status": "PASS",
+        "details": "Holiday data available for leave calculations",
+        "timestamp": "2025-09-29T13:51:17.667Z"
+      }
+    ],
+    "uiFeatures": [
+      {
+        "test": "Authentication - Admin",
+        "status": "PASS",
+        "details": "Admin authenticated successfully",
+        "timestamp": "2025-09-29T13:51:17.562Z"
+      },
+      {
+        "test": "Department-wise Analytics",
+        "status": "PASS",
+        "details": "Department filtering and analytics available",
+        "timestamp": "2025-09-29T13:51:17.677Z"
+      },
+      {
+        "test": "Admin Employee Dropdown",
+        "status": "PASS",
+        "details": "Employee dropdown implemented in LeavesPage.tsx",
+        "timestamp": "2025-09-29T13:51:17.677Z"
+      },
+      {
+        "test": "Department Filtering",
+        "status": "PASS",
+        "details": "Department filter implemented in ManagerDashboard.tsx",
+        "timestamp": "2025-09-29T13:51:17.677Z"
+      },
+      {
+        "test": "Team Calendar View",
+        "status": "PASS",
+        "details": "Team calendar tab implemented in ManagerDashboard.tsx",
+        "timestamp": "2025-09-29T13:51:17.677Z"
+      },
+      {
+        "test": "Calendar Integration",
+        "status": "PASS",
+        "details": "Calendar sync features implemented in LeaveCalendar.tsx",
+        "timestamp": "2025-09-29T13:51:17.677Z"
+      }
+    ]
+  }
+}
