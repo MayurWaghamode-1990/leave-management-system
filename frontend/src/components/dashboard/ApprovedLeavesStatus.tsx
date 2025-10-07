@@ -158,7 +158,7 @@ const ApprovedLeavesStatus: React.FC = () => {
     )
   }
 
-  if (!leaveStatusData) {
+  if (!leaveStatusData || !leaveStatusData.stats) {
     return (
       <Card>
         <CardContent>
@@ -170,7 +170,7 @@ const ApprovedLeavesStatus: React.FC = () => {
     )
   }
 
-  const { stats, recentRequests, approvalRate, averageProcessingDays } = leaveStatusData
+  const { stats, recentRequests = [], approvalRate = 0, averageProcessingDays = 0 } = leaveStatusData
 
   return (
     <Card>

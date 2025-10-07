@@ -242,19 +242,22 @@ const MetricsSummary: React.FC = () => {
     return null;
   }
 
-  const MetricCard: React.FC<{ metric: MetricData }> = ({ metric }) => (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Avatar sx={{ bgcolor: metric.color, width: 48, height: 48 }}>
-            {metric.icon}
-          </Avatar>
-          <Tooltip title={metric.description || ''}>
-            <IconButton size="small">
-              <Info fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
+  const MetricCard: React.FC<{ metric: MetricData }> = ({ metric }) => {
+    if (!metric) return null;
+
+    return (
+      <Card sx={{ height: '100%' }}>
+        <CardContent>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Avatar sx={{ bgcolor: metric.color || '#757575', width: 48, height: 48 }}>
+              {metric.icon}
+            </Avatar>
+            <Tooltip title={metric.description || ''}>
+              <IconButton size="small">
+                <Info fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
 
         <Typography variant="h4" fontWeight="bold" sx={{ mt: 2, mb: 1 }}>
           {metric.label.includes('Hours') || metric.label.includes('Days') ?
@@ -282,16 +285,17 @@ const MetricsSummary: React.FC = () => {
         </Box>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   const mainMetrics = [
-    metrics.leaveUtilization,
-    metrics.teamAvailability,
-    metrics.pendingApprovals,
-    metrics.compOffBalance,
-    metrics.averageLeaveLength,
-    metrics.monthlyTrend
-  ];
+    metrics?.leaveUtilization,
+    metrics?.teamAvailability,
+    metrics?.pendingApprovals,
+    metrics?.compOffBalance,
+    metrics?.averageLeaveLength,
+    metrics?.monthlyTrend
+  ].filter((metric): metric is MetricData => metric !== undefined);
 
   return (
     <Box>

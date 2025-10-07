@@ -2348,6 +2348,84 @@ router.get('/status-overview',
   })
 );
 
+// Get booked leaves for dashboard
+router.get('/booked-leaves',
+  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.userId;
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+      // Get all approved leaves for the user
+      const approvedLeaves = await prisma.leaveRequest.findMany({
+        where: {
+          employeeId: userId,
+          status: 'APPROVED'
+        },
+        orderBy: {
+          startDate: 'asc'
+        }
+      });
+
+      // Categorize leaves
+      const upcoming = approvedLeaves.filter(leave =>
+        new Date(leave.startDate) > today
+      );
+
+      const current = approvedLeaves.filter(leave => {
+        const startDate = new Date(leave.startDate);
+        const endDate = new Date(leave.endDate);
+        return startDate <= today && endDate >= today;
+      });
+
+      const thisMonth = approvedLeaves.filter(leave => {
+        const startDate = new Date(leave.startDate);
+        return startDate >= startOfMonth && startDate <= endOfMonth;
+      });
+
+      // Calculate summary
+      const summary = {
+        totalBookedDays: approvedLeaves.reduce((sum, leave) => sum + leave.totalDays, 0),
+        upcomingDays: upcoming.reduce((sum, leave) => sum + leave.totalDays, 0),
+        currentCount: current.length
+      };
+
+      // Transform data for frontend
+      const transformLeave = (leave: any) => ({
+        id: leave.id,
+        type: leave.leaveType,
+        startDate: leave.startDate.toISOString(),
+        endDate: leave.endDate.toISOString(),
+        totalDays: leave.totalDays,
+        status: leave.status,
+        appliedDate: leave.appliedDate.toISOString(),
+        approvedDate: leave.approvedAt?.toISOString(),
+        reason: leave.reason,
+        isHalfDay: leave.isHalfDay,
+        halfDayPeriod: leave.halfDayPeriod
+      });
+
+      res.json({
+        success: true,
+        message: 'Booked leaves retrieved successfully',
+        data: {
+          upcoming: upcoming.map(transformLeave),
+          current: current.map(transformLeave),
+          thisMonth: thisMonth.map(transformLeave),
+          summary
+        }
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch booked leaves',
+        error: error?.message || 'Unknown error'
+      });
+    }
+  })
+);
+
 // Get specific leave request
 router.get('/:id',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -2556,68 +2634,6 @@ router.patch('/:id/status',
   })
 );
 
-// Get leave status overview for dashboard
-router.get('/status-overview',
-  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const userId = req.user!.userId;
-
-    // Get all user's leave requests
-    const userRequests = mockLeaveRequests.filter(req => req.employeeId === userId);
-
-    // Calculate statistics
-    const stats = {
-      approved: userRequests.filter(req => req.status === 'APPROVED').length,
-      pending: userRequests.filter(req => req.status === 'PENDING').length,
-      rejected: userRequests.filter(req => req.status === 'REJECTED').length,
-      cancelled: userRequests.filter(req => req.status === 'CANCELLED').length,
-      total: userRequests.length
-    };
-
-    // Calculate approval rate
-    const approvalRate = stats.total > 0 ? (stats.approved / (stats.approved + stats.rejected)) * 100 : 0;
-
-    // Calculate average processing days (simplified calculation)
-    const processedRequests = userRequests.filter(req => req.approvedAt || req.status === 'REJECTED');
-    const averageProcessingDays = processedRequests.length > 0
-      ? processedRequests.reduce((sum, req) => {
-          const appliedDate = new Date(req.appliedDate);
-          const processedDate = req.approvedAt ? new Date(req.approvedAt) : new Date();
-          const daysDiff = Math.ceil((processedDate.getTime() - appliedDate.getTime()) / (1000 * 60 * 60 * 24));
-          return sum + daysDiff;
-        }, 0) / processedRequests.length
-      : 0;
-
-    // Get recent requests (last 10)
-    const recentRequests = userRequests
-      .sort((a, b) => new Date(b.appliedDate).getTime() - new Date(a.appliedDate).getTime())
-      .slice(0, 10)
-      .map(request => ({
-        id: request.id,
-        type: request.leaveType,
-        startDate: request.startDate,
-        endDate: request.endDate,
-        totalDays: request.totalDays,
-        status: request.status,
-        appliedDate: request.appliedDate,
-        approvedDate: request.approvedAt,
-        rejectedDate: request.status === 'REJECTED' ? request.approvedAt : undefined,
-        reason: request.reason,
-        comments: request.comments
-      }));
-
-    res.json({
-      success: true,
-      message: 'Leave status overview retrieved successfully',
-      data: {
-        stats,
-        recentRequests,
-        approvalRate: Math.round(approvalRate * 10) / 10, // Round to 1 decimal place
-        averageProcessingDays: Math.round(averageProcessingDays * 10) / 10
-      }
-    });
-  })
-);
-
 // Get yearwise leave balances
 router.get('/yearwise-balances',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
@@ -2793,139 +2809,5 @@ function getDefaultEntitlement(leaveType: LeaveType): number {
   };
   return defaults[leaveType] || 0;
 }
-
-// Get booked leaves for dashboard
-router.get('/booked-leaves',
-  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const userId = req.user!.userId;
-      const today = new Date();
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-      // Get all approved leaves for the user
-      const approvedLeaves = await prisma.leaveRequest.findMany({
-        where: {
-          employeeId: userId,
-          status: 'APPROVED'
-        },
-        orderBy: {
-          startDate: 'asc'
-        }
-      });
-
-      // Categorize leaves
-      const upcoming = approvedLeaves.filter(leave =>
-        new Date(leave.startDate) > today
-      );
-
-      const current = approvedLeaves.filter(leave => {
-        const startDate = new Date(leave.startDate);
-        const endDate = new Date(leave.endDate);
-        return startDate <= today && endDate >= today;
-      });
-
-      const thisMonth = approvedLeaves.filter(leave => {
-        const startDate = new Date(leave.startDate);
-        return startDate >= startOfMonth && startDate <= endOfMonth;
-      });
-
-      // Calculate summary
-      const summary = {
-        totalBookedDays: approvedLeaves.reduce((sum, leave) => sum + leave.totalDays, 0),
-        upcomingDays: upcoming.reduce((sum, leave) => sum + leave.totalDays, 0),
-        currentCount: current.length
-      };
-
-      // Transform data for frontend
-      const transformLeave = (leave: any) => ({
-        id: leave.id,
-        type: leave.leaveType,
-        startDate: leave.startDate.toISOString(),
-        endDate: leave.endDate.toISOString(),
-        totalDays: leave.totalDays,
-        status: leave.status,
-        appliedDate: leave.appliedDate.toISOString(),
-        approvedDate: leave.approvedAt?.toISOString(),
-        reason: leave.reason,
-        isHalfDay: leave.isHalfDay,
-        halfDayPeriod: leave.halfDayPeriod
-      });
-
-      res.json({
-        success: true,
-        message: 'Booked leaves retrieved successfully',
-        data: {
-          upcoming: upcoming.map(transformLeave),
-          current: current.map(transformLeave),
-          thisMonth: thisMonth.map(transformLeave),
-          summary
-        }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch booked leaves',
-        error: error?.message || 'Unknown error'
-      });
-    }
-  })
-);
-
-// Get leave status overview for dashboard
-router.get('/status-overview',
-  asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    try {
-      const userId = req.user!.userId;
-      const currentYear = new Date().getFullYear();
-
-      const [
-        pendingCount,
-        approvedCount,
-        rejectedCount,
-        totalBalance,
-        usedBalance
-      ] = await Promise.all([
-        prisma.leaveRequest.count({
-          where: { employeeId: userId, status: 'PENDING' }
-        }),
-        prisma.leaveRequest.count({
-          where: { employeeId: userId, status: 'APPROVED' }
-        }),
-        prisma.leaveRequest.count({
-          where: { employeeId: userId, status: 'REJECTED' }
-        }),
-        prisma.leaveBalance.aggregate({
-          where: { employeeId: userId, year: currentYear },
-          _sum: { totalEntitlement: true }
-        }),
-        prisma.leaveBalance.aggregate({
-          where: { employeeId: userId, year: currentYear },
-          _sum: { used: true }
-        })
-      ]);
-
-      res.json({
-        success: true,
-        data: {
-          pending: pendingCount,
-          approved: approvedCount,
-          rejected: rejectedCount,
-          totalRequests: pendingCount + approvedCount + rejectedCount,
-          totalBalance: totalBalance._sum.totalEntitlement || 0,
-          usedBalance: usedBalance._sum.used || 0,
-          availableBalance: (totalBalance._sum.totalEntitlement || 0) - (usedBalance._sum.used || 0)
-        },
-        message: 'Leave status overview retrieved successfully'
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch leave status overview',
-        error: error?.message || 'Unknown error'
-      });
-    }
-  })
-);
 
 export default router;

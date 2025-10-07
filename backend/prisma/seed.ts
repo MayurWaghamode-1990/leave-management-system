@@ -6,16 +6,30 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting comprehensive database seed...');
 
-  // Clear existing data
+  // Clear existing data (in correct order to respect foreign key constraints)
+  console.log('🗑️  Clearing existing data...');
+  await prisma.compOffApproval.deleteMany();
+  await prisma.compOffRequest.deleteMany();
+  await prisma.compOffWorkLog.deleteMany();
+  await prisma.compOffBalance.deleteMany();
+  await prisma.monthlyAccrual.deleteMany();
+  await prisma.leaveModificationRequest.deleteMany();
+  await prisma.leaveCancellationRequest.deleteMany();
   await prisma.notification.deleteMany();
   await prisma.approval.deleteMany();
   await prisma.leaveRequest.deleteMany();
   await prisma.leaveBalance.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.department.deleteMany();
-  await prisma.holiday.deleteMany();
-  await prisma.leavePolicy.deleteMany();
   await prisma.auditLog.deleteMany();
+  await prisma.ruleExecution.deleteMany();
+  await prisma.automationRule.deleteMany();
+  await prisma.leaveTemplate.deleteMany();
+  await prisma.calendarIntegration.deleteMany();
+  await prisma.regionalPolicy.deleteMany();
+  await prisma.leavePolicy.deleteMany();
+  await prisma.leaveAccrualRule.deleteMany();
+  await prisma.holiday.deleteMany();
+  await prisma.department.deleteMany();
+  await prisma.user.deleteMany();
 
   // Create departments
   const hrDept = await prisma.department.create({
@@ -69,20 +83,26 @@ async function main() {
   // Create users
   const hashedPassword = await bcrypt.hash('password123', 10);
 
-  // HR Admin
+  // ========== INDIA USERS ==========
+
+  // HR Admin - India
   const hrAdmin = await prisma.user.create({
     data: {
       id: 'user-hr-admin',
-      employeeId: 'EMP001',
+      employeeId: 'IND001',
       email: 'admin@company.com',
       password: hashedPassword,
       firstName: 'Maya',
       lastName: 'Sharma',
-      role: 'HR_ADMIN',
+      role: 'HR',
       department: 'Human Resources',
       location: 'Bengaluru',
       joiningDate: new Date('2020-01-15'),
       status: 'ACTIVE',
+      country: 'INDIA',
+      gender: 'FEMALE',
+      maritalStatus: 'MARRIED',
+      designation: 'HR_MANAGER',
     },
   });
 
