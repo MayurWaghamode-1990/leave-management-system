@@ -243,7 +243,7 @@ router.put('/:id/approve', auth, ...lwpApprovalSchema, async (req, res) => {
     }
 
     // Check if user has approval rights
-    const hasApprovalRights = [UserRole.MANAGER, UserRole.HR_ADMIN, UserRole.IT_ADMIN].includes(req.user?.role);
+    const hasApprovalRights = [UserRole.MANAGER, UserRole.HR_ADMIN, UserRole.IT_ADMIN, UserRole.ADMIN].includes(req.user?.role);
 
     if (!hasApprovalRights) {
       return res.status(403).json({
@@ -295,7 +295,7 @@ router.get('/pending', auth, async (req, res) => {
     }
 
     // Check if user has approval rights
-    const hasApprovalRights = [UserRole.MANAGER, UserRole.HR_ADMIN, UserRole.IT_ADMIN].includes(userRole);
+    const hasApprovalRights = [UserRole.MANAGER, UserRole.HR_ADMIN, UserRole.IT_ADMIN, UserRole.ADMIN].includes(userRole);
 
     if (!hasApprovalRights) {
       return res.status(403).json({

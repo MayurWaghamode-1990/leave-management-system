@@ -11,6 +11,8 @@ import {
   Typography,
   Divider,
   Chip,
+  alpha,
+  useTheme,
 } from '@mui/material'
 import {
   Dashboard,
@@ -172,6 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { pendingCount } = useApprovals()
   const location = useLocation()
   const navigate = useNavigate()
+  const theme = useTheme()
 
   // Use real API data for pending approvals
   const pendingApprovals = pendingCount
@@ -196,16 +199,43 @@ const Sidebar: React.FC<SidebarProps> = ({
   }
 
   const drawerContent = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: `linear-gradient(180deg, ${alpha(theme.palette.background.paper, 1)} 0%, ${alpha(
+          theme.palette.background.paper,
+          0.98
+        )} 100%)`,
+      }}
+    >
       {/* Header */}
-      <Box sx={{ p: 2, textAlign: 'center' }}>
+      <Box
+        sx={{
+          p: 3,
+          textAlign: 'center',
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+          mb: 2,
+          boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.3)}`,
+        }}
+      >
         <Logo variant="full" size="small" />
-        <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+        <Typography
+          variant="caption"
+          sx={{
+            mt: 1,
+            display: 'block',
+            color: alpha('#ffffff', 0.9),
+            fontWeight: 600,
+            letterSpacing: '0.5px',
+          }}
+        >
           Leave Management System
         </Typography>
       </Box>
-
-      <Divider />
 
       {/* Main Navigation */}
       <List sx={{ px: 2, py: 1 }}>
@@ -218,15 +248,24 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => handleNavigation(item.path)}
                 sx={{
                   borderRadius: 2,
+                  mb: 0.5,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&.Mui-selected': {
-                    backgroundColor: 'primary.main',
-                    color: 'primary.contrastText',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                    color: 'white',
+                    boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
+                    transform: 'translateX(4px)',
                     '&:hover': {
-                      backgroundColor: 'primary.dark',
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
+                      transform: 'translateX(6px)',
                     },
                     '& .MuiListItemIcon-root': {
-                      color: 'inherit',
+                      color: 'white',
                     },
+                  },
+                  '&:hover': {
+                    background: alpha(theme.palette.primary.main, 0.08),
+                    transform: 'translateX(4px)',
                   },
                 }}
               >
@@ -242,18 +281,22 @@ const Sidebar: React.FC<SidebarProps> = ({
                   primary={item.text}
                   primaryTypographyProps={{
                     fontSize: '0.875rem',
-                    fontWeight: isActiveRoute(item.path) ? 600 : 400,
+                    fontWeight: isActiveRoute(item.path) ? 600 : 500,
                   }}
                 />
                 {item.badge && (
                   <Chip
                     label={item.badge}
                     size="small"
-                    color="error"
                     sx={{
-                      height: 20,
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
+                      height: 22,
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      background: isActiveRoute(item.path)
+                        ? alpha('#ffffff', 0.2)
+                        : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                      color: 'white',
+                      border: isActiveRoute(item.path) ? `1px solid ${alpha('#ffffff', 0.3)}` : 'none',
                     }}
                   />
                 )}

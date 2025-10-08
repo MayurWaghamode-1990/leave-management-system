@@ -10,6 +10,8 @@ import {
   Box,
   Badge,
   Tooltip,
+  alpha,
+  useTheme,
 } from '@mui/material'
 import {
   Menu as MenuIcon,
@@ -30,6 +32,7 @@ interface AppBarProps {
 const AppBar: React.FC<AppBarProps> = ({ onMenuClick, drawerWidth }) => {
   const { user, logout } = useAuth()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const theme = useTheme()
 
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -73,11 +76,11 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick, drawerWidth }) => {
       sx={{
         width: { lg: `calc(100% - ${drawerWidth}px)` },
         ml: { lg: `${drawerWidth}px` },
-        backgroundColor: 'background.paper',
-        color: 'text.primary',
-        borderBottom: 1,
-        borderColor: 'divider',
-        boxShadow: 'none',
+        background: alpha(theme.palette.background.paper, 0.8),
+        backdropFilter: 'blur(20px)',
+        color: theme.palette.text.primary,
+        borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        boxShadow: `0 4px 20px ${alpha(theme.palette.common.black, 0.05)}`,
       }}
     >
       <Toolbar>
@@ -129,13 +132,21 @@ const AppBar: React.FC<AppBarProps> = ({ onMenuClick, drawerWidth }) => {
               aria-label="account"
               aria-controls="profile-menu"
               aria-haspopup="true"
+              sx={{
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                },
+              }}
             >
               <Avatar
                 sx={{
-                  width: 32,
-                  height: 32,
-                  bgcolor: 'primary.main',
+                  width: 36,
+                  height: 36,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
                   fontSize: '0.875rem',
+                  fontWeight: 600,
+                  boxShadow: `0 4px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
                 }}
               >
                 {getUserInitials()}

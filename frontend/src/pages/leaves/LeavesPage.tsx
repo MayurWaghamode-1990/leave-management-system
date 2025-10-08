@@ -105,12 +105,30 @@ const LeavesPage: React.FC = () => {
     { value: LeaveType.SICK_LEAVE, label: 'Sick Leave' },
     { value: LeaveType.CASUAL_LEAVE, label: 'Casual Leave' },
     { value: LeaveType.EARNED_LEAVE, label: 'Earned Leave' },
-    { value: LeaveType.MATERNITY_LEAVE, label: 'Maternity Leave' },
-    { value: LeaveType.PATERNITY_LEAVE, label: 'Paternity Leave' },
+    { value: LeaveType.MATERNITY_LEAVE, label: 'Maternity Leave', gender: 'FEMALE', maritalStatus: 'MARRIED' },
+    { value: LeaveType.PATERNITY_LEAVE, label: 'Paternity Leave', gender: 'MALE', maritalStatus: 'MARRIED' },
     { value: LeaveType.COMPENSATORY_OFF, label: 'Compensatory Off' },
     { value: LeaveType.BEREAVEMENT_LEAVE, label: 'Bereavement Leave' },
     { value: LeaveType.MARRIAGE_LEAVE, label: 'Marriage Leave' }
   ];
+
+  // Filter leave types based on user's gender and marital status
+  const getFilteredLeaveTypes = () => {
+    if (!currentUser) return leaveTypeOptions;
+
+    return leaveTypeOptions.filter(option => {
+      // If no restrictions, include the option
+      if (!option.gender && !option.maritalStatus) return true;
+
+      // Check gender restriction
+      if (option.gender && currentUser.gender !== option.gender) return false;
+
+      // Check marital status restriction
+      if (option.maritalStatus && currentUser.maritalStatus !== option.maritalStatus) return false;
+
+      return true;
+    });
+  };
 
   const statusColors = {
     [LeaveStatus.PENDING]: 'warning',
@@ -256,6 +274,21 @@ const LeavesPage: React.FC = () => {
 
     if (formData.reason.trim().length < 10) {
       toast.error('Reason must be at least 10 characters long');
+      return;
+    }
+
+    // Check past date validation
+    const today = dayjs().startOf('day');
+    if (formData.startDate.isBefore(today)) {
+      toast.error('Cannot apply leave for past dates. Please select a start date from today onwards.');
+      return;
+    }
+
+    // Check insufficient balance - hard block
+    const requestedDays = calculateTotalDays();
+    const availableBalance = getAvailableBalance(formData.leaveType);
+    if (requestedDays > availableBalance) {
+      toast.error(`Insufficient balance! You have only ${availableBalance} days available for ${leaveTypeOptions.find(opt => opt.value === formData.leaveType)?.label}. You are requesting ${requestedDays} days.`);
       return;
     }
 
@@ -644,7 +677,7 @@ const LeavesPage: React.FC = () => {
                       onChange={(e) => setFormData(prev => ({ ...prev, leaveType: e.target.value as LeaveType }))}
                       helperText={`Available: ${getAvailableBalance(formData.leaveType)} days`}
                     >
-                      {leaveTypeOptions.map((option) => (
+                      {getFilteredLeaveTypes().map((option) => (
                         <MenuItem key={option.value} value={option.value}>
                           {option.label}
                         </MenuItem>
@@ -680,10 +713,12 @@ const LeavesPage: React.FC = () => {
                       label="Start Date"
                       value={formData.startDate}
                       onChange={(newValue) => setFormData(prev => ({ ...prev, startDate: newValue }))}
+                      minDate={dayjs()}
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          required: true
+                          required: true,
+                          helperText: 'Cannot select past dates'
                         }
                       }}
                     />
@@ -694,10 +729,12 @@ const LeavesPage: React.FC = () => {
                       label="End Date"
                       value={formData.endDate}
                       onChange={(newValue) => setFormData(prev => ({ ...prev, endDate: newValue }))}
+                      minDate={formData.startDate || dayjs()}
                       slotProps={{
                         textField: {
                           fullWidth: true,
-                          required: true
+                          required: true,
+                          helperText: 'Must be after or equal to start date'
                         }
                       }}
                     />

@@ -15,7 +15,9 @@ import {
   Divider,
   LinearProgress,
   Button,
-  Alert
+  Alert,
+  alpha,
+  useTheme,
 } from '@mui/material'
 import {
   EventNote,
@@ -27,7 +29,8 @@ import {
   AccountBalance,
   Pending,
   Cancel,
-  Refresh
+  Refresh,
+  WavingHand,
 } from '@mui/icons-material'
 import toast from 'react-hot-toast'
 
@@ -42,6 +45,12 @@ import ApprovedLeavesStatus from '@/components/dashboard/ApprovedLeavesStatus'
 import UpcomingHolidaysDisplay from '@/components/dashboard/UpcomingHolidaysDisplay'
 import AnalyticsCharts from '@/components/dashboard/AnalyticsCharts'
 import MetricsSummary from '@/components/dashboard/MetricsSummary'
+import EnhancedStatCard from '@/components/dashboard/EnhancedStatCard'
+import GlassCard from '@/components/common/GlassCard'
+import GradientButton from '@/components/common/GradientButton'
+import PageTransition from '@/components/common/PageTransition'
+import SkeletonLoader from '@/components/common/SkeletonLoader'
+import { fadeInUp } from '@/theme/animations'
 
 interface DashboardStats {
   personal: {
@@ -148,14 +157,13 @@ const DashboardPage: React.FC = () => {
     }
   }
 
+  const theme = useTheme()
+
   if (loading) {
     return (
-      <Box>
-        <Typography variant="h4" gutterBottom>
-          Dashboard
-        </Typography>
-        <LinearProgress />
-      </Box>
+      <PageTransition>
+        <SkeletonLoader variant="dashboard" />
+      </PageTransition>
     )
   }
 
@@ -169,138 +177,195 @@ const DashboardPage: React.FC = () => {
     )
   }
 
-  const StatCard: React.FC<{
-    title: string
-    value: number
-    icon: React.ReactElement
-    color: string
-  }> = ({ title, value, icon, color }) => (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar sx={{ bgcolor: color, width: 56, height: 56 }}>
-            {icon}
-          </Avatar>
-          <Box>
-            <Typography variant="h4" fontWeight="bold">
-              {value}
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              {title}
-            </Typography>
+  return (
+    <PageTransition>
+      <Box>
+        {/* Welcome Header */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+            borderRadius: 4,
+            p: 4,
+            mb: 4,
+            position: 'relative',
+            overflow: 'hidden',
+            boxShadow: `0 10px 40px ${alpha(theme.palette.primary.main, 0.3)}`,
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: -50,
+              right: -50,
+              width: 200,
+              height: 200,
+              borderRadius: '50%',
+              background: alpha('#ffffff', 0.1),
+            },
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              bottom: -30,
+              left: -30,
+              width: 150,
+              height: 150,
+              borderRadius: '50%',
+              background: alpha('#ffffff', 0.08),
+            },
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              position: 'relative',
+              zIndex: 1,
+              flexWrap: 'wrap',
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <WavingHand sx={{ color: '#FFD700', fontSize: 32 }} />
+                <Typography variant="h4" sx={{ color: 'white', fontWeight: 700 }}>
+                  Welcome back, {dashboardStats.user.name}!
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ color: alpha('#ffffff', 0.9) }}>
+                Here's your leave management overview for today
+              </Typography>
+            </Box>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={handleRefresh}
+              disabled={refreshing}
+              sx={{
+                borderColor: alpha('#ffffff', 0.3),
+                color: 'white',
+                '&:hover': {
+                  borderColor: 'white',
+                  background: alpha('#ffffff', 0.1),
+                },
+              }}
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </Button>
           </Box>
         </Box>
-      </CardContent>
-    </Card>
-  )
 
-  return (
-    <Box>
-      {/* Welcome Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" gutterBottom>
-            Welcome back, {dashboardStats.user.name}! 👋
-          </Typography>
-          <Typography variant="body1" color="textSecondary">
-            Here's your leave management overview.
-          </Typography>
-        </Box>
-        <Button
-          variant="outlined"
-          startIcon={<Refresh />}
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          {refreshing ? 'Refreshing...' : 'Refresh'}
-        </Button>
-      </Box>
-
-      <Grid container spacing={3}>
-        {/* Personal Stats Cards */}
-        <Grid item xs={12}>
-          <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AccountBalance />
-            Your Leave Summary
-          </Typography>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Total Requests"
-            value={dashboardStats.personal.totalRequests}
-            icon={<EventNote />}
-            color="#1976d2"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Pending Requests"
-            value={dashboardStats.personal.pendingRequests}
-            icon={<Pending />}
-            color="#ed6c02"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Upcoming Leaves"
-            value={dashboardStats.personal.upcomingLeaves}
-            icon={<CalendarMonth />}
-            color="#2e7d32"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Available Balance"
-            value={dashboardStats.personal.totalLeaveBalance}
-            icon={<TrendingUp />}
-            color="#9c27b0"
-          />
-        </Grid>
-
-        {/* Team Stats for Managers */}
-        {dashboardStats.team && (
-          <>
-            <Grid item xs={12}>
-              <Typography variant="h6" sx={{ mb: 2, mt: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Group />
-                Team Management
+        <Grid container spacing={3}>
+          {/* Personal Stats Cards */}
+          <Grid item xs={12}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <AccountBalance sx={{ color: theme.palette.primary.main }} />
+              <Typography variant="h6" fontWeight={600}>
+                Your Leave Summary
               </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Pending Approvals"
-                value={dashboardStats.team.pendingApprovals}
-                icon={<Schedule />}
-                color="#f57c00"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Team on Leave Today"
-                value={dashboardStats.team.teamOnLeaveToday}
-                icon={<Group />}
-                color="#d32f2f"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Upcoming Team Leaves"
-                value={dashboardStats.team.upcomingTeamLeaves}
-                icon={<CalendarMonth />}
-                color="#388e3c"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Recent Approvals"
-                value={dashboardStats.team.recentApprovals}
-                icon={<CheckCircle />}
-                color="#1976d2"
-              />
-            </Grid>
-          </>
-        )}
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <EnhancedStatCard
+              title="Total Requests"
+              value={dashboardStats.personal.totalRequests}
+              icon={<EventNote />}
+              color={theme.palette.info.main}
+              gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+              subtitle="All time"
+              delay={100}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <EnhancedStatCard
+              title="Pending Requests"
+              value={dashboardStats.personal.pendingRequests}
+              icon={<Pending />}
+              color={theme.palette.warning.main}
+              gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+              subtitle="Awaiting approval"
+              delay={200}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <EnhancedStatCard
+              title="Upcoming Leaves"
+              value={dashboardStats.personal.upcomingLeaves}
+              icon={<CalendarMonth />}
+              color={theme.palette.success.main}
+              gradient="linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
+              subtitle="Next 30 days"
+              delay={300}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <EnhancedStatCard
+              title="Available Balance"
+              value={dashboardStats.personal.totalLeaveBalance}
+              icon={<TrendingUp />}
+              color={theme.palette.secondary.main}
+              gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+              subtitle="Days remaining"
+              delay={400}
+            />
+          </Grid>
+
+          {/* Team Stats for Managers */}
+          {dashboardStats.team && (
+            <>
+              <Grid item xs={12} sx={{ mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Group sx={{ color: theme.palette.primary.main }} />
+                  <Typography variant="h6" fontWeight={600}>
+                    Team Management
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <EnhancedStatCard
+                  title="Pending Approvals"
+                  value={dashboardStats.team.pendingApprovals}
+                  icon={<Schedule />}
+                  color="#f57c00"
+                  gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+                  subtitle="Needs attention"
+                  delay={100}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <EnhancedStatCard
+                  title="Team on Leave Today"
+                  value={dashboardStats.team.teamOnLeaveToday}
+                  icon={<Group />}
+                  color="#d32f2f"
+                  gradient="linear-gradient(135deg, #f857a6 0%, #ff5858 100%)"
+                  subtitle="Currently away"
+                  delay={200}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <EnhancedStatCard
+                  title="Upcoming Team Leaves"
+                  value={dashboardStats.team.upcomingTeamLeaves}
+                  icon={<CalendarMonth />}
+                  color="#388e3c"
+                  gradient="linear-gradient(135deg, #56ab2f 0%, #a8e063 100%)"
+                  subtitle="Next 7 days"
+                  delay={300}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <EnhancedStatCard
+                  title="Recent Approvals"
+                  value={dashboardStats.team.recentApprovals}
+                  icon={<CheckCircle />}
+                  color="#1976d2"
+                  gradient="linear-gradient(135deg, #2196f3 0%, #21cbf3 100%)"
+                  subtitle="Last 7 days"
+                  delay={400}
+                />
+              </Grid>
+            </>
+          )}
 
         {/* Enhanced Leave Balance */}
         <Grid item xs={12} md={6}>
@@ -311,92 +376,160 @@ const DashboardPage: React.FC = () => {
 
         {/* Recent Activity */}
         <Grid item xs={12} md={6}>
-          <Card>
+          <GlassCard gradient hover sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom fontWeight={600}>
                 Recent Leave Activity
               </Typography>
               <List>
                 {dashboardStats.recentActivity.map((request, index) => (
                   <React.Fragment key={request.id}>
-                    <ListItem alignItems="flex-start" sx={{ px: 0 }}>
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        px: 0,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        borderRadius: 2,
+                        '&:hover': {
+                          background: alpha(theme.palette.primary.main, 0.05),
+                          transform: 'translateX(8px)',
+                        },
+                      }}
+                    >
                       <ListItemAvatar>
                         <Avatar
                           sx={{
-                            bgcolor: getStatusColor(request.status) === 'success' ? 'success.main' :
-                                    getStatusColor(request.status) === 'warning' ? 'warning.main' :
-                                    getStatusColor(request.status) === 'error' ? 'error.main' : 'grey.400',
-                            width: 32,
-                            height: 32,
+                            bgcolor:
+                              getStatusColor(request.status) === 'success'
+                                ? theme.palette.success.main
+                                : getStatusColor(request.status) === 'warning'
+                                  ? theme.palette.warning.main
+                                  : getStatusColor(request.status) === 'error'
+                                    ? theme.palette.error.main
+                                    : 'grey.400',
+                            width: 40,
+                            height: 40,
                           }}
                         >
-                          {request.status === LeaveStatus.APPROVED ? <CheckCircle fontSize="small" /> :
-                           request.status === LeaveStatus.PENDING ? <Schedule fontSize="small" /> :
-                           request.status === LeaveStatus.REJECTED ? <Cancel fontSize="small" /> :
-                           <EventNote fontSize="small" />}
+                          {request.status === LeaveStatus.APPROVED ? (
+                            <CheckCircle fontSize="small" />
+                          ) : request.status === LeaveStatus.PENDING ? (
+                            <Schedule fontSize="small" />
+                          ) : request.status === LeaveStatus.REJECTED ? (
+                            <Cancel fontSize="small" />
+                          ) : (
+                            <EventNote fontSize="small" />
+                          )}
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
                         primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" fontWeight="medium">
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                            <Typography variant="body2" fontWeight={600}>
                               {getLeaveTypeLabel(request.type)}
                             </Typography>
                             <Chip
                               label={request.status}
                               size="small"
                               color={getStatusColor(request.status) as any}
+                              sx={{ fontWeight: 600, fontSize: '0.7rem' }}
                             />
                           </Box>
                         }
                         secondary={
-                          <Typography variant="caption" color="textSecondary">
+                          <Typography variant="caption" color="text.secondary">
                             {request.startDate} - {request.endDate} ({request.totalDays} days)
                           </Typography>
                         }
                       />
                     </ListItem>
-                    {index < dashboardStats.recentActivity.length - 1 && <Divider />}
+                    {index < dashboardStats.recentActivity.length - 1 && (
+                      <Divider sx={{ my: 1 }} />
+                    )}
                   </React.Fragment>
                 ))}
                 {dashboardStats.recentActivity.length === 0 && (
-                  <Box textAlign="center" py={3}>
-                    <Typography variant="body2" color="textSecondary">
+                  <Box textAlign="center" py={6}>
+                    <EventNote sx={{ fontSize: 48, color: theme.palette.text.disabled, mb: 2 }} />
+                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
                       No recent leave activity
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Your recent leave requests will appear here
                     </Typography>
                   </Box>
                 )}
               </List>
             </CardContent>
-          </Card>
+          </GlassCard>
         </Grid>
 
         {/* Quick Actions */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, textAlign: 'center', bgcolor: 'background.default' }}>
-            <Typography variant="h6" gutterBottom>
-              Quick Actions
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-              Access common leave management functions
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button variant="contained" href="/leaves" color="primary">
-                Apply for Leave
-              </Button>
-              {dashboardStats.team && (
-                <Button variant="outlined" href="/approvals" color="warning">
-                  Review Approvals ({dashboardStats.team.pendingApprovals})
-                </Button>
-              )}
-              <Button variant="outlined" href="/reports" color="info">
-                View Reports
-              </Button>
-              <Button variant="outlined" href="/compoff/apply" color="secondary">
-                Apply Comp Off
-              </Button>
-            </Box>
-          </Paper>
+          <GlassCard
+            gradient
+            sx={{
+              background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(
+                theme.palette.secondary.main,
+                0.1
+              )} 100%)`,
+              backdropFilter: 'blur(20px)',
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Typography variant="h6" gutterBottom fontWeight={600}>
+                  Quick Actions
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Access common leave management functions
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <GradientButton
+                  variant="contained"
+                  href="/leaves"
+                  gradientType="primary"
+                  sx={{ minWidth: 160 }}
+                >
+                  Apply for Leave
+                </GradientButton>
+                {dashboardStats.team && (
+                  <GradientButton
+                    variant="contained"
+                    href="/approvals"
+                    gradientType="warning"
+                    sx={{ minWidth: 160 }}
+                  >
+                    Review Approvals ({dashboardStats.team.pendingApprovals})
+                  </GradientButton>
+                )}
+                <GradientButton
+                  variant="contained"
+                  href="/reports"
+                  gradientType="info"
+                  sx={{ minWidth: 160 }}
+                >
+                  View Reports
+                </GradientButton>
+                <GradientButton
+                  variant="contained"
+                  href="/compoff/apply"
+                  gradientType="secondary"
+                  sx={{ minWidth: 160 }}
+                >
+                  Apply Comp Off
+                </GradientButton>
+              </Box>
+            </CardContent>
+          </GlassCard>
         </Grid>
 
         {/* Enhanced Analytics Section */}
@@ -442,6 +575,7 @@ const DashboardPage: React.FC = () => {
         </Grid>
       </Grid>
     </Box>
+    </PageTransition>
   )
 }
 

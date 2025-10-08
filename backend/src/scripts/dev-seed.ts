@@ -194,7 +194,7 @@ async function seedLeaveBalances() {
   console.log('💰 Creating leave balances...')
 
   const employees = await prisma.user.findMany({
-    where: { role: { in: ['EMPLOYEE', 'MANAGER'] } }
+    where: { role: { in: ['EMPLOYEE', 'MANAGER', 'ADMIN'] } }
   })
 
   const policies = await prisma.leavePolicy.findMany()
@@ -237,40 +237,35 @@ async function seedHolidays() {
       name: 'New Year Day',
       date: new Date(`${currentYear + 1}-01-01`),
       location: 'ALL',
-      isOptional: false,
-      description: 'New Year celebration'
+      isOptional: false
     },
     {
       id: 'holiday-republic-day',
       name: 'Republic Day',
       date: new Date(`${currentYear + 1}-01-26`),
       location: 'ALL',
-      isOptional: false,
-      description: 'Indian Republic Day'
+      isOptional: false
     },
     {
       id: 'holiday-independence',
       name: 'Independence Day',
       date: new Date(`${currentYear + 1}-08-15`),
       location: 'ALL',
-      isOptional: false,
-      description: 'Indian Independence Day'
+      isOptional: false
     },
     {
       id: 'holiday-gandhi-jayanti',
       name: 'Gandhi Jayanti',
       date: new Date(`${currentYear + 1}-10-02`),
       location: 'ALL',
-      isOptional: false,
-      description: 'Mahatma Gandhi Birthday'
+      isOptional: false
     },
     {
       id: 'holiday-diwali',
       name: 'Diwali',
       date: new Date(`${currentYear + 1}-11-12`),
       location: 'ALL',
-      isOptional: false,
-      description: 'Festival of Lights'
+      isOptional: false
     }
   ]
 
