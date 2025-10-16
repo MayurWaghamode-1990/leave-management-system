@@ -1,0 +1,97 @@
+name: Basic CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  # Code Quality Checks
+  quality-checks:
+    name: Code Quality & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Lint backend
+        run: cd backend && npm run lint
+        continue-on-error: true
+
+      - name: Lint frontend
+        run: cd frontend && npm run lint
+        continue-on-error: true
+
+      - name: TypeScript check (Backend)
+        run: cd backend && npm run type-check
+        continue-on-error: true
+
+      - name: TypeScript check (Frontend)
+        run: cd frontend && npm run type-check
+        continue-on-error: true
+
+      - name: Build backend
+        run: cd backend && npm run build
+
+      - name: Build frontend
+        run: cd frontend && npm run build
+
+      - name: Test backend
+        run: cd backend && npm test
+        continue-on-error: true
+
+      - name: Test frontend
+        run: cd frontend && npm test
+        continue-on-error: true
+
+  # Security Audit (Non-blocking)
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: cd backend && npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Security audit (Backend)
+        run: cd backend && npm audit --audit-level=high || true
+        continue-on-error: true
+
+      - name: Security audit (Frontend)
+        run: cd frontend && npm audit --audit-level=high || true
+        continue-on-error: true
