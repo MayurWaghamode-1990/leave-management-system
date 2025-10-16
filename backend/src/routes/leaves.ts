@@ -599,9 +599,17 @@ router.get('/',
 // Get leave balances for current user
 router.get('/balances',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const userBalances = mockLeaveBalances.filter(
-      balance => balance.employeeId === req.user!.userId
-    );
+    const currentYear = new Date().getFullYear();
+
+    const userBalances = await prisma.leaveBalance.findMany({
+      where: {
+        employeeId: req.user!.userId,
+        year: currentYear
+      },
+      orderBy: {
+        leaveType: 'asc'
+      }
+    });
 
     res.json({
       success: true,

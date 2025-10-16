@@ -32,166 +32,76 @@ import { fadeInUp, fadeInDown, scaleIn } from '@/theme/animations'
 // Test user credentials
 const TEST_USERS = [
   {
-    id: 'hr-admin',
-    name: 'Maya Sharma (HR Admin)',
-    email: 'admin@company.com',
+    id: 'admin',
+    name: 'Admin User',
+    email: 'admin@glf.com',
     password: 'password123',
-    role: 'HR Admin',
+    role: 'Admin',
     department: 'Human Resources',
-    description: 'Full system access • Bengaluru'
+    description: 'Full system access • Mumbai'
   },
   {
-    id: 'engineering-manager',
-    name: 'Rajesh Kumar (Engineering Manager)',
-    email: 'engineering.manager@company.com',
+    id: 'manager1',
+    name: 'Rajesh Kumar',
+    email: 'manager1@glf.com',
     password: 'password123',
     role: 'Manager',
     department: 'Engineering',
-    description: 'Team lead • 3 direct reports • Bengaluru'
+    description: 'Team lead • 3 pending approvals • Bangalore'
   },
   {
-    id: 'sales-manager',
-    name: 'Amit Gupta (Sales Manager)',
-    email: 'sales.manager@company.com',
+    id: 'manager2',
+    name: 'Priya Sharma',
+    email: 'manager2@glf.com',
     password: 'password123',
     role: 'Manager',
-    department: 'Sales & Marketing',
-    description: 'Team lead • 3 direct reports • Mumbai'
+    department: 'Sales',
+    description: 'Team lead • 1 pending approval • Delhi'
   },
   {
-    id: 'finance-manager',
-    name: 'Sneha Reddy (Finance Manager)',
-    email: 'finance.manager@company.com',
-    password: 'password123',
-    role: 'Manager',
-    department: 'Finance & Operations',
-    description: 'Team lead • 2 direct reports • Delhi'
-  },
-  {
-    id: 'product-manager',
-    name: 'Vikram Agarwal (Product Manager)',
-    email: 'product.manager@company.com',
-    password: 'password123',
-    role: 'Manager',
-    department: 'Product Management',
-    description: 'Team lead • 2 direct reports • Pune'
-  },
-  {
-    id: 'support-manager',
-    name: 'Priya Nair (Support Manager)',
-    email: 'support.manager@company.com',
-    password: 'password123',
-    role: 'Manager',
-    department: 'Customer Support',
-    description: 'Team lead • 2 direct reports • Hyderabad'
-  },
-  {
-    id: 'eng-employee-1',
-    name: 'Arjun Singh (Engineering)',
-    email: 'arjun.singh@company.com',
+    id: 'employee1',
+    name: 'Amit Patel',
+    email: 'employee1@glf.com',
     password: 'password123',
     role: 'Employee',
     department: 'Engineering',
-    description: 'Software Developer • Reports to Rajesh • Bengaluru'
+    description: 'Has approved & pending leaves • Reports to Rajesh • Bangalore'
   },
   {
-    id: 'eng-employee-2',
-    name: 'Kavya Menon (Engineering)',
-    email: 'kavya.menon@company.com',
+    id: 'employee2',
+    name: 'Sneha Desai',
+    email: 'employee2@glf.com',
     password: 'password123',
     role: 'Employee',
     department: 'Engineering',
-    description: 'Software Developer • Reports to Rajesh • Bengaluru'
+    description: 'Has rejected leave • Reports to Rajesh • Bangalore'
   },
   {
-    id: 'eng-employee-3',
-    name: 'Rohit Sharma (Engineering)',
-    email: 'rohit.sharma@company.com',
+    id: 'employee3',
+    name: 'Vikram Singh',
+    email: 'employee3@glf.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Sales',
+    description: 'Has half-day pending • Reports to Priya • Delhi'
+  },
+  {
+    id: 'employee4',
+    name: 'Kavita Nair',
+    email: 'employee4@glf.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Marketing',
+    description: 'Has approved sick leave • Reports to Rajesh • Pune'
+  },
+  {
+    id: 'employee5',
+    name: 'Rahul Mehta',
+    email: 'employee5@glf.com',
     password: 'password123',
     role: 'Employee',
     department: 'Engineering',
-    description: 'Software Developer • Reports to Rajesh • Bengaluru'
-  },
-  {
-    id: 'sales-employee-1',
-    name: 'Rahul Verma (Sales)',
-    email: 'rahul.verma@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Sales & Marketing',
-    description: 'Sales Executive • Reports to Amit • Mumbai'
-  },
-  {
-    id: 'sales-employee-2',
-    name: 'Anita Joshi (Sales)',
-    email: 'anita.joshi@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Sales & Marketing',
-    description: 'Sales Executive • Reports to Amit • Mumbai'
-  },
-  {
-    id: 'sales-employee-3',
-    name: 'Deepak Mishra (Sales)',
-    email: 'deepak.mishra@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Sales & Marketing',
-    description: 'Sales Executive • Reports to Amit • Mumbai'
-  },
-  {
-    id: 'finance-employee-1',
-    name: 'Suresh Nair (Finance)',
-    email: 'suresh.nair@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Finance & Operations',
-    description: 'Financial Analyst • Reports to Sneha • Delhi'
-  },
-  {
-    id: 'finance-employee-2',
-    name: 'Meera Iyer (Finance)',
-    email: 'meera.iyer@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Finance & Operations',
-    description: 'Financial Analyst • Reports to Sneha • Delhi'
-  },
-  {
-    id: 'product-employee-1',
-    name: 'Nikhil Patil (Product)',
-    email: 'nikhil.patil@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Product Management',
-    description: 'Product Manager • Reports to Vikram • Pune'
-  },
-  {
-    id: 'product-employee-2',
-    name: 'Divya Rao (Product)',
-    email: 'divya.rao@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Product Management',
-    description: 'Product Manager • Reports to Vikram • Pune'
-  },
-  {
-    id: 'support-employee-1',
-    name: 'Karan Kapoor (Support)',
-    email: 'karan.kapoor@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Customer Support',
-    description: 'Support Engineer • Reports to Priya • Hyderabad'
-  },
-  {
-    id: 'support-employee-2',
-    name: 'Pooja Goel (Support)',
-    email: 'pooja.goel@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Customer Support',
-    description: 'Support Engineer • Reports to Priya • Hyderabad'
+    description: 'Has long pending leave • Reports to Rajesh • Bangalore'
   }
 ]
 
@@ -217,17 +127,25 @@ const LoginPage: React.FC = () => {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<LoginRequest>({
     resolver: yupResolver(schema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   })
+
+  const emailValue = watch('email')
+  const passwordValue = watch('password')
 
   const handleUserSelect = (userId: string) => {
     setSelectedUser(userId)
     const user = TEST_USERS.find(u => u.id === userId)
     if (user) {
-      setValue('email', user.email)
-      setValue('password', user.password)
+      setValue('email', user.email, { shouldValidate: true })
+      setValue('password', user.password, { shouldValidate: true })
     }
   }
 
@@ -430,10 +348,33 @@ const LoginPage: React.FC = () => {
                     </MenuItem>
                     {TEST_USERS.map((user) => (
                       <MenuItem key={user.id} value={user.id}>
-                        <Box>
-                          <Typography variant="body2" fontWeight="medium">
-                            {user.name}
-                          </Typography>
+                        <Box sx={{ width: '100%' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <Typography variant="body2" fontWeight="medium">
+                              {user.name}
+                            </Typography>
+                            <Box
+                              sx={{
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: 1,
+                                bgcolor: user.role === 'Admin'
+                                  ? 'error.light'
+                                  : user.role === 'Manager'
+                                    ? 'primary.light'
+                                    : 'success.light',
+                                color: user.role === 'Admin'
+                                  ? 'error.dark'
+                                  : user.role === 'Manager'
+                                    ? 'primary.dark'
+                                    : 'success.dark',
+                              }}
+                            >
+                              <Typography variant="caption" fontWeight="bold">
+                                {user.role}
+                              </Typography>
+                            </Box>
+                          </Box>
                           <Typography variant="caption" color="text.secondary">
                             {user.description}
                           </Typography>
@@ -452,9 +393,13 @@ const LoginPage: React.FC = () => {
                   type="email"
                   autoComplete="email"
                   {...register('email')}
+                  value={emailValue}
                   error={!!errors.email}
                   helperText={errors.email?.message}
                   disabled={isLoading}
+                  InputLabelProps={{
+                    shrink: !!emailValue,
+                  }}
                   sx={{
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderWidth: 2,
@@ -471,9 +416,13 @@ const LoginPage: React.FC = () => {
                   id="password"
                   autoComplete="current-password"
                   {...register('password')}
+                  value={passwordValue}
                   error={!!errors.password}
                   helperText={errors.password?.message}
                   disabled={isLoading}
+                  InputLabelProps={{
+                    shrink: !!passwordValue,
+                  }}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
