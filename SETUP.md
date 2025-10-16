@@ -1,311 +1,383 @@
-# Leave Management System - Complete Setup Guide
+# Leave Management System - Developer Setup Guide
 
-This comprehensive guide will help you set up the Leave Management System for development and production.
+Complete setup instructions for new developers joining the project.
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Initial Setup](#initial-setup)
+- [Database Configuration](#database-configuration)
+- [Running the Application](#running-the-application)
+- [Verification](#verification)
+- [Troubleshooting](#troubleshooting)
+- [Next Steps](#next-steps)
+
+---
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+Install the following software before beginning:
 
-- **Node.js** (version 18 or higher)
-- **PostgreSQL** (version 14 or higher)
-- **Git**
-- **npm** or **yarn**
+### Required Software
 
-## Quick Start
+- **Node.js** (v18 or higher) - [Download](https://nodejs.org/)
+- **Git** - [Download](https://git-scm.com/)
+- **Database**: MySQL 8.0+ OR SQLite (recommended for development)
 
-### 1. Clone and Install Dependencies
+### Recommended Tools
+
+- **GitHub CLI** (`gh`) - [Install guide](https://cli.github.com/)
+- **VS Code** - [Download](https://code.visualstudio.com/)
+
+### Installation Commands
+
+**Windows:**
+```bash
+winget install OpenJS.NodeJS.LTS
+winget install Git.Git
+winget install GitHub.cli
+winget install Oracle.MySQL  # Optional: if using MySQL
+```
+
+**macOS:**
+```bash
+brew install node git gh mysql
+```
+
+**Linux:**
+```bash
+sudo apt update && sudo apt install nodejs npm git mysql-server
+```
+
+---
+
+## Initial Setup
+
+### Step 1: SSH Key Configuration
+
+**Check for existing SSH key:**
+```bash
+ls ~/.ssh/id_ed25519.pub
+```
+
+**Create new SSH key (if needed):**
+```bash
+ssh-keygen -t ed25519 -C "your.email@example.com"
+# Press Enter 3 times for defaults
+
+# Display your public key
+cat ~/.ssh/id_ed25519.pub
+```
+
+**Add to GitHub:**
+1. Copy the key output
+2. Go to [GitHub SSH Settings](https://github.com/settings/keys)
+3. Click "New SSH key"
+4. Paste and save
+
+**Test connection:**
+```bash
+ssh -T git@github.com
+# Expected: "Hi USERNAME! You've successfully authenticated"
+```
+
+### Step 2: Clone Repository
 
 ```bash
+# Navigate to your projects folder
+cd ~/Projects  # or C:\Users\YourName\Projects
+
 # Clone the repository
-git clone <repository-url>
+git clone git@github.com:MayurWaghamode-1990/leave-management-system.git
 cd leave-management-system
-
-# Install dependencies for all packages
-npm run install:all
 ```
 
-### 2. Database Setup
-
-#### Install PostgreSQL
-- **Windows**: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
-- **macOS**: Use Homebrew: `brew install postgresql`
-- **Linux**: `sudo apt-get install postgresql postgresql-contrib`
-
-#### Create Database
-```sql
--- Connect to PostgreSQL as superuser
-CREATE DATABASE leave_management_db;
-CREATE USER lms_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE leave_management_db TO lms_user;
-```
-
-### 3. Environment Configuration
-
-#### Backend Environment
+**Alternative (HTTPS):**
 ```bash
+git clone https://github.com/MayurWaghamode-1990/leave-management-system.git
+```
+
+### Step 3: Install Dependencies
+
+```bash
+# Install backend dependencies
 cd backend
-cp .env.example .env
+npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+
+# Return to project root
+cd ..
 ```
 
-Edit the `.env` file with your database credentials:
-```bash
-DATABASE_URL="postgresql://lms_user:your_password@localhost:5432/leave_management_db?schema=public"
-JWT_SECRET="your-super-secret-jwt-key-here"
-```
+This takes 2-3 minutes.
 
-### 4. Database Migration and Seeding
+---
+
+## Database Configuration
+
+Choose **SQLite** (easiest) or **MySQL** (production-like).
+
+### Option A: SQLite (Recommended)
 
 ```bash
 cd backend
+
+# Copy SQLite configuration
+cp .env.sqlite .env
 
 # Generate Prisma client
-npm run db:generate
+npx prisma generate
 
-# Run database migrations
-npm run db:migrate
+# Run migrations
+npx prisma migrate deploy
 
-# Seed the database with sample data
-npm run db:seed
+# Seed test data
+node populate-test-data.js
 ```
 
-### 5. Start Development Servers
+**Expected output:**
+```
+🚀 Starting test data population...
+✅ Created 8 users
+✅ Created leave balances for all users
+🎉 Test data population completed!
+```
+
+### Option B: MySQL
 
 ```bash
-# From the root directory, start both frontend and backend
-npm run dev
-
-# Or start individually:
-npm run dev:backend  # Starts on http://localhost:3001
-npm run dev:frontend # Starts on http://localhost:5173
+# Create database
+mysql -u root -p
 ```
 
-## Sample Login Credentials
+In MySQL prompt:
+```sql
+CREATE DATABASE lms_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'lms_user'@'localhost' IDENTIFIED BY 'password123';
+GRANT ALL PRIVILEGES ON lms_db.* TO 'lms_user'@'localhost';
+EXIT;
+```
 
-After running the seed script, you can login with:
-
-| Role | Email | Password |
-|------|-------|----------|
-| HR Admin | hr.admin@company.com | password123 |
-| Manager | alex.johnson@company.com | password123 |
-| Employee | ananya.patel@company.com | password123 |
-| Employee | john.doe@company.com | password123 |
-| Payroll Officer | michelle.lee@company.com | password123 |
-
-## API Documentation
-
-- **Health Check**: http://localhost:3001/health
-- **API Base URL**: http://localhost:3001/api/v1
-- **Swagger Documentation**: http://localhost:3001/api/v1/docs (Coming soon)
-
-## Common Commands
-
-### Backend Commands
+Configure backend:
 ```bash
 cd backend
+cp .env.mysql .env
 
-# Development
-npm run dev                # Start dev server with hot reload
-npm run build              # Build for production
-npm run start              # Start production server
+# Edit .env and update DATABASE_URL with your credentials
 
-# Database
-npm run db:generate        # Generate Prisma client
-npm run db:migrate         # Run migrations
-npm run db:studio          # Open Prisma Studio (DB GUI)
-npm run db:seed            # Seed database
-
-# Testing & Quality
-npm run test               # Run tests
-npm run lint               # Run linter
-npm run lint:fix           # Fix linting issues
+npx prisma generate
+npx prisma migrate deploy
+node populate-test-data.js
 ```
 
-### Frontend Commands
+---
+
+## Running the Application
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm run dev
+```
+
+Expected output:
+```
+🚀 Server running on port 3001
+📊 Swagger docs: http://localhost:3001/api-docs
+✅ Database connected
+```
+
+**Terminal 2 - Frontend:**
 ```bash
 cd frontend
-
-# Development
-npm run dev                # Start dev server
-npm run build              # Build for production
-npm run preview            # Preview production build
-
-# Testing & Quality
-npm run test               # Run tests
-npm run test:ui            # Run tests with UI
-npm run lint               # Run linter
+npm run dev
 ```
 
-## Project Structure Overview
+Expected output:
+```
+  VITE v5.0.8  ready in 1234 ms
+  ➜  Local:   http://localhost:5174/
+```
 
-```
-leave-management-system/
-├── frontend/              # React.js frontend
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── pages/         # Page components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── services/      # API services
-│   │   ├── contexts/      # React contexts
-│   │   └── types/         # TypeScript types
-│   └── package.json
-├── backend/               # Node.js/Express backend
-│   ├── src/
-│   │   ├── routes/        # API routes
-│   │   ├── controllers/   # Route controllers
-│   │   ├── middleware/    # Express middleware
-│   │   ├── services/      # Business logic
-│   │   ├── utils/         # Utility functions
-│   │   └── types/         # TypeScript types
-│   ├── prisma/           # Database schema & migrations
-│   └── package.json
-├── shared/               # Shared types and utilities
-└── docs/                # Documentation
-```
+---
+
+## Verification
+
+### Test Login
+
+1. Open: **http://localhost:5174**
+2. Login with:
+   - Email: `admin@glf.com`
+   - Password: `password123`
+
+### Test Users
+
+| Email | Role | Description |
+|-------|------|-------------|
+| admin@glf.com | Admin | Full access |
+| manager1@glf.com | Manager | Team lead |
+| employee1@glf.com | Employee | Regular user |
+
+All passwords: `password123`
+
+### API Documentation
+
+Visit: http://localhost:3001/api-docs
+
+---
 
 ## Troubleshooting
 
-### Common Issues
+### "Permission denied (publickey)"
 
-1. **Database Connection Error**
-   - Verify PostgreSQL is running
-   - Check database credentials in `.env`
-   - Ensure database exists
+```bash
+# Generate SSH key
+ssh-keygen -t ed25519 -C "your.email@example.com"
 
-2. **Port Already in Use**
-   ```bash
-   # Kill process on port 3001 (backend)
-   lsof -ti:3001 | xargs kill -9
-   
-   # Kill process on port 5173 (frontend)
-   lsof -ti:5173 | xargs kill -9
-   ```
+# Or use HTTPS:
+git remote set-url origin https://github.com/MayurWaghamode-1990/leave-management-system.git
+```
 
-3. **Prisma Client Issues**
-   ```bash
-   cd backend
-   npx prisma generate
-   npx prisma db push
-   ```
+### "npm install fails"
 
-4. **Node Version Issues**
-   - Use Node.js version 18 or higher
-   - Consider using nvm: `nvm use 18`
+```bash
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+```
 
-### Logs and Debugging
+### "Port already in use"
 
-- Backend logs: Check `backend/logs/` directory
-- Frontend: Check browser console
-- Database: Use Prisma Studio (`npm run db:studio`)
+**Windows:**
+```bash
+netstat -ano | findstr :3001
+taskkill /PID <PID> /F
+```
+
+**Mac/Linux:**
+```bash
+lsof -ti:3001 | xargs kill -9
+```
+
+### "Prisma Client error"
+
+```bash
+cd backend
+npx prisma generate
+npm run dev
+```
+
+### "Database connection error"
+
+Check `backend/.env` file:
+```env
+# For SQLite:
+DATABASE_URL="file:./dev.db"
+
+# For MySQL:
+DATABASE_URL="mysql://lms_user:password123@localhost:3306/lms_db"
+```
+
+---
 
 ## Next Steps
 
-1. **Frontend Development**: Start with the employee dashboard in `frontend/src/pages/`
-2. **API Enhancement**: Add more endpoints in `backend/src/routes/`
-3. **Testing**: Add tests in respective `__tests__` directories
-4. **Deployment**: See `DEPLOYMENT.md` for production setup
+### 1. Read Documentation
 
-## Frontend-Specific Setup
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Team workflow
+- [README.md](./README.md) - Project overview
+- [Technology Stack.md](./Technology%20Stack.md) - Tech details
 
-### Environment Configuration
+### 2. Setup Git Workflow
+
 ```bash
-cd frontend
-cp .env.example .env
-# Edit .env with your API URL (default: http://localhost:3001/api/v1)
+# Create develop branch
+git checkout -b develop
+git push origin develop
+
+# Use sync script
+bash sync-with-team.sh
+
+# Create feature branch
+git checkout -b feature/your-first-task
 ```
 
-### Development Server
+### 3. Install VS Code Extensions
+
 ```bash
-cd frontend
-npm run dev  # Runs on http://localhost:5173
+code --install-extension dbaeumer.vscode-eslint
+code --install-extension esbenp.prettier-vscode
+code --install-extension Prisma.prisma
 ```
 
-## Testing the Application
+---
 
-### 1. Start Both Servers
+## Quick Reference
+
+### Essential Commands
+
 ```bash
-# Terminal 1 - Backend
+# Start development
+cd backend && npm run dev      # Terminal 1
+cd frontend && npm run dev     # Terminal 2
+
+# Database operations
 cd backend
-npm run dev
+npx prisma studio              # Database GUI
+npx prisma migrate dev         # New migration
+node populate-test-data.js     # Reseed data
 
-# Terminal 2 - Frontend  
-cd frontend
-npm run dev
+# Git workflow
+bash sync-with-team.sh         # Sync with team
+git checkout -b feature/name   # New feature
+git add . && git commit        # Commit
+git push origin feature/name   # Push
+gh pr create --base develop    # Create PR
 ```
 
-### 2. Login with Demo Credentials
-Visit `http://localhost:5173` and use:
-- **Employee**: ananya.patel@company.com / password123
-- **Manager**: alex.johnson@company.com / password123  
-- **HR Admin**: hr.admin@company.com / password123
+### Ports
 
-### 3. Test Key Features
-1. **Employee Flow**: Apply for leave, view balances, check history
-2. **Manager Flow**: Review pending approvals, view team calendar
-3. **HR Flow**: Manage users and policies
+| Service | Port | URL |
+|---------|------|-----|
+| Frontend | 5174 | http://localhost:5174 |
+| Backend | 3001 | http://localhost:3001 |
+| API Docs | 3001 | http://localhost:3001/api-docs |
+| Prisma Studio | 5555 | http://localhost:5555 |
 
-## Application Architecture
+---
 
-### Backend (Node.js + Express + Prisma)
-- **API Server**: RESTful APIs with JWT authentication
-- **Database**: PostgreSQL with Prisma ORM
-- **Features**: RBAC, audit logging, regional compliance
+## Getting Help
 
-### Frontend (React + TypeScript + Material-UI)
-- **SPA**: Single Page Application with React Router
-- **State Management**: React Query + Context API
-- **UI Components**: Material-UI with custom theming
+- 📖 Documentation: See markdown files in root
+- 🐛 Bug Reports: GitHub Issues
+- 💬 Questions: Team chat
+- 📚 Prisma: https://www.prisma.io/docs
+- ⚛️ React: https://react.dev
+- 🎨 MUI: https://mui.com
 
-### Key Features Implemented
-✅ **Authentication & Authorization**  
-✅ **Employee Self-Service Portal**  
-✅ **Manager Approval Workflows**  
-✅ **Leave Balance Management**  
-✅ **Regional Policy Support** (India/USA)  
-✅ **Responsive Design**  
-✅ **Real-time Notifications**  
+---
 
-## Production Deployment
+## First Day Checklist
 
-### Backend Deployment
-1. **Environment Variables**: Set production environment variables
-2. **Database**: Use managed PostgreSQL (AWS RDS, etc.)
-3. **Hosting**: Deploy to Railway, Render, or AWS
-4. **Security**: Enable HTTPS, set CORS origins
+- [ ] Install Node.js, Git, GitHub CLI
+- [ ] Setup SSH keys
+- [ ] Clone repository
+- [ ] Install dependencies
+- [ ] Setup database
+- [ ] Start both servers
+- [ ] Login successfully
+- [ ] Read CONTRIBUTING.md
+- [ ] Create develop branch
+- [ ] Create first feature branch
+- [ ] Make first commit
+- [ ] Push to remote
+- [ ] Create first PR
 
-### Frontend Deployment  
-1. **Build**: Run `npm run build` in frontend directory
-2. **Static Hosting**: Deploy to Vercel, Netlify, or AWS S3
-3. **Environment**: Configure production API URL
+**All checked? You're ready to develop!** 🎉
 
-## Additional Resources
+---
 
-- [Complete Frontend Guide](./FRONTEND_GUIDE.md)
-- [Prisma Documentation](https://www.prisma.io/docs)
-- [React Documentation](https://react.dev)
-- [Express.js Documentation](https://expressjs.com)
-- [Material-UI Documentation](https://mui.com)
-
-## Feature Roadmap
-
-### Phase 2 Enhancements
-- Advanced reporting with charts and analytics
-- Team calendar with conflict detection  
-- Bulk operations for HR admins
-- Mobile app (React Native)
-- Integration with external HR systems
-
-### Phase 3 Enterprise Features
-- Multi-tenant support
-- Advanced approval workflows (3+ levels)
-- AI-powered leave predictions
-- Biometric attendance integration
-- Advanced audit and compliance reports
-
-## Support
-
-For issues and questions:
-1. Check this setup guide and frontend guide
-2. Review the requirements document  
-3. Check application logs for errors
-4. Verify database connectivity and seeded data
-5. Create a new issue if needed
+For detailed information, see [CONTRIBUTING.md](./CONTRIBUTING.md).
