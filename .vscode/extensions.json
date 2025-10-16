@@ -1,0 +1,35 @@
+{
+  "recommendations": [
+    // Language Support
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "prisma.prisma",
+    "ms-vscode.vscode-typescript-next",
+
+    // React/Frontend
+    "dsznajder.es7-react-js-snippets",
+    "bradlc.vscode-tailwindcss",
+    "styled-components.vscode-styled-components",
+
+    // Git & Collaboration
+    "eamodio.gitlens",
+    "github.vscode-pull-request-github",
+
+    // Productivity
+    "usernamehw.errorlens",
+    "christian-kohler.path-intellisense",
+    "formulahendry.auto-rename-tag",
+
+    // Testing & Debugging
+    "ms-vscode.vscode-typescript-next",
+    "orta.vscode-jest",
+
+    // Database
+    "cweijan.vscode-database-client2",
+
+    // Utilities
+    "aaron-bond.better-comments",
+    "visualstudioexptteam.vscodeintellicode",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

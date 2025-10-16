@@ -31,10 +31,17 @@ lerna-debug.log*
 Thumbs.db
 
 # IDE files
-.vscode/
 .idea/
 *.swp
 *.swo
+
+# VS Code - keep workspace settings, ignore personal settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
 
 # Temporary files
 tmp/
