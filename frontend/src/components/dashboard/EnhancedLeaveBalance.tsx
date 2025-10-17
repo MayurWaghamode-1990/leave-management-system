@@ -77,7 +77,13 @@ const EnhancedLeaveBalance: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get('/leaves/balances');
-      setBalances(response.data.data || []);
+      const rawBalances = response.data.data || [];
+      console.log('Raw balances from API:', rawBalances);
+      // Transform raw API data to enhanced format
+      const enhancedBalances = rawBalances.map((bal: any) => enhanceBalanceData(bal));
+      console.log('Enhanced balances:', enhancedBalances);
+      console.log('Number of balances to display:', enhancedBalances.length);
+      setBalances(enhancedBalances);
     } catch (error) {
       console.error('Error fetching enhanced balance data:', error);
       // Fallback to mock data for demo
@@ -85,6 +91,56 @@ const EnhancedLeaveBalance: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const enhanceBalanceData = (balance: any): LeaveBalance => {
+    const used = balance.used || 0;
+    const total = balance.totalEntitlement || 0;
+    const available = balance.available || 0;
+    const utilizationPercentage = total > 0 ? (used / total) * 100 : 0;
+
+    // Calculate status based on utilization
+    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+    if (utilizationPercentage > 90) {
+      status = 'critical';
+    } else if (utilizationPercentage > 75) {
+      status = 'warning';
+    }
+
+    // Calculate average monthly usage (assuming current month is month 10 - October)
+    const currentMonth = new Date().getMonth() + 1;
+    const averageMonthlyUsage = currentMonth > 0 ? Number((used / currentMonth).toFixed(1)) : 0;
+
+    // Project year-end balance
+    const projectedYearEnd = Math.max(0, total - Math.round(averageMonthlyUsage * 12));
+
+    // Generate recommendations
+    const recommendations: string[] = [];
+    if (available < 3) {
+      recommendations.push('Running low on leaves - plan wisely');
+    }
+    if (balance.carryForward > 0) {
+      recommendations.push(`${balance.carryForward} days carried forward from last year`);
+    }
+    if (available > 15) {
+      recommendations.push('Consider taking a vacation - you have good balance');
+    }
+
+    return {
+      id: balance.id,
+      leaveType: balance.leaveType,
+      totalEntitlement: total,
+      used: used,
+      available: available,
+      carryForward: balance.carryForward || 0,
+      pending: 0, // TODO: Calculate from pending leave requests
+      expiryDate: balance.expiryDate,
+      lastUsed: balance.lastUsed,
+      averageMonthlyUsage,
+      projectedYearEnd,
+      status,
+      recommendations
+    };
   };
 
   const fetchBalanceHistory = async (leaveType: LeaveType) => {
@@ -200,6 +256,7 @@ const EnhancedLeaveBalance: React.FC = () => {
   };
 
   const getUtilizationPercentage = (used: number, total: number) => {
+    if (total === 0) return 0;
     return Math.round((used / total) * 100);
   };
 
@@ -227,6 +284,8 @@ const EnhancedLeaveBalance: React.FC = () => {
     );
   }
 
+  console.log('Rendering with balances:', balances.length);
+
   return (
     <>
       <Card>
@@ -242,6 +301,11 @@ const EnhancedLeaveBalance: React.FC = () => {
           </Box>
 
           <Grid container spacing={2}>
+            {balances.length === 0 && (
+              <Grid item xs={12}>
+                <Typography>No leave balances found</Typography>
+              </Grid>
+            )}
             {balances.map((balance) => {
               const utilizationPercentage = getUtilizationPercentage(balance.used, balance.totalEntitlement);
               const daysUntilExpiry = getDaysUntilExpiry(balance.expiryDate);

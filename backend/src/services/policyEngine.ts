@@ -65,6 +65,9 @@ export class LeaveValidationEngine {
       // Check leave balance
       await this.validateLeaveBalance(request, result);
 
+      // Validate maternity/paternity eligibility
+      await this.validateMaternityPaternityEligibility(request, employee, result);
+
       // Apply policy rules
       await this.applyPolicyRules(request, employee, result);
 
@@ -196,7 +199,7 @@ export class LeaveValidationEngine {
   }
 
   /**
-   * Validates available leave balance
+   * Validates available leave balance (including pending leaves)
    */
   private async validateLeaveBalance(request: LeaveValidationRequest, result: LeaveValidationResult): Promise<void> {
     try {
@@ -218,14 +221,32 @@ export class LeaveValidationEngine {
         return;
       }
 
+      // Calculate pending leaves of the same type
+      const pendingLeaves = await prisma.leaveRequest.findMany({
+        where: {
+          employeeId: request.employeeId,
+          leaveType: request.leaveType,
+          status: 'PENDING'
+        }
+      });
+
+      const totalPendingDays = pendingLeaves.reduce((sum, leave) => sum + Number(leave.totalDays), 0);
+
       // Use adjusted total days if available, otherwise use original
       const effectiveDays = (request as any).adjustedTotalDays || request.totalDays;
 
-      if (effectiveDays > leaveBalance.available) {
+      // Calculate real available balance (current available - pending requests)
+      const realAvailable = leaveBalance.available - totalPendingDays;
+
+      if (totalPendingDays > 0) {
+        result.warnings.push(`Note: ${totalPendingDays} days are already pending approval for ${request.leaveType}`);
+      }
+
+      if (effectiveDays > realAvailable) {
         result.isValid = false;
-        result.errors.push(`Insufficient leave balance. Available: ${leaveBalance.available} days, Requested: ${effectiveDays} days`);
-      } else if (effectiveDays > leaveBalance.available * 0.8) {
-        result.warnings.push(`Using most of available leave balance (${effectiveDays}/${leaveBalance.available} days)`);
+        result.errors.push(`Insufficient leave balance. Available: ${realAvailable} days (after pending: ${totalPendingDays}), Requested: ${effectiveDays} days`);
+      } else if (effectiveDays > realAvailable * 0.8) {
+        result.warnings.push(`Using most of available leave balance (${effectiveDays}/${realAvailable} days)`);
       }
 
     } catch {
@@ -253,6 +274,99 @@ export class LeaveValidationEngine {
         result.isValid = false;
         result.errors.push(`Insufficient leave balance. Available: ${available} days, Requested: ${effectiveDays} days`);
       }
+    }
+  }
+
+  /**
+   * Validates eligibility for maternity and paternity leave based on gender and marital status
+   */
+  private async validateMaternityPaternityEligibility(
+    request: LeaveValidationRequest,
+    employee: any,
+    result: LeaveValidationResult
+  ): Promise<void> {
+    // Check maternity leave eligibility
+    if (request.leaveType === LeaveType.MATERNITY_LEAVE) {
+      // Maternity leave is only for female employees
+      if (!employee.gender || employee.gender !== 'FEMALE') {
+        result.isValid = false;
+        result.errors.push('Maternity leave is only available for female employees');
+        return;
+      }
+
+      // Check if employee is married (optional check - some policies may require this)
+      if (employee.maritalStatus && employee.maritalStatus !== 'MARRIED') {
+        result.warnings.push('Maternity leave is typically available for married employees. Please provide necessary documentation.');
+      }
+
+      // Check if employee has already taken maternity leave in the current year
+      try {
+        const currentYear = new Date().getFullYear();
+        const existingMaternityLeave = await prisma.leaveRequest.findFirst({
+          where: {
+            employeeId: request.employeeId,
+            leaveType: LeaveType.MATERNITY_LEAVE,
+            status: { in: ['APPROVED', 'PENDING'] },
+            startDate: {
+              gte: new Date(`${currentYear}-01-01`),
+              lte: new Date(`${currentYear}-12-31`)
+            }
+          }
+        });
+
+        if (existingMaternityLeave) {
+          result.isValid = false;
+          result.errors.push(`You already have a maternity leave request for this year (Status: ${existingMaternityLeave.status})`);
+        }
+      } catch (error) {
+        result.warnings.push('Could not verify existing maternity leave requests');
+      }
+
+      result.requiredDocumentation = true;
+      result.warnings.push('Medical certificate and pregnancy proof required for maternity leave');
+    }
+
+    // Check paternity leave eligibility
+    if (request.leaveType === LeaveType.PATERNITY_LEAVE) {
+      // Paternity leave is only for male employees
+      if (!employee.gender || employee.gender !== 'MALE') {
+        result.isValid = false;
+        result.errors.push('Paternity leave is only available for male employees');
+        return;
+      }
+
+      // Check if employee is married (typically required for paternity leave)
+      if (!employee.maritalStatus || employee.maritalStatus !== 'MARRIED') {
+        result.isValid = false;
+        result.errors.push('Paternity leave is only available for married employees');
+        return;
+      }
+
+      // Check if employee has already taken paternity leave in the current year
+      try {
+        const currentYear = new Date().getFullYear();
+        const existingPaternityLeave = await prisma.leaveRequest.findFirst({
+          where: {
+            employeeId: request.employeeId,
+            leaveType: LeaveType.PATERNITY_LEAVE,
+            status: { in: ['APPROVED', 'PENDING'] },
+            startDate: {
+              gte: new Date(`${currentYear}-01-01`),
+              lte: new Date(`${currentYear}-12-31`)
+            }
+          }
+        });
+
+        if (existingPaternityLeave) {
+          result.isValid = false;
+          result.errors.push(`You already have a paternity leave request for this year (Status: ${existingPaternityLeave.status})`);
+        }
+      } catch (error) {
+        result.warnings.push('Could not verify existing paternity leave requests');
+      }
+
+      result.requiredDocumentation = true;
+      result.warnings.push('Birth certificate or medical certificate required for paternity leave');
     }
   }
 

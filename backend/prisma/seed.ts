@@ -326,6 +326,141 @@ async function main() {
       location: 'Pune',
       joiningDate: new Date('2022-08-15'),
       status: 'ACTIVE',
+      country: 'INDIA',
+      gender: 'MALE',
+      maritalStatus: 'MARRIED',
+    },
+  });
+
+  // ========== USA EMPLOYEES ==========
+
+  // USA VP - Finance
+  const usaVP = await prisma.user.create({
+    data: {
+      id: 'user-usa-vp',
+      employeeId: 'USA001',
+      email: 'robert.johnson@company.com',
+      password: hashedPassword,
+      firstName: 'Robert',
+      lastName: 'Johnson',
+      role: 'MANAGER',
+      department: 'Finance',
+      location: 'New York',
+      joiningDate: new Date('2018-01-10'),
+      status: 'ACTIVE',
+      country: 'USA',
+      gender: 'MALE',
+      maritalStatus: 'MARRIED',
+      designation: 'VP',
+    },
+  });
+
+  // USA AVP - Sales
+  const usaAVP1 = await prisma.user.create({
+    data: {
+      id: 'user-usa-avp1',
+      employeeId: 'USA002',
+      email: 'sarah.williams@company.com',
+      password: hashedPassword,
+      firstName: 'Sarah',
+      lastName: 'Williams',
+      role: 'MANAGER',
+      department: 'Sales',
+      location: 'San Francisco',
+      joiningDate: new Date('2020-03-15'),
+      status: 'ACTIVE',
+      country: 'USA',
+      gender: 'FEMALE',
+      maritalStatus: 'SINGLE',
+      designation: 'AVP',
+    },
+  });
+
+  // USA Employee - Mid-year joiner (joined July 20 - for pro-rata testing)
+  const usaEmployee1 = await prisma.user.create({
+    data: {
+      id: 'user-usa-emp1',
+      employeeId: 'USA003',
+      email: 'michael.brown@company.com',
+      password: hashedPassword,
+      firstName: 'Michael',
+      lastName: 'Brown',
+      role: 'EMPLOYEE',
+      department: 'Marketing',
+      location: 'Austin',
+      reportingManagerId: usaAVP1.id,
+      joiningDate: new Date('2024-07-20'),
+      status: 'ACTIVE',
+      country: 'USA',
+      gender: 'MALE',
+      maritalStatus: 'MARRIED',
+      designation: 'SENIOR_ASSOCIATE',
+    },
+  });
+
+  // USA Employee - Joined after 15th (for 0.5 day pro-rata testing)
+  const usaEmployee2 = await prisma.user.create({
+    data: {
+      id: 'user-usa-emp2',
+      employeeId: 'USA004',
+      email: 'jennifer.davis@company.com',
+      password: hashedPassword,
+      firstName: 'Jennifer',
+      lastName: 'Davis',
+      role: 'EMPLOYEE',
+      department: 'Information Technology',
+      location: 'Seattle',
+      reportingManagerId: usaVP.id,
+      joiningDate: new Date('2024-06-18'),
+      status: 'ACTIVE',
+      country: 'USA',
+      gender: 'FEMALE',
+      maritalStatus: 'SINGLE',
+      designation: 'ASSOCIATE',
+    },
+  });
+
+  // ========== INDIA MARRIED EMPLOYEES (for Maternity/Paternity testing) ==========
+
+  // Married Female Employee - for Maternity Leave testing
+  const marriedFemaleEmp = await prisma.user.create({
+    data: {
+      id: 'user-married-female',
+      employeeId: 'IND015',
+      email: 'lakshmi@company.com',
+      password: hashedPassword,
+      firstName: 'Lakshmi',
+      lastName: 'Krishnan',
+      role: 'EMPLOYEE',
+      department: 'Human Resources',
+      location: 'Bengaluru',
+      reportingManagerId: hrAdmin.id,
+      joiningDate: new Date('2021-04-10'),
+      status: 'ACTIVE',
+      country: 'INDIA',
+      gender: 'FEMALE',
+      maritalStatus: 'MARRIED',
+    },
+  });
+
+  // Married Male Employee - for Paternity Leave testing
+  const marriedMaleEmp = await prisma.user.create({
+    data: {
+      id: 'user-married-male',
+      employeeId: 'IND016',
+      email: 'karthik@company.com',
+      password: hashedPassword,
+      firstName: 'Karthik',
+      lastName: 'Ramesh',
+      role: 'EMPLOYEE',
+      department: 'Information Technology',
+      location: 'Bengaluru',
+      reportingManagerId: itManager.id,
+      joiningDate: new Date('2020-08-22'),
+      status: 'ACTIVE',
+      country: 'INDIA',
+      gender: 'MALE',
+      maritalStatus: 'MARRIED',
     },
   });
 
@@ -374,15 +509,19 @@ async function main() {
   });
 
   // Create leave balances for all users
-  const allUsers = [
+  const indiaUsers = [
     hrAdmin, itManager, salesManager, marketingManager,
     employee1, employee2, employee3, salesEmployee1, salesEmployee2,
-    marketingEmployee1, marketingEmployee2, financeEmployee1, financeEmployee2, operationsEmployee1
+    marketingEmployee1, marketingEmployee2, financeEmployee1, financeEmployee2, operationsEmployee1,
+    marriedFemaleEmp, marriedMaleEmp
   ];
-  const leaveTypes = ['CASUAL_LEAVE', 'SICK_LEAVE', 'EARNED_LEAVE', 'MATERNITY_LEAVE', 'PATERNITY_LEAVE'];
+  const usaUsers = [usaVP, usaAVP1, usaEmployee1, usaEmployee2];
 
-  for (const user of allUsers) {
-    for (const leaveType of leaveTypes) {
+  const indiaLeaveTypes = ['CASUAL_LEAVE', 'SICK_LEAVE', 'EARNED_LEAVE', 'MATERNITY_LEAVE', 'PATERNITY_LEAVE'];
+
+  // Create balances for India users
+  for (const user of indiaUsers) {
+    for (const leaveType of indiaLeaveTypes) {
       let entitlement = 12;
       let used = Math.floor(Math.random() * 3); // Random used leaves (0-2)
 
@@ -409,6 +548,49 @@ async function main() {
         },
       });
     }
+  }
+
+  // Create PTO balances for USA users
+  for (const user of usaUsers) {
+    // Determine PTO entitlement based on designation
+    let ptoEntitlement = 15; // Default for employees
+    let used = Math.floor(Math.random() * 5); // Random used (0-4)
+
+    if (user.id === usaVP.id) {
+      // VP gets 25 days PTO
+      ptoEntitlement = 25;
+      used = Math.floor(Math.random() * 8); // 0-7 used
+    } else if (user.id === usaAVP1.id) {
+      // AVP gets 20 days PTO
+      ptoEntitlement = 20;
+      used = Math.floor(Math.random() * 6); // 0-5 used
+    } else if (user.id === usaEmployee1.id) {
+      // Mid-year joiner (joined July 20) - Pro-rata calculation
+      // Joined in month 7, so 6 months remaining (July-Dec)
+      // Monthly accrual = 15/12 = 1.25 days/month
+      // 6 months × 1.25 = 7.5 days (rounded to 8)
+      ptoEntitlement = 8;
+      used = Math.floor(Math.random() * 3); // 0-2 used
+    } else if (user.id === usaEmployee2.id) {
+      // Joined June 18 (after 15th) - Pro-rata calculation
+      // Joined in month 6 (after 15th), so 6.5 months remaining
+      // Monthly accrual = 15/12 = 1.25 days/month
+      // 6.5 months × 1.25 = 8.125 days (rounded to 8)
+      ptoEntitlement = 8;
+      used = Math.floor(Math.random() * 2); // 0-1 used
+    }
+
+    await prisma.leaveBalance.create({
+      data: {
+        employeeId: user.id,
+        leaveType: 'EARNED_LEAVE', // Using EARNED_LEAVE as PTO type
+        totalEntitlement: ptoEntitlement,
+        used: used,
+        available: ptoEntitlement - used,
+        carryForward: 0, // USA PTO typically doesn't carry forward (use-it-or-lose-it)
+        year: currentYear,
+      },
+    });
   }
 
   // Create diverse leave requests with different statuses
@@ -1081,16 +1263,19 @@ async function main() {
   console.log('✅ Comprehensive database seeded successfully!');
   console.log('📊 Created:');
   console.log('  - 6 Departments (HR, IT, Sales, Marketing, Finance, Operations)');
-  console.log('  - 14 Users (1 HR Admin, 4 Managers, 9 Employees)');
+  console.log('  - 20 Users (1 HR Admin, 6 Managers, 13 Employees)');
+  console.log('    • 16 India employees (with CL/SL/EL/ML/PL)');
+  console.log('    • 4 USA employees (with PTO - VP: 25 days, AVP: 20 days, Employees: 15 days pro-rata)');
+  console.log('    • 2 married employees for ML/PL testing');
   console.log('  - 3 Leave Policies (Casual, Sick, Earned Leave)');
-  console.log('  - 70 Leave Balances (5 types × 14 users)');
+  console.log('  - 84 Leave Balances (16 India users × 5 types + 4 USA users × 1 PTO)');
   console.log('  - 10 Leave Requests (3 Pending, 4 Approved, 2 Rejected, 1 Historical)');
   console.log('  - 10 Approvals (with realistic manager assignments)');
   console.log('  - 17 Holidays (National, Regional, Company-specific)');
   console.log('  - 15 Notifications (Approvals, Rejections, Reminders)');
   console.log('  - 10 Audit Logs (Login, Leave actions, System activities)');
   console.log('');
-  console.log('🔐 Login Credentials:');
+  console.log('🔐 Login Credentials (INDIA):');
   console.log('  HR Admin: admin@company.com / password123');
   console.log('  IT Manager: manager@company.com / password123');
   console.log('  Sales Manager: sales.manager@company.com / password123');
@@ -1105,20 +1290,42 @@ async function main() {
   console.log('  Finance Employee: suresh@company.com / password123');
   console.log('  Finance Employee 2: meera@company.com / password123');
   console.log('  Operations Employee: vikram@company.com / password123');
+  console.log('  Married Female (ML): lakshmi@company.com / password123');
+  console.log('  Married Male (PL): karthik@company.com / password123');
+  console.log('');
+  console.log('🔐 Login Credentials (USA):');
+  console.log('  VP Finance: robert.johnson@company.com / password123 (25 days PTO)');
+  console.log('  AVP Sales: sarah.williams@company.com / password123 (20 days PTO)');
+  console.log('  Marketing Emp: michael.brown@company.com / password123 (8 days PTO - mid-year joiner)');
+  console.log('  IT Employee: jennifer.davis@company.com / password123 (8 days PTO - joined after 15th)');
   console.log('');
   console.log('🏢 Department Structure:');
-  console.log('  - Human Resources (Bengaluru) - Maya Sharma');
-  console.log('  - Information Technology (Bengaluru) - Rajesh Kumar (3 reports)');
+  console.log('  INDIA:');
+  console.log('  - Human Resources (Bengaluru) - Maya Sharma + 1 report');
+  console.log('  - Information Technology (Bengaluru) - Rajesh Kumar (4 reports)');
   console.log('  - Sales (Mumbai) - Amit Gupta (2 reports)');
   console.log('  - Marketing (Delhi) - Sneha Reddy (2 reports)');
   console.log('  - Finance (Bengaluru) - 2 employees');
   console.log('  - Operations (Pune) - 1 employee');
+  console.log('  USA:');
+  console.log('  - Finance (New York) - Robert Johnson VP');
+  console.log('  - Sales (San Francisco) - Sarah Williams AVP (1 report)');
+  console.log('  - Marketing (Austin) - Michael Brown (reports to AVP)');
+  console.log('  - IT (Seattle) - Jennifer Davis (reports to VP)');
   console.log('');
   console.log('📅 Leave Request Scenarios:');
   console.log('  - 3 Pending requests requiring manager approval');
   console.log('  - 4 Approved requests with manager comments');
   console.log('  - 2 Rejected requests with detailed reasons');
   console.log('  - 1 Historical request for reference');
+  console.log('');
+  console.log('🧪 Testing Scenarios Enabled:');
+  console.log('  ✓ USA PTO system (VP: 25, AVP: 20, Employees: 15 days)');
+  console.log('  ✓ Pro-rata calculation (mid-year joiners)');
+  console.log('  ✓ Maternity Leave eligibility (married female employees)');
+  console.log('  ✓ Paternity Leave eligibility (married male employees)');
+  console.log('  ✓ Multi-level approval workflows');
+  console.log('  ✓ Regional holiday variations');
   console.log('');
   console.log('🎉 Ready for comprehensive demo and testing!');
 }

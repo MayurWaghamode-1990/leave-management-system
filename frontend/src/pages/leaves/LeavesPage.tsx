@@ -98,6 +98,7 @@ const LeavesPage: React.FC = () => {
     endDate: null as Dayjs | null,
     reason: '',
     isHalfDay: false,
+    halfDayPeriod: 'FIRST_HALF' as 'FIRST_HALF' | 'SECOND_HALF',
     employeeId: '' // For admin applications
   });
 
@@ -109,7 +110,9 @@ const LeavesPage: React.FC = () => {
     { value: LeaveType.PATERNITY_LEAVE, label: 'Paternity Leave', gender: 'MALE', maritalStatus: 'MARRIED' },
     { value: LeaveType.COMPENSATORY_OFF, label: 'Compensatory Off' },
     { value: LeaveType.BEREAVEMENT_LEAVE, label: 'Bereavement Leave' },
-    { value: LeaveType.MARRIAGE_LEAVE, label: 'Marriage Leave' }
+    { value: LeaveType.MARRIAGE_LEAVE, label: 'Marriage Leave' },
+    { value: LeaveType.LEAVE_WITHOUT_PAY, label: 'Leave Without Pay' },
+    { value: LeaveType.PTO, label: 'PTO (Paid Time Off)' }
   ];
 
   // Filter leave types based on user's gender and marital status
@@ -160,6 +163,7 @@ const LeavesPage: React.FC = () => {
         endDate: templateData.duration ? dayjs().add(templateData.duration - 1, 'day') : dayjs(),
         reason: templateData.reason,
         isHalfDay: templateData.isHalfDay || false,
+        halfDayPeriod: 'FIRST_HALF',
         employeeId: ''
       });
       setDialogOpen(true);
@@ -176,6 +180,8 @@ const LeavesPage: React.FC = () => {
     try {
       setLoading(true);
       const response = await api.get('/leaves');
+      console.log('Leave requests response:', response.data.data.requests);
+      console.log('First request:', response.data.data.requests[0]);
       setLeaveRequests(response.data.data.requests || []);
     } catch (error) {
       toast.error('Failed to fetch leave requests');
@@ -224,6 +230,7 @@ const LeavesPage: React.FC = () => {
       endDate: null,
       reason: '',
       isHalfDay: false,
+      halfDayPeriod: 'FIRST_HALF',
       employeeId: ''
     });
     setOpenDialog(true);
@@ -236,6 +243,7 @@ const LeavesPage: React.FC = () => {
       endDate: template.duration ? dayjs().add(template.duration - 1, 'day') : dayjs(),
       reason: template.reason,
       isHalfDay: template.isHalfDay || false,
+      halfDayPeriod: 'FIRST_HALF',
       employeeId: ''
     });
     setTemplateSelectorOpen(false);
@@ -300,6 +308,7 @@ const LeavesPage: React.FC = () => {
         endDate: formData.endDate.format('YYYY-MM-DD'),
         reason: formData.reason.trim(),
         isHalfDay: formData.isHalfDay,
+        ...(formData.isHalfDay && { halfDayPeriod: formData.halfDayPeriod }),
         ...(currentUser?.role === 'HR_ADMIN' && formData.employeeId && { employeeId: formData.employeeId })
       };
 
@@ -452,12 +461,21 @@ const LeavesPage: React.FC = () => {
                       <Grid item xs={12} key={`${request.id}-${index}`}>
                         <Card variant="outlined" sx={{ p: 2 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                            <Box>
+                            <Box sx={{ flex: 1 }}>
                               <Typography variant="subtitle1" fontWeight="medium">
-                                {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
+                                {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label || request.leaveType || 'Unknown Leave Type'}
                               </Typography>
-                              <Typography variant="body2" color="textSecondary">
+                              <Typography variant="body2" color="textSecondary" sx={{ mb: 0.5 }}>
                                 {dayjs(request.startDate).format('MMM DD')} - {dayjs(request.endDate).format('MMM DD, YYYY')}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                {request.reason || 'No reason provided'}
                               </Typography>
                             </Box>
                             <Chip
@@ -516,6 +534,7 @@ const LeavesPage: React.FC = () => {
                   <TableHead>
                     <TableRow>
                       <TableCell>Leave Type</TableCell>
+                      <TableCell>Title/Reason</TableCell>
                       <TableCell>Start Date</TableCell>
                       <TableCell>End Date</TableCell>
                       <TableCell>Days</TableCell>
@@ -528,7 +547,17 @@ const LeavesPage: React.FC = () => {
                     {leaveRequests.map((request, index) => (
                       <TableRow key={`${request.id}-${index}`}>
                         <TableCell>
-                          {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label}
+                          {leaveTypeOptions.find(opt => opt.value === request.leaveType)?.label || request.leaveType || 'Unknown Leave Type'}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" sx={{
+                            maxWidth: '200px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {request.reason || 'No reason provided'}
+                          </Typography>
                         </TableCell>
                         <TableCell>{dayjs(request.startDate).format('MMM DD, YYYY')}</TableCell>
                         <TableCell>{dayjs(request.endDate).format('MMM DD, YYYY')}</TableCell>
@@ -582,7 +611,7 @@ const LeavesPage: React.FC = () => {
                     ))}
                     {leaveRequests.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={7} align="center">
+                        <TableCell colSpan={8} align="center">
                           <Typography variant="body2" color="textSecondary">
                             No leave requests found. Click "Apply for Leave" to create your first request.
                           </Typography>
@@ -752,10 +781,28 @@ const LeavesPage: React.FC = () => {
                     />
                   </Grid>
 
+                  {formData.isHalfDay && (
+                    <Grid item xs={12}>
+                      <Collapse in={formData.isHalfDay}>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Half Day Period"
+                          value={formData.halfDayPeriod}
+                          onChange={(e) => setFormData(prev => ({ ...prev, halfDayPeriod: e.target.value as 'FIRST_HALF' | 'SECOND_HALF' }))}
+                          helperText="Select which half of the day you want to take off"
+                        >
+                          <MenuItem value="FIRST_HALF">First Half (Morning)</MenuItem>
+                          <MenuItem value="SECOND_HALF">Second Half (Afternoon)</MenuItem>
+                        </TextField>
+                      </Collapse>
+                    </Grid>
+                  )}
+
                   {formData.startDate && formData.endDate && (
                     <Grid item xs={12}>
                       <Alert severity="info">
-                        Total days: {calculateTotalDays()} {formData.isHalfDay && '(Half Day)'}
+                        Total days: {calculateTotalDays()} {formData.isHalfDay && `(Half Day - ${formData.halfDayPeriod === 'FIRST_HALF' ? 'Morning' : 'Afternoon'})`}
                       </Alert>
                     </Grid>
                   )}

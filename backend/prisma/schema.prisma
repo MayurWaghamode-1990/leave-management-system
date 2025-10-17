@@ -1,10 +1,10 @@
-// This is your Prisma schema file for SQLite (fallback)
+// This is your Prisma schema file for MySQL
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -88,6 +88,7 @@ model LeaveRequest {
   endDate         DateTime
   totalDays       Float
   isHalfDay       Boolean       @default(false)
+  halfDayPeriod   String?       // FIRST_HALF, SECOND_HALF (only applicable when isHalfDay is true)
   reason          String
   attachments     String?
   status          String        @default("PENDING")
