@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import {
   Box,
@@ -29,79 +29,115 @@ import Logo from '@/components/common/Logo'
 import GradientButton from '@/components/common/GradientButton'
 import { fadeInUp, fadeInDown, scaleIn } from '@/theme/animations'
 
-// Test user credentials
+// Test user credentials - EXACT MATCH with MySQL Database
 const TEST_USERS = [
   {
     id: 'admin',
-    name: 'Admin User',
-    email: 'admin@glf.com',
+    name: 'Maya Sharma',
+    email: 'admin@company.com',
     password: 'password123',
     role: 'Admin',
     department: 'Human Resources',
-    description: 'Full system access • Mumbai'
+    description: 'HR Admin • Full system access • Bengaluru'
   },
   {
     id: 'manager1',
     name: 'Rajesh Kumar',
-    email: 'manager1@glf.com',
+    email: 'manager@company.com',
     password: 'password123',
     role: 'Manager',
-    department: 'Engineering',
-    description: 'Team lead • 3 pending approvals • Bangalore'
+    department: 'Information Technology',
+    description: 'IT Manager • 3 team members • Bengaluru'
   },
   {
     id: 'manager2',
-    name: 'Priya Sharma',
-    email: 'manager2@glf.com',
+    name: 'Amit Gupta',
+    email: 'sales.manager@company.com',
     password: 'password123',
     role: 'Manager',
     department: 'Sales',
-    description: 'Team lead • 1 pending approval • Delhi'
+    description: 'Sales Manager • 2 team members • Mumbai'
+  },
+  {
+    id: 'manager3',
+    name: 'Sneha Reddy',
+    email: 'marketing.manager@company.com',
+    password: 'password123',
+    role: 'Manager',
+    department: 'Marketing',
+    description: 'Marketing Manager • 2 team members • Delhi'
   },
   {
     id: 'employee1',
-    name: 'Amit Patel',
-    email: 'employee1@glf.com',
+    name: 'Priya Patel',
+    email: 'user@company.com',
     password: 'password123',
     role: 'Employee',
-    department: 'Engineering',
-    description: 'Has approved & pending leaves • Reports to Rajesh • Bangalore'
+    department: 'Information Technology',
+    description: 'IT Developer • Reports to Rajesh • Bengaluru'
   },
   {
     id: 'employee2',
-    name: 'Sneha Desai',
-    email: 'employee2@glf.com',
+    name: 'Arjun Singh',
+    email: 'arjun@company.com',
     password: 'password123',
     role: 'Employee',
-    department: 'Engineering',
-    description: 'Has rejected leave • Reports to Rajesh • Bangalore'
+    department: 'Information Technology',
+    description: 'IT Developer • Reports to Rajesh • Bengaluru'
   },
   {
     id: 'employee3',
-    name: 'Vikram Singh',
-    email: 'employee3@glf.com',
+    name: 'Kavya Menon',
+    email: 'kavya@company.com',
     password: 'password123',
     role: 'Employee',
-    department: 'Sales',
-    description: 'Has half-day pending • Reports to Priya • Delhi'
+    department: 'Information Technology',
+    description: 'IT Developer • Reports to Rajesh • Bengaluru'
   },
   {
     id: 'employee4',
-    name: 'Kavita Nair',
-    email: 'employee4@glf.com',
+    name: 'John Doe',
+    email: 'john@company.com',
     password: 'password123',
     role: 'Employee',
-    department: 'Marketing',
-    description: 'Has approved sick leave • Reports to Rajesh • Pune'
+    department: 'Sales',
+    description: 'Sales Executive • Reports to Amit • Mumbai'
   },
   {
     id: 'employee5',
-    name: 'Rahul Mehta',
-    email: 'employee5@glf.com',
+    name: 'Rahul Verma',
+    email: 'rahul@company.com',
     password: 'password123',
     role: 'Employee',
-    department: 'Engineering',
-    description: 'Has long pending leave • Reports to Rajesh • Bangalore'
+    department: 'Sales',
+    description: 'Sales Executive • Reports to Amit • Mumbai'
+  },
+  {
+    id: 'employee6',
+    name: 'Anita Joshi',
+    email: 'anita@company.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Marketing',
+    description: 'Marketing Employee • Reports to Sneha • Delhi'
+  },
+  {
+    id: 'employee7',
+    name: 'Deepak Agarwal',
+    email: 'deepak@company.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Marketing',
+    description: 'Marketing Employee • Reports to Sneha • Delhi'
+  },
+  {
+    id: 'employee8',
+    name: 'Vikram Yadav',
+    email: 'vikram@company.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Operations',
+    description: 'Operations Employee • Pune'
   }
 ]
 
@@ -127,6 +163,7 @@ const LoginPage: React.FC = () => {
     register,
     handleSubmit,
     setValue,
+    reset,
     watch,
     formState: { errors },
   } = useForm<LoginRequest>({
@@ -137,11 +174,23 @@ const LoginPage: React.FC = () => {
     },
   })
 
+  // Watch field values for label shrink control
   const emailValue = watch('email')
   const passwordValue = watch('password')
 
+  // Ensure form is cleared on component mount
+  useEffect(() => {
+    reset({ email: '', password: '' })
+  }, [reset])
+
   const handleUserSelect = (userId: string) => {
     setSelectedUser(userId)
+    if (!userId) {
+      // Clear fields when no user is selected
+      setValue('email', '', { shouldValidate: false })
+      setValue('password', '', { shouldValidate: false })
+      return
+    }
     const user = TEST_USERS.find(u => u.id === userId)
     if (user) {
       setValue('email', user.email, { shouldValidate: true })
@@ -389,16 +438,16 @@ const LoginPage: React.FC = () => {
                   required
                   fullWidth
                   id="email"
-                  label="Email Address"
-                  type="email"
-                  autoComplete="email"
+                  label="Username"
+                  type="text"
+                  autoComplete="off"
+                  defaultValue=""
                   {...register('email')}
-                  value={emailValue}
                   error={!!errors.email}
                   helperText={errors.email?.message}
                   disabled={isLoading}
                   InputLabelProps={{
-                    shrink: !!emailValue,
+                    shrink: !!emailValue || undefined,
                   }}
                   sx={{
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -414,14 +463,14 @@ const LoginPage: React.FC = () => {
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   id="password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
+                  defaultValue=""
                   {...register('password')}
-                  value={passwordValue}
                   error={!!errors.password}
                   helperText={errors.password?.message}
                   disabled={isLoading}
                   InputLabelProps={{
-                    shrink: !!passwordValue,
+                    shrink: !!passwordValue || undefined,
                   }}
                   InputProps={{
                     endAdornment: (

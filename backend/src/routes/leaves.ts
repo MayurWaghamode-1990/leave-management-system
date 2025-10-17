@@ -624,6 +624,21 @@ router.get('/dashboard-stats',
     const userId = req.user!.userId;
     const userRole = req.user!.role;
 
+    // Fetch actual user from database
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true
+      }
+    });
+
+    const userName = currentUser
+      ? `${currentUser.firstName} ${currentUser.lastName}`
+      : 'User';
+
     // Personal statistics for the current user
     const userRequests = mockLeaveRequests.filter(req => req.employeeId === userId);
     const userBalances = mockLeaveBalances.filter(bal => bal.employeeId === userId);
@@ -694,7 +709,7 @@ router.get('/dashboard-stats',
         recentActivity,
         user: {
           role: userRole,
-          name: userId === '1' ? 'Admin User' : 'John Doe'
+          name: userName
         }
       }
     });
