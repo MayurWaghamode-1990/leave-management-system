@@ -1,13 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // Get current user profile
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
 
@@ -54,7 +54,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Update user profile
-router.put('/', authenticateToken, async (req: Request, res: Response) => {
+router.put('/', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
     const {
@@ -141,7 +141,7 @@ router.put('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Change password
-router.put('/change-password', authenticateToken, async (req: Request, res: Response) => {
+router.put('/change-password', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
     const { currentPassword, newPassword, confirmPassword } = req.body;
