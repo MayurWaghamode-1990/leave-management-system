@@ -132,6 +132,24 @@ const TEST_USERS = [
   },
   {
     id: 'employee8',
+    name: 'Suresh Nair',
+    email: 'suresh@company.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Finance',
+    description: 'Finance Employee • Bengaluru'
+  },
+  {
+    id: 'employee9',
+    name: 'Meera Iyer',
+    email: 'meera@company.com',
+    password: 'password123',
+    role: 'Employee',
+    department: 'Finance',
+    description: 'Finance Employee • Bengaluru'
+  },
+  {
+    id: 'employee10',
     name: 'Vikram Yadav',
     email: 'vikram@company.com',
     password: 'password123',
