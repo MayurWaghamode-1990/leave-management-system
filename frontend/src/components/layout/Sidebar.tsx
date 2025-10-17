@@ -33,6 +33,7 @@ import {
   Handshake,
   SupervisorAccount,
   AccessTime,
+  Person,
 } from '@mui/icons-material'
 
 import { useAuth } from '@/hooks/useAuth'
@@ -61,6 +62,11 @@ const getNavigationItems = (unreadCount: number, pendingApprovals: number): Navi
     text: 'Dashboard',
     icon: <Dashboard />,
     path: '/dashboard',
+  },
+  {
+    text: 'My Profile',
+    icon: <Person />,
+    path: '/profile',
   },
   {
     text: 'My Leaves',

@@ -21,6 +21,7 @@ import reportRoutes from './routes/reports';
 import notificationRoutes from './routes/notifications';
 import emailRoutes from './routes/email';
 import monitoringRoutes from './routes/monitoring';
+import profileRoutes from './routes/profile';
 // import automationRulesRoutes from './routes/automationRules';
 // import fileRoutes from './routes/files';
 // import advancedLeavesRoutes from './routes/advancedLeaves';
@@ -164,6 +165,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use(`${API_PREFIX}/auth`, authRoutes);
 app.use(`${API_PREFIX}/users`, authenticate, userRoutes);
+app.use(`${API_PREFIX}/profile`, authenticate, profileRoutes);
 app.use(`${API_PREFIX}/leaves`, authenticate, leaveRoutes);
 app.use(`${API_PREFIX}/policies`, authenticate, policyRoutes);
 app.use(`${API_PREFIX}/holidays`, authenticate, holidayRoutes);
