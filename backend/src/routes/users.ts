@@ -61,7 +61,7 @@ const router = express.Router();
 
 // Get all users (HR/IT Admin only)
 router.get('/',
-  authorize('HR_ADMIN', 'IT_ADMIN'),
+  authorize('HR_ADMIN', 'IT_ADMIN', 'HR'),
   asyncHandler(async (req: Request, res: Response) => {
     const { page = 1, limit = 10, search, department, location } = req.query;
     
@@ -157,7 +157,7 @@ router.get('/',
  *                         type: boolean
  */
 router.get('/team',
-  authorize('MANAGER', 'HR_ADMIN', 'IT_ADMIN'),
+  authorize('MANAGER', 'HR', 'HR_ADMIN', 'IT_ADMIN'),
   asyncHandler(async (req: Request, res: Response) => {
     try {
       // Try to get team data from database
@@ -300,6 +300,249 @@ router.get('/team',
         data: mockTeamMembers
       });
     }
+  })
+);
+
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Create a new user
+ *     description: Create a new employee/user in the system (HR/IT Admin only)
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - employeeId
+ *               - email
+ *               - firstName
+ *               - lastName
+ *               - role
+ *               - department
+ *               - location
+ *               - joiningDate
+ *             properties:
+ *               employeeId:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *                 description: Optional password (will be auto-generated if not provided)
+ *               role:
+ *                 type: string
+ *                 enum: [EMPLOYEE, MANAGER, HR_ADMIN, IT_ADMIN, PAYROLL_OFFICER]
+ *               department:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               reportingManagerId:
+ *                 type: string
+ *               joiningDate:
+ *                 type: string
+ *                 format: date
+ *               gender:
+ *                 type: string
+ *                 enum: [MALE, FEMALE, OTHER]
+ *               maritalStatus:
+ *                 type: string
+ *                 enum: [SINGLE, MARRIED, DIVORCED, WIDOWED]
+ *               country:
+ *                 type: string
+ *               designation:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Invalid request or duplicate employee
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ */
+router.post('/',
+  authorize('HR_ADMIN', 'IT_ADMIN', 'HR'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      employeeId,
+      email,
+      firstName,
+      lastName,
+      password,
+      role,
+      department,
+      location,
+      reportingManagerId,
+      joiningDate,
+      gender,
+      maritalStatus,
+      country,
+      designation
+    } = req.body;
+
+    // Check if employee ID or email already exists
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { employeeId },
+          { email }
+        ]
+      }
+    });
+
+    if (existingUser) {
+      throw new AppError(
+        existingUser.employeeId === employeeId
+          ? 'Employee ID already exists'
+          : 'Email already exists',
+        400
+      );
+    }
+
+    // If reporting manager is provided, verify they exist
+    if (reportingManagerId) {
+      const manager = await prisma.user.findUnique({
+        where: { id: reportingManagerId }
+      });
+
+      if (!manager) {
+        throw new AppError('Reporting manager not found', 404);
+      }
+    }
+
+    // Generate default password if not provided
+    const bcrypt = require('bcryptjs');
+    const defaultPassword = password || 'Welcome@123';
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+
+    // Create the user
+    const newUser = await prisma.user.create({
+      data: {
+        employeeId,
+        email,
+        firstName,
+        lastName,
+        password: hashedPassword,
+        role,
+        department,
+        location,
+        reportingManagerId: reportingManagerId || null,
+        joiningDate: new Date(joiningDate),
+        gender: gender || null,
+        maritalStatus: maritalStatus || null,
+        country: country || null,
+        designation: designation || null,
+        status: 'ACTIVE'
+      },
+      select: {
+        id: true,
+        employeeId: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        department: true,
+        location: true,
+        joiningDate: true,
+        status: true,
+        reportingManager: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'User created successfully',
+      data: newUser
+    });
+  })
+);
+
+/**
+ * @swagger
+ * /users/{id}/status:
+ *   patch:
+ *     tags:
+ *       - Users
+ *     summary: Update user status
+ *     description: Activate or deactivate a user (HR/IT Admin only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [ACTIVE, INACTIVE, SUSPENDED]
+ *     responses:
+ *       200:
+ *         description: User status updated successfully
+ *       404:
+ *         description: User not found
+ */
+router.patch('/:id/status',
+  authorize('HR_ADMIN', 'IT_ADMIN', 'HR'),
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: { status },
+      select: {
+        id: true,
+        employeeId: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        status: true
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'User status updated successfully',
+      data: updatedUser
+    });
   })
 );
 

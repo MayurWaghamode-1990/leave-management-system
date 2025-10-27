@@ -152,7 +152,7 @@ router.get('/',
 
 // Create holiday (HR Admin only)
 router.post('/', 
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const holidayData = req.body;
     
@@ -327,7 +327,7 @@ router.get('/upcoming',
 
 // Update holiday (HR Admin only)
 router.put('/:id',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
     const updateData = req.body;
@@ -390,7 +390,7 @@ router.put('/:id',
 
 // Delete holiday (HR Admin only)
 router.delete('/:id',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
 
@@ -495,7 +495,7 @@ router.get('/:id',
 
 // Sync holidays with external API (HR Admin only)
 router.post('/sync',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear(), region } = req.body;
 

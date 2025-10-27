@@ -118,33 +118,33 @@ const getNavigationItems = (unreadCount: number, pendingApprovals: number): Navi
     text: 'Manager Dashboard',
     icon: <SupervisorAccount />,
     path: '/manager/dashboard',
-    roles: [UserRole.MANAGER, UserRole.HR_ADMIN],
+    roles: [UserRole.MANAGER, UserRole.HR, UserRole.HR_ADMIN],
     badge: pendingApprovals > 0 ? pendingApprovals.toString() : undefined,
   },
   {
     text: 'Approvals',
     icon: <CheckCircle />,
     path: '/approvals',
-    roles: [UserRole.MANAGER, UserRole.HR_ADMIN],
+    roles: [UserRole.MANAGER, UserRole.HR, UserRole.HR_ADMIN],
     badge: pendingApprovals > 0 ? pendingApprovals.toString() : undefined,
   },
   {
     text: 'Team',
     icon: <Group />,
     path: '/team',
-    roles: [UserRole.MANAGER, UserRole.HR_ADMIN],
+    roles: [UserRole.MANAGER, UserRole.HR, UserRole.HR_ADMIN],
   },
   {
     text: 'Reports',
     icon: <Assessment />,
     path: '/reports',
-    roles: [UserRole.MANAGER, UserRole.HR_ADMIN, UserRole.PAYROLL_OFFICER],
+    roles: [UserRole.MANAGER, UserRole.HR, UserRole.HR_ADMIN, UserRole.PAYROLL_OFFICER],
   },
   {
     text: 'Advanced Requests',
     icon: <Assignment />,
     path: '/advanced-requests',
-    roles: [UserRole.MANAGER, UserRole.HR_ADMIN],
+    roles: [UserRole.MANAGER, UserRole.HR, UserRole.HR_ADMIN],
   },
 ]
 
@@ -153,19 +153,19 @@ const hrNavigationItems: NavigationItem[] = [
     text: 'Manage Users',
     icon: <People />,
     path: '/hr/users',
-    roles: [UserRole.HR_ADMIN, UserRole.IT_ADMIN],
+    roles: [UserRole.HR, UserRole.HR_ADMIN, UserRole.IT_ADMIN],
   },
   {
     text: 'Leave Policies',
     icon: <Policy />,
     path: '/hr/policies',
-    roles: [UserRole.HR_ADMIN],
+    roles: [UserRole.HR, UserRole.HR_ADMIN],
   },
   {
     text: 'Bulk Operations',
     icon: <Assignment />,
     path: '/admin/bulk-operations',
-    roles: [UserRole.HR_ADMIN, UserRole.IT_ADMIN],
+    roles: [UserRole.HR, UserRole.HR_ADMIN, UserRole.IT_ADMIN],
   },
 ]
 
@@ -312,7 +312,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </List>
 
       {/* HR Admin Section */}
-      {user && [UserRole.HR_ADMIN, UserRole.IT_ADMIN].includes(user.role) && (
+      {user && [UserRole.HR, UserRole.HR_ADMIN, UserRole.IT_ADMIN].includes(user.role) && (
         <>
           <Divider sx={{ mx: 2, my: 1 }} />
           <Box sx={{ px: 3, py: 1 }}>

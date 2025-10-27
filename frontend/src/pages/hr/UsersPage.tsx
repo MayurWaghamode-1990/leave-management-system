@@ -571,28 +571,351 @@ const UsersPage: React.FC = () => {
       </Menu>
 
       {/* User Dialog (Add/Edit) */}
-      <Dialog
+      <UserFormDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedUser ? 'Edit User' : 'Add New User'}
-        </DialogTitle>
-        <DialogContent>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            User management dialog will be implemented in the next phase.
-          </Alert>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => setDialogOpen(false)}>
-            {selectedUser ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        user={selectedUser}
+        onSuccess={() => {
+          setDialogOpen(false)
+          fetchUsers()
+        }}
+      />
     </Box>
+  )
+}
+
+// User Form Dialog Component
+interface UserFormDialogProps {
+  open: boolean
+  onClose: () => void
+  user: User | null
+  onSuccess: () => void
+}
+
+const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, onClose, user, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    employeeId: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    password: '',
+    role: UserRole.EMPLOYEE,
+    department: '',
+    location: '',
+    reportingManagerId: '',
+    joiningDate: new Date().toISOString().split('T')[0],
+    gender: '',
+    maritalStatus: '',
+    country: '',
+    designation: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [managers, setManagers] = useState<User[]>([])
+
+  const departments = ['Engineering', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales']
+  const locations = ['New York', 'London', 'Mumbai', 'Singapore', 'Toronto', 'Sydney']
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        employeeId: user.employeeId,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        password: '',
+        role: user.role,
+        department: user.department,
+        location: user.location,
+        reportingManagerId: (user as any).reportingManagerId || '',
+        joiningDate: user.joiningDate.split('T')[0],
+        gender: (user as any).gender || '',
+        maritalStatus: (user as any).maritalStatus || '',
+        country: (user as any).country || '',
+        designation: (user as any).designation || ''
+      })
+    } else {
+      setFormData({
+        employeeId: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
+        role: UserRole.EMPLOYEE,
+        department: '',
+        location: '',
+        reportingManagerId: '',
+        joiningDate: new Date().toISOString().split('T')[0],
+        gender: '',
+        maritalStatus: '',
+        country: '',
+        designation: ''
+      })
+    }
+  }, [user, open])
+
+  useEffect(() => {
+    if (open) {
+      fetchManagers()
+    }
+  }, [open])
+
+  const fetchManagers = async () => {
+    try {
+      const response = await api.get('/users?role=MANAGER&limit=100')
+      if (response.data.success) {
+        setManagers(response.data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching managers:', error)
+    }
+  }
+
+  const handleChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSubmit = async () => {
+    try {
+      setLoading(true)
+
+      // Basic validation
+      if (!formData.employeeId || !formData.email || !formData.firstName || !formData.lastName ||
+          !formData.department || !formData.location || !formData.joiningDate) {
+        toast.error('Please fill in all required fields')
+        return
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) {
+        toast.error('Please enter a valid email address')
+        return
+      }
+
+      if (user) {
+        // Update existing user
+        await api.patch(`/users/${user.id}`, formData)
+        toast.success('User updated successfully')
+      } else {
+        // Create new user
+        await api.post('/users', formData)
+        toast.success('User created successfully')
+      }
+
+      onSuccess()
+    } catch (error: any) {
+      console.error('Error saving user:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to save user'
+      toast.error(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        {user ? 'Edit User' : 'Add New User'}
+      </DialogTitle>
+      <DialogContent>
+        <Box sx={{ mt: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Employee ID"
+                required
+                value={formData.employeeId}
+                onChange={(e) => handleChange('employeeId', e.target.value)}
+                disabled={!!user}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                disabled={!!user}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="First Name"
+                required
+                value={formData.firstName}
+                onChange={(e) => handleChange('firstName', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Last Name"
+                required
+                value={formData.lastName}
+                onChange={(e) => handleChange('lastName', e.target.value)}
+              />
+            </Grid>
+            {!user && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Password (Optional - default: Welcome@123)"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  helperText="Leave blank to use default password: Welcome@123"
+                />
+              </Grid>
+            )}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={formData.role}
+                  label="Role"
+                  onChange={(e) => handleChange('role', e.target.value)}
+                >
+                  {Object.values(UserRole).map((role) => (
+                    <MenuItem key={role} value={role}>
+                      {role.replace('_', ' ')}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Department</InputLabel>
+                <Select
+                  value={formData.department}
+                  label="Department"
+                  onChange={(e) => handleChange('department', e.target.value)}
+                >
+                  {departments.map((dept) => (
+                    <MenuItem key={dept} value={dept}>
+                      {dept}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel>Location</InputLabel>
+                <Select
+                  value={formData.location}
+                  label="Location"
+                  onChange={(e) => handleChange('location', e.target.value)}
+                >
+                  {locations.map((loc) => (
+                    <MenuItem key={loc} value={loc}>
+                      {loc}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Joining Date"
+                type="date"
+                required
+                value={formData.joiningDate}
+                onChange={(e) => handleChange('joiningDate', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Reporting Manager</InputLabel>
+                <Select
+                  value={formData.reportingManagerId}
+                  label="Reporting Manager"
+                  onChange={(e) => handleChange('reportingManagerId', e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>None</em>
+                  </MenuItem>
+                  {managers.map((manager) => (
+                    <MenuItem key={manager.id} value={manager.id}>
+                      {manager.firstName} {manager.lastName} ({manager.employeeId})
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Designation"
+                value={formData.designation}
+                onChange={(e) => handleChange('designation', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Gender</InputLabel>
+                <Select
+                  value={formData.gender}
+                  label="Gender"
+                  onChange={(e) => handleChange('gender', e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>Not specified</em>
+                  </MenuItem>
+                  <MenuItem value="MALE">Male</MenuItem>
+                  <MenuItem value="FEMALE">Female</MenuItem>
+                  <MenuItem value="OTHER">Other</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel>Marital Status</InputLabel>
+                <Select
+                  value={formData.maritalStatus}
+                  label="Marital Status"
+                  onChange={(e) => handleChange('maritalStatus', e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>Not specified</em>
+                  </MenuItem>
+                  <MenuItem value="SINGLE">Single</MenuItem>
+                  <MenuItem value="MARRIED">Married</MenuItem>
+                  <MenuItem value="DIVORCED">Divorced</MenuItem>
+                  <MenuItem value="WIDOWED">Widowed</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Country"
+                value={formData.country}
+                onChange={(e) => handleChange('country', e.target.value)}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? 'Saving...' : user ? 'Update' : 'Create'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 

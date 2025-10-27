@@ -203,7 +203,7 @@ const mockLeaveReports: LeaveReport[] = [
 
 // Generate leave reports
 router.get('/leave-reports',
-  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const {
       startDate,
@@ -282,7 +282,7 @@ router.get('/leave-reports',
 
 // Department-wise summary
 router.get('/department-summary',
-  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const departmentStats: { [key: string]: DepartmentSummary } = {};
 
@@ -341,7 +341,7 @@ router.get('/department-summary',
 
 // Leave type analytics
 router.get('/leave-type-analytics',
-  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const leaveTypeStats: { [key: string]: LeaveTypeAnalytics } = {};
 
@@ -386,7 +386,7 @@ router.get('/leave-type-analytics',
 
 // Monthly trends
 router.get('/monthly-trends',
-  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear() } = req.query;
 
@@ -438,7 +438,7 @@ router.get('/monthly-trends',
 
 // Export data as CSV
 router.get('/export/csv',
-  authorize('ADMIN', 'HR_ADMIN'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { type = 'leave-reports' } = req.query;
 
@@ -475,7 +475,7 @@ router.get('/export/csv',
 
 // Dashboard KPIs
 router.get('/kpis',
-  authorize('ADMIN', 'HR_ADMIN', 'MANAGER'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR', 'MANAGER'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const totalRequests = mockLeaveReports.length;
     const approvedRequests = mockLeaveReports.filter(r => r.status === 'APPROVED').length;
@@ -533,7 +533,7 @@ router.get('/kpis',
 
 // Get manager-specific statistics
 router.get('/manager-stats',
-  authorize('ADMIN', 'MANAGER', 'HR_ADMIN'),
+  authorize('ADMIN', 'MANAGER', 'HR', 'HR_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -583,7 +583,7 @@ router.get('/manager-stats',
 
 // Get calendar statistics for team calendar view
 router.get('/calendar-stats',
-  authorize('ADMIN', 'MANAGER', 'HR_ADMIN', 'IT_ADMIN'),
+  authorize('ADMIN', 'MANAGER', 'HR_ADMIN', 'HR', 'IT_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { startDate, endDate } = req.query;
 
@@ -688,7 +688,7 @@ router.get('/calendar-stats',
  *         description: Internal server error
  */
 router.get('/analytics/overview',
-  authorize('ADMIN', 'HR_ADMIN'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear(), department, period = 'month' } = req.query;
 
@@ -830,7 +830,7 @@ router.get('/analytics/overview',
  *         description: Trends analytics retrieved successfully
  */
 router.get('/analytics/trends',
-  authorize('ADMIN', 'HR_ADMIN'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear(), months = 12 } = req.query;
 
@@ -943,7 +943,7 @@ router.get('/analytics/trends',
  *         description: Department statistics retrieved successfully
  */
 router.get('/analytics/departments',
-  authorize('ADMIN', 'HR_ADMIN'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear() } = req.query;
 
@@ -1085,7 +1085,7 @@ router.get('/analytics/departments',
  *         description: Leave type breakdown retrieved successfully
  */
 router.get('/analytics/leave-types',
-  authorize('ADMIN', 'HR_ADMIN'),
+  authorize('ADMIN', 'HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const { year = new Date().getFullYear() } = req.query;
 

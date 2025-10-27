@@ -174,6 +174,7 @@ export interface PaginatedResponse<T = any> {
 export enum UserRole {
   EMPLOYEE = 'EMPLOYEE',
   MANAGER = 'MANAGER',
+  HR = 'HR',
   HR_ADMIN = 'HR_ADMIN',
   PAYROLL_OFFICER = 'PAYROLL_OFFICER',
   IT_ADMIN = 'IT_ADMIN',

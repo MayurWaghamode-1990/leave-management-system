@@ -388,5 +388,17 @@
     "reason": "Retroactive sick leave request for past date validation testing",
     "status": "PENDING",
     "appliedDate": "2025-09-27"
+  },
+  {
+    "id": "1760712431017_l807qe3q2",
+    "employeeId": "user-employee1",
+    "leaveType": "CASUAL_LEAVE",
+    "startDate": "2025-10-17",
+    "endDate": "2025-10-17",
+    "totalDays": 1,
+    "isHalfDay": false,
+    "reason": "Demo test leave",
+    "status": "PENDING",
+    "appliedDate": "2025-10-17"
   }
 ]

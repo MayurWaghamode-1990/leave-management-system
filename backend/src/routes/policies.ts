@@ -166,8 +166,8 @@ router.get('/',
  */
 
 // Create/Update policy (HR Admin only)
-router.post('/', 
-  authorize('HR_ADMIN'),
+router.post('/',
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const policyData = req.body;
     
@@ -421,7 +421,7 @@ function generatePolicyConditions(policy: any): string[] {
 
 // Get all leave types configurations
 router.get('/leave-types',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
       // For now, return mock data based on existing policies
@@ -469,7 +469,7 @@ router.get('/leave-types',
 
 // Create new leave type configuration
 router.post('/leave-types',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
       const {
@@ -569,7 +569,7 @@ router.post('/leave-types',
 
 // Update leave type configuration
 router.put('/leave-types/:id',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { id } = req.params;
@@ -604,7 +604,7 @@ router.put('/leave-types/:id',
 
 // Delete leave type configuration
 router.delete('/leave-types/:id',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { id } = req.params;
@@ -627,7 +627,7 @@ router.delete('/leave-types/:id',
 
 // Toggle leave type active status
 router.patch('/leave-types/:id/toggle',
-  authorize('HR_ADMIN'),
+  authorize('HR_ADMIN', 'HR'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { id } = req.params;
