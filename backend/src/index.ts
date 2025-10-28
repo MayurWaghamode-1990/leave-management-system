@@ -37,6 +37,7 @@ import specialLeaveTypesRoutes from './routes/specialLeaveTypes';
 import enhancedLwpRoutes from './routes/enhancedLwp';
 import compOffRoutes from './routes/compOff';
 import enhancedFeaturesRoutes from './routes/enhancedFeatures';
+import configurationsRoutes from './routes/configurations';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -187,6 +188,7 @@ app.use(`${API_PREFIX}/enhanced-lwp`, authenticate, enhancedLwpRoutes);
 app.use(`${API_PREFIX}/comp-off`, compOffRoutes);
 app.use(`${API_PREFIX}/accrual`, accrualRoutes);
 app.use(`${API_PREFIX}/enhanced-features`, authenticate, enhancedFeaturesRoutes);
+app.use(`${API_PREFIX}/configurations`, authenticate, configurationsRoutes);
 // app.use(`${API_PREFIX}/files`, fileRoutes);  // Temporarily disabled due to middleware issue
 
 // 404 handler

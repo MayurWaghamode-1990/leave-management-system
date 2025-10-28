@@ -82,13 +82,33 @@ const UsersPage: React.FC = () => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [menuUser, setMenuUser] = useState<User | null>(null)
 
-  // Departments and locations for filtering
-  const departments = ['Engineering', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales']
-  const locations = ['New York', 'London', 'Mumbai', 'Singapore', 'Toronto', 'Sydney']
+  // Dynamic configuration options
+  const [departments, setDepartments] = useState<string[]>([])
+  const [locations, setLocations] = useState<string[]>([])
+
+  useEffect(() => {
+    fetchConfigurations()
+  }, [])
 
   useEffect(() => {
     fetchUsers()
   }, [page, rowsPerPage, filters])
+
+  const fetchConfigurations = async () => {
+    try {
+      const response = await api.get('/configurations')
+      if (response.data.success) {
+        const configs = response.data.data
+        setDepartments(configs.DEPARTMENT?.map((c: any) => c.value) || [])
+        setLocations(configs.LOCATION?.map((c: any) => c.value) || [])
+      }
+    } catch (error) {
+      console.error('Error fetching configurations:', error)
+      // Fallback to default values
+      setDepartments(['Engineering', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales'])
+      setLocations(['New York', 'London', 'Mumbai', 'Singapore', 'Toronto', 'Sydney'])
+    }
+  }
 
   const fetchUsers = async () => {
     try {
@@ -612,8 +632,20 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, onClose, user, on
   const [loading, setLoading] = useState(false)
   const [managers, setManagers] = useState<User[]>([])
 
-  const departments = ['Engineering', 'HR', 'Finance', 'Marketing', 'Operations', 'Sales']
-  const locations = ['New York', 'London', 'Mumbai', 'Singapore', 'Toronto', 'Sydney']
+  // Dynamic configuration options
+  const [departments, setDepartments] = useState<string[]>([])
+  const [locations, setLocations] = useState<string[]>([])
+  const [genders, setGenders] = useState<Array<{ value: string; displayName: string }>>([])
+  const [maritalStatuses, setMaritalStatuses] = useState<Array<{ value: string; displayName: string }>>([])
+  const [countries, setCountries] = useState<Array<{ value: string; displayName: string }>>([])
+  const [designations, setDesignations] = useState<Array<{ value: string; displayName: string }>>([])
+
+  useEffect(() => {
+    if (open) {
+      fetchConfigurations()
+      fetchManagers()
+    }
+  }, [open])
 
   useEffect(() => {
     if (user) {
@@ -653,11 +685,22 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, onClose, user, on
     }
   }, [user, open])
 
-  useEffect(() => {
-    if (open) {
-      fetchManagers()
+  const fetchConfigurations = async () => {
+    try {
+      const response = await api.get('/configurations')
+      if (response.data.success) {
+        const configs = response.data.data
+        setDepartments(configs.DEPARTMENT?.map((c: any) => c.value) || [])
+        setLocations(configs.LOCATION?.map((c: any) => c.value) || [])
+        setGenders(configs.GENDER?.map((c: any) => ({ value: c.value, displayName: c.displayName })) || [])
+        setMaritalStatuses(configs.MARITAL_STATUS?.map((c: any) => ({ value: c.value, displayName: c.displayName })) || [])
+        setCountries(configs.COUNTRY?.map((c: any) => ({ value: c.value, displayName: c.displayName })) || [])
+        setDesignations(configs.DESIGNATION?.map((c: any) => ({ value: c.value, displayName: c.displayName })) || [])
+      }
+    } catch (error) {
+      console.error('Error fetching configurations:', error)
     }
-  }, [open])
+  }
 
   const fetchManagers = async () => {
     try {
@@ -850,12 +893,23 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, onClose, user, on
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Designation"
-                value={formData.designation}
-                onChange={(e) => handleChange('designation', e.target.value)}
-              />
+              <FormControl fullWidth>
+                <InputLabel>Designation</InputLabel>
+                <Select
+                  value={formData.designation}
+                  label="Designation"
+                  onChange={(e) => handleChange('designation', e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>Not specified</em>
+                  </MenuItem>
+                  {designations.map((designation) => (
+                    <MenuItem key={designation.value} value={designation.value}>
+                      {designation.displayName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
@@ -868,9 +922,11 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, onClose, user, on
                   <MenuItem value="">
                     <em>Not specified</em>
                   </MenuItem>
-                  <MenuItem value="MALE">Male</MenuItem>
-                  <MenuItem value="FEMALE">Female</MenuItem>
-                  <MenuItem value="OTHER">Other</MenuItem>
+                  {genders.map((gender) => (
+                    <MenuItem key={gender.value} value={gender.value}>
+                      {gender.displayName}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -885,20 +941,32 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, onClose, user, on
                   <MenuItem value="">
                     <em>Not specified</em>
                   </MenuItem>
-                  <MenuItem value="SINGLE">Single</MenuItem>
-                  <MenuItem value="MARRIED">Married</MenuItem>
-                  <MenuItem value="DIVORCED">Divorced</MenuItem>
-                  <MenuItem value="WIDOWED">Widowed</MenuItem>
+                  {maritalStatuses.map((status) => (
+                    <MenuItem key={status.value} value={status.value}>
+                      {status.displayName}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Country"
-                value={formData.country}
-                onChange={(e) => handleChange('country', e.target.value)}
-              />
+              <FormControl fullWidth>
+                <InputLabel>Country</InputLabel>
+                <Select
+                  value={formData.country}
+                  label="Country"
+                  onChange={(e) => handleChange('country', e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>Not specified</em>
+                  </MenuItem>
+                  {countries.map((country) => (
+                    <MenuItem key={country.value} value={country.value}>
+                      {country.displayName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </Box>

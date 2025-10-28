@@ -529,3 +529,22 @@ model CompOffBalance {
   @@unique([employeeId, year])
   @@map("comp_off_balances")
 }
+
+// System Configuration Model - Store configurable options
+model SystemConfiguration {
+  id          String   @id @default(cuid())
+  category    String   // DEPARTMENT, LOCATION, GENDER, MARITAL_STATUS, DESIGNATION, COUNTRY
+  value       String   // The actual value (e.g., 'Engineering', 'New York')
+  displayName String   // User-friendly display name
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0) // For ordering options
+  metadata    String?  // JSON string for additional properties
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([category, value])
+  @@index([category])
+  @@index([isActive])
+  @@map("system_configurations")
+}
