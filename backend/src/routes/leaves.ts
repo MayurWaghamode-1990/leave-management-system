@@ -1957,13 +1957,45 @@ router.get('/delegations',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
 
-    const givenDelegations = mockLeaveDelegations.filter(
-      delegation => delegation.delegatorId === userId
-    );
+    const givenDelegations = await prisma.leaveDelegation.findMany({
+      where: {
+        delegatorId: userId
+      },
+      include: {
+        delegatee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
-    const receivedDelegations = mockLeaveDelegations.filter(
-      delegation => delegation.delegateeId === userId
-    );
+    const receivedDelegations = await prisma.leaveDelegation.findMany({
+      where: {
+        delegateeId: userId
+      },
+      include: {
+        delegator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
 
     res.json({
       success: true,
@@ -1991,42 +2023,69 @@ router.post('/delegations',
     const delegatorId = req.user?.id;
 
     // Validate delegatee exists and has appropriate role
-    const delegatee = getUserDetails(delegateId);
+    const delegatee = await prisma.user.findUnique({
+      where: { id: delegateId },
+      select: { id: true, role: true, firstName: true, lastName: true, email: true }
+    });
+
     if (!delegatee || !['MANAGER', 'HR_ADMIN'].includes(delegatee.role)) {
       throw new AppError('Invalid delegatee. Must be a manager or HR admin.', 400);
     }
 
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
     // Check for overlapping delegations
-    const overlapping = mockLeaveDelegations.find(
-      delegation =>
-        delegation.delegatorId === delegatorId &&
-        delegation.status === 'ACTIVE' &&
-        new Date(delegation.startDate) <= new Date(endDate) &&
-        new Date(delegation.endDate) >= new Date(startDate)
-    );
+    const overlapping = await prisma.leaveDelegation.findFirst({
+      where: {
+        delegatorId: delegatorId!,
+        status: 'ACTIVE',
+        AND: [
+          { startDate: { lte: end } },
+          { endDate: { gte: start } }
+        ]
+      }
+    });
 
     if (overlapping) {
       throw new AppError('You already have an active delegation in this period', 400);
     }
 
-    const newDelegation: Delegation = {
-      id: `delegation_${Date.now()}`,
-      delegatorId: delegatorId!,
-      delegateeId: delegateId,
-      startDate,
-      endDate,
-      reason,
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    mockLeaveDelegations.push(newDelegation);
+    const newDelegation = await prisma.leaveDelegation.create({
+      data: {
+        delegatorId: delegatorId!,
+        delegateeId: delegateId,
+        startDate: start,
+        endDate: end,
+        reason,
+        status: 'ACTIVE'
+      },
+      include: {
+        delegatee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        },
+        delegator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      }
+    });
 
     // Send real-time notification to delegatee
     io.to(`user:${delegateId}`).emit('newDelegation', {
       delegation: newDelegation,
-      delegator: getUserDetails(delegatorId!)
+      delegator: newDelegation.delegator
     });
 
     res.status(201).json({
@@ -2051,36 +2110,68 @@ router.post('/delegations/:id/revoke',
     const { id } = req.params;
     const userId = req.user?.id;
 
-    const delegationIndex = mockLeaveDelegations.findIndex(
-      delegation => delegation.id === id && delegation.delegatorId === userId
-    );
+    const delegation = await prisma.leaveDelegation.findFirst({
+      where: {
+        id,
+        delegatorId: userId
+      },
+      include: {
+        delegatee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true
+          }
+        }
+      }
+    });
 
-    if (delegationIndex === -1) {
+    if (!delegation) {
       throw new AppError('Delegation not found', 404);
     }
-
-    const delegation = mockLeaveDelegations[delegationIndex];
 
     if (delegation.status !== 'ACTIVE') {
       throw new AppError('Delegation is not active', 400);
     }
 
     // Update delegation status
-    mockLeaveDelegations[delegationIndex] = {
-      ...delegation,
-      status: 'REVOKED',
-      updatedAt: new Date().toISOString()
-    };
+    const revokedDelegation = await prisma.leaveDelegation.update({
+      where: { id },
+      data: {
+        status: 'REVOKED',
+        revokedAt: new Date(),
+        revokedBy: userId
+      },
+      include: {
+        delegatee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        delegator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
     // Send real-time notification to delegatee
-    io.to(`user:${delegation.delegateeId}`).emit('delegationRevoked', {
-      delegation: mockLeaveDelegations[delegationIndex],
-      delegator: getUserDetails(userId!)
+    io.to(`user:${delegation.delegatee.id}`).emit('delegationRevoked', {
+      delegation: revokedDelegation,
+      delegator: revokedDelegation.delegator
     });
 
     res.json({
       success: true,
-      message: 'Delegation revoked successfully'
+      message: 'Delegation revoked successfully',
+      data: revokedDelegation
     });
   })
 );
@@ -2098,16 +2189,28 @@ router.get('/delegated-approvals',
   authorize('MANAGER', 'HR_ADMIN'),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
-    const currentDate = new Date().toISOString().split('T')[0];
+    const currentDate = new Date();
 
     // Find active delegations where user is delegatee
-    const activeDelegations = mockLeaveDelegations.filter(
-      delegation =>
-        delegation.delegateeId === userId &&
-        delegation.status === 'ACTIVE' &&
-        delegation.startDate <= currentDate &&
-        delegation.endDate >= currentDate
-    );
+    const activeDelegations = await prisma.leaveDelegation.findMany({
+      where: {
+        delegateeId: userId,
+        status: 'ACTIVE',
+        startDate: { lte: currentDate },
+        endDate: { gte: currentDate }
+      },
+      include: {
+        delegator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true
+          }
+        }
+      }
+    });
 
     if (activeDelegations.length === 0) {
       return res.json({
@@ -2117,25 +2220,57 @@ router.get('/delegated-approvals',
       });
     }
 
-    // Get pending requests for delegators
+    // Get pending requests from employees reporting to delegators
     const delegatorIds = activeDelegations.map(d => d.delegatorId);
 
-    const delegatedRequests = mockLeaveRequests.filter(request => {
-      if (request.status !== LeaveStatus.PENDING) return false;
+    const delegatedRequests = await prisma.leaveRequest.findMany({
+      where: {
+        status: LeaveStatus.PENDING,
+        employee: {
+          reportingManagerId: {
+            in: delegatorIds
+          }
+        }
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            department: true,
+            reportingManagerId: true
+          }
+        }
+      },
+      orderBy: {
+        appliedDate: 'desc'
+      }
+    });
 
-      // Get employee details to check if they report to any of the delegators
-      const employee = getUserDetails(request.employeeId);
-      return employee && delegatorIds.includes(employee.managerId || '');
+    // Attach delegation info to each request
+    const requestsWithDelegation = delegatedRequests.map(request => {
+      const delegation = activeDelegations.find(d =>
+        d.delegatorId === request.employee.reportingManagerId
+      );
+
+      return {
+        ...request,
+        delegationInfo: delegation ? {
+          id: delegation.id,
+          delegator: delegation.delegator,
+          startDate: delegation.startDate,
+          endDate: delegation.endDate,
+          reason: delegation.reason
+        } : null
+      };
     });
 
     res.json({
       success: true,
-      data: delegatedRequests.map(request => ({
-        ...request,
-        delegationInfo: activeDelegations.find(d =>
-          getUserDetails(request.employeeId)?.managerId === d.delegatorId
-        )
-      }))
+      data: requestsWithDelegation,
+      message: `Found ${requestsWithDelegation.length} leave requests awaiting delegated approval`
     });
   })
 );

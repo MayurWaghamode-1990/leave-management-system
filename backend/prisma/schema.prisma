@@ -34,6 +34,8 @@ model User {
   managedDepartment Department[] @relation("DepartmentManager")
   leaveRequests     LeaveRequest[]
   leaveDrafts       LeaveDraft[]
+  delegationsGiven  LeaveDelegation[] @relation("DelegationsGiven")
+  delegationsReceived LeaveDelegation[] @relation("DelegationsReceived")
   leaveBalances     LeaveBalance[]
   approvals         Approval[]
   notifications     Notification[]
@@ -140,6 +142,31 @@ model LeaveDraft {
   @@index([lastSavedAt])
   @@index([expiresAt])
   @@map("leave_drafts")
+}
+
+model LeaveDelegation {
+  id            String    @id @default(cuid())
+  delegatorId   String    // Manager giving approval authority
+  delegateeId   String    // Person receiving authority
+  startDate     DateTime
+  endDate       DateTime
+  reason        String?
+  status        String    @default("ACTIVE") // ACTIVE, REVOKED, EXPIRED
+  revokedAt     DateTime?
+  revokedBy     String?
+
+  // Relations
+  delegator     User      @relation("DelegationsGiven", fields: [delegatorId], references: [id], onDelete: Cascade)
+  delegatee     User      @relation("DelegationsReceived", fields: [delegateeId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([delegatorId])
+  @@index([delegateeId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("leave_delegations")
 }
 
 model Approval {
