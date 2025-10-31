@@ -84,8 +84,8 @@ export class AccrualScheduler {
       console.log(`🚀 Starting comp off expiration processing for ${today.toDateString()}`)
 
       try {
-        const result = await compOffService.processExpiredCompOffs()
-        console.log(`✅ Comp off expiration processing completed: ${result.expiredCount} comp offs expired`)
+        const result = await compOffService.processCompOffExpiration()
+        console.log(`✅ Comp off expiration processing completed: ${result.expired} comp offs expired`)
       } catch (error) {
         console.error(`❌ Comp off expiration processing failed:`, error)
       }
@@ -154,11 +154,11 @@ export class AccrualScheduler {
     console.log(`🔧 Manual trigger: Comp off expiration processing`)
 
     try {
-      const result = await compOffService.processExpiredCompOffs()
-      console.log(`✅ Manual comp off expiration completed: ${result.expiredCount} comp offs expired`)
+      const result = await compOffService.processCompOffExpiration()
+      console.log(`✅ Manual comp off expiration completed: ${result.expired} comp offs expired`)
       return {
         success: true,
-        message: `Processed ${result.expiredCount} expired comp offs`,
+        message: `Processed ${result.expired} expired comp offs`,
         result
       }
     } catch (error) {

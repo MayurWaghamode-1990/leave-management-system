@@ -993,13 +993,22 @@ router.post('/validate',
 router.post('/',
   validate(leaveSchemas.createLeave),
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { type, startDate, endDate, reason, isHalfDay = false } = req.body;
+    const { type, startDate, endDate, reason, isHalfDay = false, halfDayPeriod } = req.body;
     const leaveType = type; // Map type to leaveType for consistency
+
+    // Validate half-day period if half-day leave
+    if (isHalfDay && !halfDayPeriod) {
+      throw new AppError('Half-day period (FIRST_HALF or SECOND_HALF) is required for half-day leaves', 400);
+    }
+
+    if (isHalfDay && !['FIRST_HALF', 'SECOND_HALF'].includes(halfDayPeriod)) {
+      throw new AppError('Invalid half-day period. Must be FIRST_HALF or SECOND_HALF', 400);
+    }
 
     // First validate using policy engine
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const totalDays = leaveValidationEngine.calculateBusinessDays(start, end);
+    const totalDays = await leaveValidationEngine.calculateBusinessDays(start, end);
 
     const validationRequest: LeaveValidationRequest = {
       employeeId: req.user!.userId,
@@ -1011,135 +1020,105 @@ router.post('/',
       reason
     };
 
-    // Temporarily disable policy validation for testing
-    const validationResult = {
-      isValid: true,
-      errors: [],
-      warnings: [],
-      requiredDocumentation: false,
-      autoApprovalEligible: true,
-      approvalChain: []
-    };
+    // ✅ ENABLED: Policy validation with comprehensive checks
+    const validationResult = await leaveValidationEngine.validateLeaveRequest(validationRequest);
 
-    // Skip policy validation temporarily
-    // const validationResult = await leaveValidationEngine.validateLeaveRequest(validationRequest);
-    // if (!validationResult.isValid) {
-    //   throw new AppError(`Leave request validation failed: ${validationResult.errors.join(', ')}`, 400);
-    // }
+    // Check if validation failed
+    if (!validationResult.isValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Leave request validation failed',
+        errors: validationResult.errors,
+        warnings: validationResult.warnings
+      });
+    }
 
-    // Check for overlapping leave requests (Critical Fix)
-    const overlappingRequest = mockLeaveRequests.find(existing => {
-      if (existing.employeeId !== req.user!.userId) return false;
-      if (existing.status === 'CANCELLED' || existing.status === 'REJECTED') return false;
-
-      const existingStart = new Date(existing.startDate);
-      const existingEnd = new Date(existing.endDate);
-
-      // Check if dates overlap
-      return (start <= existingEnd && end >= existingStart);
+    // Check for overlapping leave requests using database
+    const overlappingRequest = await prisma.leaveRequest.findFirst({
+      where: {
+        employeeId: req.user!.userId,
+        status: {
+          notIn: ['CANCELLED', 'REJECTED']
+        },
+        AND: [
+          { startDate: { lte: end } },
+          { endDate: { gte: start } }
+        ]
+      }
     });
 
     if (overlappingRequest) {
       throw new AppError(
-        `Leave request overlaps with existing ${overlappingRequest.leaveType.replace('_', ' ')} request (${overlappingRequest.startDate} to ${overlappingRequest.endDate}). Please choose different dates or cancel the existing request.`,
+        `Leave request overlaps with existing ${overlappingRequest.leaveType.replace('_', ' ')} request (${overlappingRequest.startDate.toISOString().split('T')[0]} to ${overlappingRequest.endDate.toISOString().split('T')[0]}). Please choose different dates or cancel the existing request.`,
         409 // Conflict status code
       );
     }
 
-    // Basic validation (fallback)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Note: Date validations are handled by the policy engine above
 
-    if (start > end) {
-      throw new AppError('Start date cannot be after end date', 400);
-    }
+    // Calculate total days - use adjusted days from validation if available
+    const calculatedDays = (validationRequest as any).adjustedTotalDays ||
+                          (isHalfDay && totalDays === 1 ? 0.5 : totalDays);
 
-    // Allow applying for leave up to 30 days in the past (for retroactive applications)
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Note: Leave balance validation is handled by the policy engine above
+    // The validation engine checks actual database balances and pending requests
 
-    if (start < thirtyDaysAgo) {
-      throw new AppError('Cannot apply for leave more than 30 days in the past', 400);
-    }
-
-    // Calculate total days using helper function for backward compatibility
-    const calculatedDays = calculateBusinessDays(start, end, isHalfDay);
-
-    // Check leave balance (mock implementation)
-    let userBalance = mockLeaveBalances.find(
-      balance => balance.employeeId === req.user!.userId && balance.leaveType === leaveType
-    );
-
-    // If user doesn't have balance, create a default one
-    if (!userBalance) {
-      const defaultEntitlements: Record<string, number> = {
-        'SICK_LEAVE': 12,
-        'CASUAL_LEAVE': 12,
-        'EARNED_LEAVE': 21,
-        'MATERNITY_LEAVE': 180,
-        'PATERNITY_LEAVE': 15,
-        'COMPENSATORY_OFF': 10,
-        'BEREAVEMENT_LEAVE': 3,
-        'MARRIAGE_LEAVE': 5
-      };
-
-      userBalance = {
-        id: `${req.user!.userId}-${leaveType}-${Date.now()}`,
+    // Create new leave request in database using Prisma
+    const newRequest = await prisma.leaveRequest.create({
+      data: {
         employeeId: req.user!.userId,
         leaveType,
-        totalEntitlement: defaultEntitlements[leaveType] || 15,
-        used: 0,
-        available: defaultEntitlements[leaveType] || 15,
-        carryForward: 0,
-        year: 2025
-      };
-      mockLeaveBalances.push(userBalance);
-    }
-
-    if (!userBalance) {
-      throw new AppError('Leave type not found in your balance', 400);
-    }
-
-    if (calculatedDays > userBalance.available) {
-      throw new AppError(`Insufficient leave balance. Available: ${userBalance.available} days`, 400);
-    }
-
-    // Create new leave request with unique ID
-    const uniqueId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const newRequest: LeaveRequest = {
-      id: uniqueId,
-      employeeId: req.user!.userId,
-      leaveType,
-      startDate: start.toISOString().split('T')[0],
-      endDate: end.toISOString().split('T')[0],
-      totalDays: calculatedDays,
-      isHalfDay,
-      reason,
-      status: LeaveStatus.PENDING,
-      appliedDate: new Date().toISOString().split('T')[0]
-    };
-
-    mockLeaveRequests.push(newRequest);
-    saveLeaveRequestsData(); // Save to persistent storage
+        startDate: start,
+        endDate: end,
+        totalDays: calculatedDays,
+        isHalfDay,
+        halfDayPeriod: isHalfDay ? halfDayPeriod : null,
+        reason,
+        status: LeaveStatus.PENDING,
+        appliedDate: new Date()
+      },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            reportingManagerId: true
+          }
+        }
+      }
+    });
 
     // Auto-approve certain leave types for immediate balance deduction (business logic)
     const autoApproveTypes = ['SICK_LEAVE']; // Sick leave can be auto-approved
     if (autoApproveTypes.includes(leaveType) || validationResult.autoApprovalEligible) {
-      // Auto-approve and deduct balance immediately
-      newRequest.status = LeaveStatus.APPROVED;
-      newRequest.approvedBy = 'System (Auto-approved)';
-      newRequest.approvedAt = new Date().toISOString().split('T')[0];
+      // Auto-approve and update in database
+      await prisma.leaveRequest.update({
+        where: { id: newRequest.id },
+        data: {
+          status: LeaveStatus.APPROVED
+        }
+      });
 
       // Deduct from balance immediately
-      if (userBalance) {
-        userBalance.used += calculatedDays;
-        userBalance.available -= calculatedDays;
-      }
+      const currentYear = new Date().getFullYear();
+      await prisma.leaveBalance.update({
+        where: {
+          employeeId_leaveType_year: {
+            employeeId: req.user!.userId,
+            leaveType,
+            year: currentYear
+          }
+        },
+        data: {
+          used: { increment: calculatedDays },
+          available: { decrement: calculatedDays }
+        }
+      });
     }
 
     // Emit real-time notification to managers and HR for new leave request
-    const employee = getUserDetails(req.user!.userId);
-    const employeeName = employee?.name || 'Employee User';
+    const employeeName = `${newRequest.employee.firstName} ${newRequest.employee.lastName}`;
 
     io.to('role:MANAGER').to('role:HR_ADMIN').emit('notification', {
       id: `notif_${Date.now()}_${Math.random()}`,
@@ -1160,27 +1139,31 @@ router.post('/',
     });
 
     // Send email notification to managers/HR
-    if (employee) {
-      const managerEmail = getManagerEmail();
-      const manager = mockUsers.find(user => user.email === managerEmail);
-
-      const emailData: LeaveEmailData = {
-        employeeName: employee.name,
-        employeeEmail: employee.email,
-        managerName: manager?.name || 'Manager',
-        managerEmail: managerEmail,
-        leaveType: newRequest.leaveType.replace('_', ' '),
-        startDate: newRequest.startDate,
-        endDate: newRequest.endDate,
-        totalDays: newRequest.totalDays,
-        reason: newRequest.reason,
-        submittedDate: newRequest.appliedDate,
-        leaveRequestId: newRequest.id
-      };
-
-      emailService.sendLeaveRequestSubmittedEmail(emailData).catch(error => {
-        console.error('Failed to send leave request notification email:', error);
+    if (newRequest.employee.reportingManagerId) {
+      const manager = await prisma.user.findUnique({
+        where: { id: newRequest.employee.reportingManagerId },
+        select: { firstName: true, lastName: true, email: true }
       });
+
+      if (manager) {
+        const emailData: LeaveEmailData = {
+          employeeName: employeeName,
+          employeeEmail: newRequest.employee.email,
+          managerName: `${manager.firstName} ${manager.lastName}`,
+          managerEmail: manager.email,
+          leaveType: newRequest.leaveType.replace('_', ' '),
+          startDate: newRequest.startDate.toISOString().split('T')[0],
+          endDate: newRequest.endDate.toISOString().split('T')[0],
+          totalDays: Number(newRequest.totalDays),
+          reason: newRequest.reason,
+          submittedDate: newRequest.appliedDate.toISOString().split('T')[0],
+          leaveRequestId: newRequest.id
+        };
+
+        emailService.sendLeaveRequestSubmittedEmail(emailData).catch(error => {
+          console.error('Failed to send leave request notification email:', error);
+        });
+      }
     }
 
     res.status(201).json({

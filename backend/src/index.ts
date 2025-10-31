@@ -44,6 +44,7 @@ import bulkActionConfigurationsRoutes from './routes/bulkActionConfigurations';
 import workflowConfigurationsRoutes from './routes/workflowConfigurations';
 import leaveDurationConfigurationsRoutes from './routes/leaveDurationConfigurations';
 import teamCalendarConfigurationsRoutes from './routes/teamCalendarConfigurations';
+import automationRoutes from './routes/automation';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -201,6 +202,7 @@ app.use(`${API_PREFIX}/bulk-action-configurations`, authenticate, bulkActionConf
 app.use(`${API_PREFIX}/workflow-configurations`, authenticate, workflowConfigurationsRoutes);
 app.use(`${API_PREFIX}/leave-duration-configurations`, authenticate, leaveDurationConfigurationsRoutes);
 app.use(`${API_PREFIX}/team-calendar-configurations`, authenticate, teamCalendarConfigurationsRoutes);
+app.use(`${API_PREFIX}/automation`, authenticate, automationRoutes);
 // app.use(`${API_PREFIX}/files`, fileRoutes);  // Temporarily disabled due to middleware issue
 
 // 404 handler
