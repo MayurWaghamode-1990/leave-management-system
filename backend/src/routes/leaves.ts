@@ -1666,9 +1666,23 @@ router.get('/drafts',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
 
-    const userDrafts = mockLeaveDrafts.filter(
-      draft => draft.employeeId === userId
-    );
+    const userDrafts = await prisma.leaveDraft.findMany({
+      where: {
+        employeeId: userId
+      },
+      orderBy: {
+        lastSavedAt: 'desc'
+      },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
     res.json({
       success: true,
@@ -1688,94 +1702,115 @@ router.get('/drafts',
  */
 router.post('/drafts',
   asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const { id, type, startDate, endDate, reason, isHalfDay, completionPercent } = req.body;
+    const { id, type, startDate, endDate, reason, isHalfDay, halfDayPeriod, completionPercent, attachments } = req.body;
     const userId = req.user?.id;
 
     // Debug logging
-    console.log('📝 Draft update request:', {
+    console.log('📝 Draft save request:', {
       id,
       type,
       startDate,
       endDate,
       reason,
       isHalfDay,
+      halfDayPeriod,
       completionPercent,
       userId
     });
 
+    // Calculate total days if dates are provided
+    let totalDays: number | null = null;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+      if (isHalfDay && totalDays === 1) {
+        totalDays = 0.5;
+      }
+    }
+
+    // Set expiry date (30 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
     // Check if updating existing draft by ID
-    let existingDraftIndex = -1;
     if (id) {
-      existingDraftIndex = mockLeaveDrafts.findIndex(
-        draft => draft.id === id && draft.employeeId === userId
-      );
-    } else {
-      // Fallback: Check if draft already exists for similar dates
-      existingDraftIndex = mockLeaveDrafts.findIndex(
-        draft => draft.employeeId === userId &&
-                 draft.startDate === startDate &&
-                 draft.endDate === endDate
-      );
+      const existingDraft = await prisma.leaveDraft.findFirst({
+        where: {
+          id,
+          employeeId: userId
+        }
+      });
+
+      if (existingDraft) {
+        // Update existing draft
+        const updatedDraft = await prisma.leaveDraft.update({
+          where: { id },
+          data: {
+            leaveType: type !== undefined ? type : existingDraft.leaveType,
+            startDate: startDate ? new Date(startDate) : existingDraft.startDate,
+            endDate: endDate ? new Date(endDate) : existingDraft.endDate,
+            totalDays: totalDays !== null ? totalDays : existingDraft.totalDays,
+            reason: reason !== undefined ? reason : existingDraft.reason,
+            isHalfDay: isHalfDay !== undefined ? isHalfDay : existingDraft.isHalfDay,
+            halfDayPeriod: halfDayPeriod !== undefined ? halfDayPeriod : existingDraft.halfDayPeriod,
+            completionPercent: completionPercent !== undefined ? completionPercent : existingDraft.completionPercent,
+            attachments: attachments !== undefined ? attachments : existingDraft.attachments,
+            lastSavedAt: new Date(),
+            expiresAt
+          },
+          include: {
+            employee: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
+        });
+
+        return res.json({
+          success: true,
+          message: 'Draft updated successfully',
+          data: updatedDraft
+        });
+      }
     }
 
-    if (existingDraftIndex !== -1) {
-      // Update existing draft
-      console.log('🔄 Updating existing draft at index:', existingDraftIndex);
-      console.log('📄 Current draft:', mockLeaveDrafts[existingDraftIndex]);
-
-      // Calculate total days if dates are provided
-      const totalDays = startDate && endDate ?
-        Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 :
-        mockLeaveDrafts[existingDraftIndex].totalDays;
-
-      const updatedDraft = {
-        ...mockLeaveDrafts[existingDraftIndex],
-        type: type !== undefined ? type : (mockLeaveDrafts[existingDraftIndex].type || mockLeaveDrafts[existingDraftIndex].leaveType),
-        leaveType: type !== undefined ? type : (mockLeaveDrafts[existingDraftIndex].leaveType || mockLeaveDrafts[existingDraftIndex].type),
-        startDate: startDate !== undefined ? startDate : mockLeaveDrafts[existingDraftIndex].startDate,
-        endDate: endDate !== undefined ? endDate : mockLeaveDrafts[existingDraftIndex].endDate,
-        totalDays,
-        reason: reason !== undefined ? reason : mockLeaveDrafts[existingDraftIndex].reason,
-        isHalfDay: isHalfDay !== undefined ? isHalfDay : mockLeaveDrafts[existingDraftIndex].isHalfDay,
-        completionPercent: completionPercent !== undefined ? completionPercent : mockLeaveDrafts[existingDraftIndex].completionPercent,
-        updatedAt: new Date().toISOString()
-      };
-
-      console.log('✅ Updated draft:', updatedDraft);
-      mockLeaveDrafts[existingDraftIndex] = updatedDraft;
-
-      res.json({
-        success: true,
-        message: 'Draft updated successfully',
-        data: updatedDraft
-      });
-    } else {
-      // Create new draft
-      const totalDays = startDate && endDate ?
-        Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : 0;
-
-      const newDraft: LeaveDraft = {
-        id: `draft_${Date.now()}`,
+    // Create new draft
+    const newDraft = await prisma.leaveDraft.create({
+      data: {
         employeeId: userId!,
-        type,
-        startDate,
-        endDate,
+        leaveType: type || null,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
         totalDays,
-        reason,
+        reason: reason || null,
         isHalfDay: isHalfDay || false,
+        halfDayPeriod: halfDayPeriod || null,
         completionPercent: completionPercent || 20,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        attachments: attachments || null,
+        lastSavedAt: new Date(),
+        expiresAt
+      },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
-      mockLeaveDrafts.push(newDraft);
-
-      res.status(201).json({
-        success: true,
-        message: 'Draft saved successfully',
-        data: newDraft
-      });
-    }
+    res.status(201).json({
+      success: true,
+      message: 'Draft saved successfully',
+      data: newDraft
+    });
   })
 );
 
@@ -1793,15 +1828,20 @@ router.delete('/drafts/:id',
     const { id } = req.params;
     const userId = req.user?.id;
 
-    const draftIndex = mockLeaveDrafts.findIndex(
-      draft => draft.id === id && draft.employeeId === userId
-    );
+    const draft = await prisma.leaveDraft.findFirst({
+      where: {
+        id,
+        employeeId: userId
+      }
+    });
 
-    if (draftIndex === -1) {
+    if (!draft) {
       throw new AppError('Draft not found', 404);
     }
 
-    mockLeaveDrafts.splice(draftIndex, 1);
+    await prisma.leaveDraft.delete({
+      where: { id }
+    });
 
     res.json({
       success: true,
@@ -1824,54 +1864,81 @@ router.post('/drafts/:id/submit',
     const { id } = req.params;
     const userId = req.user?.id;
 
-    const draftIndex = mockLeaveDrafts.findIndex(
-      draft => draft.id === id && draft.employeeId === userId
-    );
+    const draft = await prisma.leaveDraft.findFirst({
+      where: {
+        id,
+        employeeId: userId
+      }
+    });
 
-    if (draftIndex === -1) {
+    if (!draft) {
       throw new AppError('Draft not found', 404);
     }
 
-    const draft = mockLeaveDrafts[draftIndex];
-
     // Validate that draft is complete
-    if (draft.completionPercent < 100) {
+    if (draft.completionPercent && draft.completionPercent < 100) {
       throw new AppError('Draft is not complete. Please fill all required fields.', 400);
     }
 
-    // Create leave request from draft
-    const newRequest: LeaveRequest = {
-      id: `req_${Date.now()}`,
-      employeeId: draft.employeeId,
-      type: draft.type!,
-      startDate: draft.startDate!,
-      endDate: draft.endDate!,
-      totalDays: draft.totalDays,
-      reason: draft.reason!,
-      status: LeaveStatus.PENDING,
-      isHalfDay: draft.isHalfDay,
-      appliedDate: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    if (!draft.leaveType || !draft.startDate || !draft.endDate || !draft.reason) {
+      throw new AppError('Draft is missing required fields (leaveType, startDate, endDate, reason).', 400);
+    }
 
-    mockLeaveRequests.push(newRequest);
+    // Create leave request from draft using database
+    const newRequest = await prisma.leaveRequest.create({
+      data: {
+        employeeId: draft.employeeId,
+        leaveType: draft.leaveType,
+        startDate: draft.startDate,
+        endDate: draft.endDate,
+        totalDays: draft.totalDays || 0,
+        reason: draft.reason,
+        isHalfDay: draft.isHalfDay || false,
+        halfDayPeriod: draft.halfDayPeriod,
+        attachments: draft.attachments,
+        status: LeaveStatus.PENDING,
+        appliedDate: new Date()
+      },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            reportingManagerId: true
+          }
+        }
+      }
+    });
 
-    // Remove the draft
-    mockLeaveDrafts.splice(draftIndex, 1);
+    // Remove the draft from database
+    await prisma.leaveDraft.delete({
+      where: { id }
+    });
 
-    // Send real-time notification to managers
-    const managers = getUsersByRole('MANAGER');
-    managers.forEach(manager => {
-      io.to(`user:${manager.id}`).emit('newLeaveRequest', {
-        request: newRequest,
-        employee: getUserDetails(userId!)
-      });
+    // Send real-time notification to managers and HR
+    const employeeName = `${newRequest.employee.firstName} ${newRequest.employee.lastName}`;
+
+    io.to('role:MANAGER').to('role:HR_ADMIN').emit('notification', {
+      id: `notif_${Date.now()}_${Math.random()}`,
+      type: 'LEAVE_REQUEST',
+      title: 'New Leave Request',
+      message: `${employeeName} has submitted a new ${newRequest.leaveType.replace('_', ' ')} request`,
+      data: {
+        leaveRequestId: newRequest.id,
+        employeeId: newRequest.employeeId,
+        employeeName,
+        leaveType: newRequest.leaveType,
+        startDate: newRequest.startDate.toISOString(),
+        endDate: newRequest.endDate.toISOString(),
+        totalDays: Number(newRequest.totalDays)
+      },
+      timestamp: new Date().toISOString()
     });
 
     res.status(201).json({
       success: true,
-      message: 'Leave request submitted successfully',
+      message: 'Leave request submitted successfully from draft',
       data: newRequest
     });
   })

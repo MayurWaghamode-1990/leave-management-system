@@ -33,6 +33,7 @@ model User {
   directReports     User[]    @relation("UserHierarchy")
   managedDepartment Department[] @relation("DepartmentManager")
   leaveRequests     LeaveRequest[]
+  leaveDrafts       LeaveDraft[]
   leaveBalances     LeaveBalance[]
   approvals         Approval[]
   notifications     Notification[]
@@ -112,6 +113,33 @@ model LeaveRequest {
   @@index([leaveType])
   @@index([startDate, endDate])
   @@map("leave_requests")
+}
+
+model LeaveDraft {
+  id                String    @id @default(cuid())
+  employeeId        String
+  leaveType         String?
+  startDate         DateTime?
+  endDate           DateTime?
+  totalDays         Float?
+  isHalfDay         Boolean?  @default(false)
+  halfDayPeriod     String?   // FIRST_HALF, SECOND_HALF
+  reason            String?
+  attachments       String?
+  completionPercent Int       @default(0)  // 0-100
+  lastSavedAt       DateTime  @default(now())
+  expiresAt         DateTime? // Auto-delete after 30 days
+
+  // Relations
+  employee          User      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([lastSavedAt])
+  @@index([expiresAt])
+  @@map("leave_drafts")
 }
 
 model Approval {

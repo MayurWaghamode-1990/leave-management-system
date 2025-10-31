@@ -181,6 +181,44 @@ export class AccrualAutomationService {
       return calculations;
     }
 
+    // Check if employee is on active maternity/paternity leave (GLF Requirement)
+    // No accrual should be credited during maternity/paternity leave period
+    const activeMaternityLeave = await prisma.leaveRequest.findFirst({
+      where: {
+        employeeId: employee.id,
+        leaveType: {
+          in: ['MATERNITY_LEAVE', 'PATERNITY_LEAVE']
+        },
+        status: 'APPROVED',
+        startDate: {
+          lte: monthEnd
+        },
+        endDate: {
+          gte: monthStart
+        }
+      }
+    });
+
+    if (activeMaternityLeave) {
+      console.log(`🚫 Skipping ${employee.employeeId} - on active ${activeMaternityLeave.leaveType} from ${activeMaternityLeave.startDate.toISOString().split('T')[0]} to ${activeMaternityLeave.endDate.toISOString().split('T')[0]}`);
+
+      // Create a record to track that accrual was skipped
+      await prisma.monthlyAccrual.create({
+        data: {
+          employeeId: employee.id,
+          year,
+          month,
+          casualLeave: 0,
+          privilegeLeave: 0,
+          proRated: false,
+          status: 'SKIPPED_MATERNITY',
+          joiningDate: employee.joiningDate
+        }
+      });
+
+      return calculations;
+    }
+
     // GLF India Policy: 1 CL + 1 PL per month
     const accrualRules = [
       { leaveType: 'CASUAL_LEAVE', monthlyAmount: 1.0 },
