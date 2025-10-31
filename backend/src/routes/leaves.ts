@@ -7,6 +7,7 @@ import { leaveValidationEngine, LeaveValidationRequest } from '../services/polic
 import { LeaveType, LeaveStatus } from '../types/enums';
 import { io, prisma } from '../index';
 import { emailService, LeaveEmailData } from '../services/emailService';
+import { calendarIntegrationService } from '../services/calendarIntegrationService';
 import { MockDataStore } from '../utils/mockDataStore';
 
 // Mock data types
@@ -2354,6 +2355,15 @@ router.post('/cancellation-requests/:id/approve',
           cancellationReason: cancellationRequest.reason,
           updatedAt: new Date().toISOString()
         };
+
+        // Sync cancellation to connected calendars (delete event)
+        try {
+          await calendarIntegrationService.syncLeaveWithCalendar(cancellationRequest.leaveRequestId, 'delete');
+          logger.info(`📅 Leave removed from calendar for cancelled request ${cancellationRequest.leaveRequestId}`);
+        } catch (error) {
+          logger.error(`❌ Failed to remove leave from calendar:`, error);
+          // Don't block cancellation if calendar sync fails
+        }
 
         // Update leave balance (add back days)
         const leaveRequest = mockLeaveRequests[leaveRequestIndex];

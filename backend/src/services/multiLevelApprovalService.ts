@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { emailService, ApprovalEmailData } from './emailService'
+import { calendarIntegrationService } from './calendarIntegrationService'
 import { logger } from '../utils/logger'
 
 const prisma = new PrismaClient()
@@ -364,6 +365,15 @@ export class MultiLevelApprovalService {
         where: { id: leaveRequestId },
         data: { status: 'APPROVED' }
       })
+
+      // Sync approved leave to connected calendars
+      try {
+        await calendarIntegrationService.syncLeaveWithCalendar(leaveRequestId, 'create')
+        logger.info(`📅 Leave synced to calendar for request ${leaveRequestId}`)
+      } catch (error) {
+        logger.error(`❌ Failed to sync leave to calendar:`, error)
+        // Don't block approval if calendar sync fails
+      }
 
       return {
         success: true,
