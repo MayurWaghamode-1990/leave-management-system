@@ -1,0 +1,75 @@
+Based on the project structure and configuration files, here are the steps to start the Leave Management System application:
+
+  Steps to Start the Leave Management Application
+
+  Prerequisites
+
+  - Node.js 18+ installed
+  - MySQL database (or SQLite for development)
+  - Git installed
+
+  1. Install Dependencies
+
+  # Install backend dependencies
+  cd backend
+  npm install
+
+  # Install frontend dependencies
+  cd ../frontend
+  npm install
+
+  2. Set Up Environment Variables
+
+  Create a .env file in the backend directory. You can copy from .env.example:
+
+  cd backend
+  copy .env.example .env
+
+  Key variables to configure in .env:
+  - DATABASE_URL - Your MySQL connection string (e.g., mysql://user:password@localhost:3306/leave_management_db)
+  - JWT_SECRET - A secure random string for authentication
+  - FRONTEND_URL - Usually http://localhost:5173
+  - CORS_ORIGIN - Usually http://localhost:5173
+
+  3. Set Up Database
+
+  cd backend
+
+  # Generate Prisma client
+  npm run db:generate
+
+  # Run database migrations
+  npm run db:migrate
+
+  # Seed the database with initial data
+  npm run db:seed
+
+  4. Start the Backend Server
+
+  cd backend
+  npm run dev
+
+  The backend will start on port 3001 by default (http://localhost:3001)
+
+  5. Start the Frontend Development Server
+
+  Open a new terminal window:
+
+  cd frontend
+  npm run dev
+
+  The frontend will start on port 5173 by default (http://localhost:5173)
+
+  6. Access the Application
+
+  - Frontend: http://localhost:5173
+  - Backend API: http://localhost:3001/api/v1
+  - API Documentation (Swagger): http://localhost:3001/api/v1/docs
+
+  Default Login Credentials
+
+  After seeding, you should have access to default users. Check the seed file at backend/prisma/seed.ts for the default credentials (typically
+  admin@company.com or similar).
+
+  ---
+  Note: Make sure both backend and frontend servers are running simultaneously in separate terminal windows for the application to work properly.

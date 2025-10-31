@@ -34,6 +34,7 @@ import {
   SupervisorAccount,
   AccessTime,
   Person,
+  Settings,
 } from '@mui/icons-material'
 
 import { useAuth } from '@/hooks/useAuth'
@@ -160,6 +161,12 @@ const hrNavigationItems: NavigationItem[] = [
     icon: <Policy />,
     path: '/hr/policies',
     roles: [UserRole.HR, UserRole.HR_ADMIN],
+  },
+  {
+    text: 'Configurations',
+    icon: <Settings />,
+    path: '/admin/configurations',
+    roles: [UserRole.HR_ADMIN, UserRole.IT_ADMIN],
   },
   {
     text: 'Bulk Operations',

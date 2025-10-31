@@ -38,6 +38,12 @@ import {
 } from '@mui/icons-material'
 import { toast } from 'react-hot-toast'
 import api from '@/config/api'
+import LeaveTypeConfigurationManager from '@/components/admin/LeaveTypeConfigurationManager'
+import DashboardWidgetConfigurationManager from '@/components/admin/DashboardWidgetConfigurationManager'
+import BulkActionsConfigurationManager from '@/components/admin/BulkActionsConfigurationManager'
+import WorkflowConfigurationManager from '@/components/admin/WorkflowConfigurationManager'
+import LeaveDurationConfigurationManager from '@/components/admin/LeaveDurationConfigurationManager'
+import TeamCalendarConfigurationManager from '@/components/admin/TeamCalendarConfigurationManager'
 
 interface Configuration {
   id: string
@@ -71,12 +77,18 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const CATEGORIES = [
-  { key: 'DEPARTMENT', label: 'Departments', icon: '🏢' },
-  { key: 'LOCATION', label: 'Locations', icon: '📍' },
-  { key: 'DESIGNATION', label: 'Designations', icon: '💼' },
-  { key: 'GENDER', label: 'Gender', icon: '👤' },
-  { key: 'MARITAL_STATUS', label: 'Marital Status', icon: '💑' },
-  { key: 'COUNTRY', label: 'Countries', icon: '🌍' }
+  { key: 'DEPARTMENT', label: 'Departments', icon: '🏢', type: 'basic' },
+  { key: 'LOCATION', label: 'Locations', icon: '📍', type: 'basic' },
+  { key: 'DESIGNATION', label: 'Designations', icon: '💼', type: 'basic' },
+  { key: 'GENDER', label: 'Gender', icon: '👤', type: 'basic' },
+  { key: 'MARITAL_STATUS', label: 'Marital Status', icon: '💑', type: 'basic' },
+  { key: 'COUNTRY', label: 'Countries', icon: '🌍', type: 'basic' },
+  { key: 'LEAVE_TYPES', label: 'Leave Types', icon: '🏖️', type: 'advanced' },
+  { key: 'DASHBOARDS', label: 'Dashboard Widgets', icon: '📊', type: 'advanced' },
+  { key: 'BULK_ACTIONS', label: 'Bulk Actions', icon: '⚡', type: 'advanced' },
+  { key: 'WORKFLOWS', label: 'Workflows', icon: '⚙️', type: 'advanced' },
+  { key: 'LEAVE_DURATION', label: 'Leave Duration', icon: '⏱️', type: 'advanced' },
+  { key: 'TEAM_CALENDAR', label: 'Team Calendar', icon: '📅', type: 'advanced' }
 ]
 
 const ConfigurationsPage: React.FC = () => {
@@ -226,14 +238,16 @@ const ConfigurationsPage: React.FC = () => {
         <Typography variant="h4" gutterBottom>
           System Configurations
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={handleAddNew}
-          disabled={loading}
-        >
-          Add New {currentCategory.label}
-        </Button>
+        {currentCategory.type === 'basic' && (
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleAddNew}
+            disabled={loading}
+          >
+            Add New {currentCategory.label}
+          </Button>
+        )}
       </Box>
 
       <Alert severity="info" sx={{ mb: 3 }}>
@@ -272,110 +286,135 @@ const ConfigurationsPage: React.FC = () => {
 
         {CATEGORIES.map((category, index) => (
           <TabPanel value={tabIndex} index={index} key={category.key}>
-            {loading ? (
-              <Box>
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} height={60} sx={{ my: 1 }} />
-                ))}
-              </Box>
+            {category.type === 'advanced' ? (
+              <>
+                {category.key === 'LEAVE_TYPES' && (
+                  <LeaveTypeConfigurationManager onRefresh={fetchConfigurations} />
+                )}
+                {category.key === 'DASHBOARDS' && (
+                  <DashboardWidgetConfigurationManager onRefresh={fetchConfigurations} />
+                )}
+                {category.key === 'BULK_ACTIONS' && (
+                  <BulkActionsConfigurationManager onRefresh={fetchConfigurations} />
+                )}
+                {category.key === 'WORKFLOWS' && (
+                  <WorkflowConfigurationManager onRefresh={fetchConfigurations} />
+                )}
+                {category.key === 'LEAVE_DURATION' && (
+                  <LeaveDurationConfigurationManager onRefresh={fetchConfigurations} />
+                )}
+                {category.key === 'TEAM_CALENDAR' && (
+                  <TeamCalendarConfigurationManager onRefresh={fetchConfigurations} />
+                )}
+              </>
             ) : (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell width="50px">#</TableCell>
-                      <TableCell>Value</TableCell>
-                      <TableCell>Display Name</TableCell>
-                      <TableCell align="center">Status</TableCell>
-                      <TableCell align="center">Order</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {currentConfigs.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">
-                          <Alert severity="info">
-                            No {category.label.toLowerCase()} configured yet. Click "Add New" to create one.
-                          </Alert>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      currentConfigs
-                        .sort((a, b) => a.sortOrder - b.sortOrder)
-                        .map((config, idx) => (
-                          <TableRow key={config.id} hover>
-                            <TableCell>{idx + 1}</TableCell>
-                            <TableCell>
-                              <Typography variant="body2" fontFamily="monospace">
-                                {config.value}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2">{config.displayName}</Typography>
-                            </TableCell>
-                            <TableCell align="center">
-                              <Chip
-                                label={config.isActive ? 'Active' : 'Inactive'}
-                                color={config.isActive ? 'success' : 'default'}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell align="center">
-                              <Box display="flex" justifyContent="center" gap={0.5}>
-                                <Tooltip title="Move up">
-                                  <span>
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleReorder(config, 'up')}
-                                      disabled={idx === 0}
-                                    >
-                                      <ArrowUpward fontSize="small" />
-                                    </IconButton>
-                                  </span>
-                                </Tooltip>
-                                <Tooltip title="Move down">
-                                  <span>
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleReorder(config, 'down')}
-                                      disabled={idx === currentConfigs.length - 1}
-                                    >
-                                      <ArrowDownward fontSize="small" />
-                                    </IconButton>
-                                  </span>
-                                </Tooltip>
-                              </Box>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Tooltip title={config.isActive ? 'Deactivate' : 'Activate'}>
-                                <Switch
-                                  checked={config.isActive}
-                                  onChange={() => handleToggleActive(config)}
-                                  size="small"
-                                />
-                              </Tooltip>
-                              <Tooltip title="Edit">
-                                <IconButton size="small" onClick={() => handleEdit(config)}>
-                                  <Edit fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleDelete(config.id)}
-                                  color="error"
-                                >
-                                  <Delete fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+              <>
+                {loading ? (
+                  <Box>
+                    {[...Array(5)].map((_, i) => (
+                      <Skeleton key={i} height={60} sx={{ my: 1 }} />
+                    ))}
+                  </Box>
+                ) : (
+                  <TableContainer>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell width="50px">#</TableCell>
+                          <TableCell>Value</TableCell>
+                          <TableCell>Display Name</TableCell>
+                          <TableCell align="center">Status</TableCell>
+                          <TableCell align="center">Order</TableCell>
+                          <TableCell align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {currentConfigs.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={6} align="center">
+                              <Alert severity="info">
+                                No {category.label.toLowerCase()} configured yet. Click "Add New" to create one.
+                              </Alert>
                             </TableCell>
                           </TableRow>
-                        ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                        ) : (
+                          currentConfigs
+                            .sort((a, b) => a.sortOrder - b.sortOrder)
+                            .map((config, idx) => (
+                              <TableRow key={config.id} hover>
+                                <TableCell>{idx + 1}</TableCell>
+                                <TableCell>
+                                  <Typography variant="body2" fontFamily="monospace">
+                                    {config.value}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant="body2">{config.displayName}</Typography>
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Chip
+                                    label={config.isActive ? 'Active' : 'Inactive'}
+                                    color={config.isActive ? 'success' : 'default'}
+                                    size="small"
+                                  />
+                                </TableCell>
+                                <TableCell align="center">
+                                  <Box display="flex" justifyContent="center" gap={0.5}>
+                                    <Tooltip title="Move up">
+                                      <span>
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleReorder(config, 'up')}
+                                          disabled={idx === 0}
+                                        >
+                                          <ArrowUpward fontSize="small" />
+                                        </IconButton>
+                                      </span>
+                                    </Tooltip>
+                                    <Tooltip title="Move down">
+                                      <span>
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleReorder(config, 'down')}
+                                          disabled={idx === currentConfigs.length - 1}
+                                        >
+                                          <ArrowDownward fontSize="small" />
+                                        </IconButton>
+                                      </span>
+                                    </Tooltip>
+                                  </Box>
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Tooltip title={config.isActive ? 'Deactivate' : 'Activate'}>
+                                    <Switch
+                                      checked={config.isActive}
+                                      onChange={() => handleToggleActive(config)}
+                                      size="small"
+                                    />
+                                  </Tooltip>
+                                  <Tooltip title="Edit">
+                                    <IconButton size="small" onClick={() => handleEdit(config)}>
+                                      <Edit fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Delete">
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleDelete(config.id)}
+                                      color="error"
+                                    >
+                                      <Delete fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </>
             )}
           </TabPanel>
         ))}

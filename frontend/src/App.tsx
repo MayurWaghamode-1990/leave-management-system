@@ -15,6 +15,7 @@ import HolidaysPage from './pages/holidays/HolidaysPage'
 import HRPoliciesPage from './pages/hr/PoliciesPage'
 import HRUsersPage from './pages/hr/UsersPage'
 import BulkOperationsPage from './pages/admin/BulkOperationsPage'
+import ConfigurationsPage from './pages/admin/ConfigurationsPage'
 import CalendarPage from './pages/calendar/CalendarPage'
 import TemplatesPage from './pages/templates/TemplatesPage'
 import DraftsPage from './pages/drafts/DraftsPage'
@@ -95,6 +96,7 @@ function App() {
         {/* Admin routes */}
         <Route path="admin">
           <Route path="bulk-operations" element={<BulkOperationsPage />} />
+          <Route path="configurations" element={<ConfigurationsPage />} />
         </Route>
       </Route>
 

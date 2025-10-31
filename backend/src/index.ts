@@ -38,6 +38,12 @@ import enhancedLwpRoutes from './routes/enhancedLwp';
 import compOffRoutes from './routes/compOff';
 import enhancedFeaturesRoutes from './routes/enhancedFeatures';
 import configurationsRoutes from './routes/configurations';
+import leaveTypeConfigurationsRoutes from './routes/leaveTypeConfigurations';
+import dashboardConfigurationsRoutes from './routes/dashboardConfigurations';
+import bulkActionConfigurationsRoutes from './routes/bulkActionConfigurations';
+import workflowConfigurationsRoutes from './routes/workflowConfigurations';
+import leaveDurationConfigurationsRoutes from './routes/leaveDurationConfigurations';
+import teamCalendarConfigurationsRoutes from './routes/teamCalendarConfigurations';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -189,6 +195,12 @@ app.use(`${API_PREFIX}/comp-off`, compOffRoutes);
 app.use(`${API_PREFIX}/accrual`, accrualRoutes);
 app.use(`${API_PREFIX}/enhanced-features`, authenticate, enhancedFeaturesRoutes);
 app.use(`${API_PREFIX}/configurations`, authenticate, configurationsRoutes);
+app.use(`${API_PREFIX}/leave-type-configurations`, authenticate, leaveTypeConfigurationsRoutes);
+app.use(`${API_PREFIX}/dashboard-configurations`, authenticate, dashboardConfigurationsRoutes);
+app.use(`${API_PREFIX}/bulk-action-configurations`, authenticate, bulkActionConfigurationsRoutes);
+app.use(`${API_PREFIX}/workflow-configurations`, authenticate, workflowConfigurationsRoutes);
+app.use(`${API_PREFIX}/leave-duration-configurations`, authenticate, leaveDurationConfigurationsRoutes);
+app.use(`${API_PREFIX}/team-calendar-configurations`, authenticate, teamCalendarConfigurationsRoutes);
 // app.use(`${API_PREFIX}/files`, fileRoutes);  // Temporarily disabled due to middleware issue
 
 // 404 handler

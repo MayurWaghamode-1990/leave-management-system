@@ -30,6 +30,10 @@ async function main() {
   await prisma.holiday.deleteMany();
   await prisma.department.deleteMany();
   await prisma.user.deleteMany();
+  // Clear new configuration tables
+  await prisma.teamCalendarConfiguration.deleteMany();
+  await prisma.leaveDurationConfiguration.deleteMany();
+  await prisma.workflowConfiguration.deleteMany();
 
   // Create departments
   const hrDept = await prisma.department.create({
@@ -94,7 +98,7 @@ async function main() {
       password: hashedPassword,
       firstName: 'Maya',
       lastName: 'Sharma',
-      role: 'HR',
+      role: 'HR_ADMIN',
       department: 'Human Resources',
       location: 'Bengaluru',
       joiningDate: new Date('2020-01-15'),
@@ -1260,6 +1264,316 @@ async function main() {
     ],
   });
 
+  // ============ NEW CONFIGURATION SEED DATA ============
+
+  console.log('📋 Creating workflow configurations...');
+
+  // 1. Default Leave Request Workflow
+  const leaveWorkflow = await prisma.workflowConfiguration.create({
+    data: {
+      workflowType: 'LEAVE_REQUEST',
+      name: 'Standard Leave Approval',
+      description: 'Default workflow for regular leave requests with manager and HR approval',
+      isDefault: true,
+      priority: 10,
+      conditions: JSON.stringify({
+        leaveTypes: ['CASUAL_LEAVE', 'SICK_LEAVE', 'EARNED_LEAVE'],
+        maxDuration: null
+      }),
+      steps: JSON.stringify([
+        {
+          level: 1,
+          approverRole: 'REPORTING_MANAGER',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: 48,
+          escalateTo: 'SECOND_LEVEL_MANAGER',
+          isOptional: false
+        },
+        {
+          level: 2,
+          approverRole: 'HR',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: null,
+          isOptional: false
+        }
+      ]),
+      autoApprovalRules: JSON.stringify({
+        enabled: false
+      }),
+      isActive: true
+    }
+  });
+
+  // 2. Comp Off Workflow
+  const compOffWorkflow = await prisma.workflowConfiguration.create({
+    data: {
+      workflowType: 'COMP_OFF_REQUEST',
+      name: 'Comp Off Approval',
+      description: 'Workflow for compensatory off requests requiring manager verification',
+      isDefault: true,
+      priority: 10,
+      conditions: JSON.stringify({}),
+      steps: JSON.stringify([
+        {
+          level: 1,
+          approverRole: 'REPORTING_MANAGER',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: 72,
+          isOptional: false
+        },
+        {
+          level: 2,
+          approverRole: 'HR',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: null,
+          isOptional: false
+        }
+      ]),
+      autoApprovalRules: JSON.stringify({
+        enabled: false
+      }),
+      isActive: true
+    }
+  });
+
+  // 3. LWP Workflow
+  const lwpWorkflow = await prisma.workflowConfiguration.create({
+    data: {
+      workflowType: 'LWP_REQUEST',
+      name: 'Leave Without Pay Approval',
+      description: 'Workflow for LWP requests requiring management and HR approval',
+      isDefault: true,
+      priority: 10,
+      conditions: JSON.stringify({}),
+      steps: JSON.stringify([
+        {
+          level: 1,
+          approverRole: 'REPORTING_MANAGER',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: 48,
+          isOptional: false
+        },
+        {
+          level: 2,
+          approverRole: 'DEPARTMENT_HEAD',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: 48,
+          isOptional: false
+        },
+        {
+          level: 3,
+          approverRole: 'HR',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: null,
+          escalateAfterHours: null,
+          isOptional: false
+        }
+      ]),
+      autoApprovalRules: JSON.stringify({
+        enabled: false
+      }),
+      isActive: true
+    }
+  });
+
+  // 4. Fast Track Workflow (for short leaves)
+  const fastTrackWorkflow = await prisma.workflowConfiguration.create({
+    data: {
+      workflowType: 'LEAVE_REQUEST',
+      name: 'Fast Track Approval',
+      description: 'Quick approval for short duration leaves (1-2 days)',
+      isDefault: false,
+      priority: 20,
+      conditions: JSON.stringify({
+        maxDuration: 2,
+        leaveTypes: ['CASUAL_LEAVE', 'SICK_LEAVE']
+      }),
+      steps: JSON.stringify([
+        {
+          level: 1,
+          approverRole: 'REPORTING_MANAGER',
+          executionMode: 'SEQUENTIAL',
+          autoApproveAfterHours: 24,
+          escalateAfterHours: null,
+          isOptional: false
+        }
+      ]),
+      autoApprovalRules: JSON.stringify({
+        enabled: true,
+        conditions: ['SUFFICIENT_BALANCE', 'NO_OVERLAP']
+      }),
+      isActive: true
+    }
+  });
+
+  console.log(`✅ Created 4 workflow configurations`);
+
+  console.log('⏱️  Creating leave duration configurations...');
+
+  // 1. India Duration Configuration
+  const indiaDuration = await prisma.leaveDurationConfiguration.create({
+    data: {
+      region: 'INDIA',
+      fullDayEnabled: true,
+      fullDayHours: 8.0,
+      halfDayEnabled: true,
+      halfDayHours: 4.0,
+      halfDaySlots: JSON.stringify([
+        { code: 'FIRST_HALF', displayName: 'First Half', startTime: '09:00', endTime: '13:00' },
+        { code: 'SECOND_HALF', displayName: 'Second Half', startTime: '13:00', endTime: '18:00' }
+      ]),
+      quarterDayEnabled: true,
+      quarterDayHours: 2.0,
+      quarterDaySlots: JSON.stringify([
+        { code: 'MORNING', displayName: 'Morning (9-11 AM)', startTime: '09:00', endTime: '11:00' },
+        { code: 'LATE_MORNING', displayName: 'Late Morning (11 AM-1 PM)', startTime: '11:00', endTime: '13:00' },
+        { code: 'AFTERNOON', displayName: 'Afternoon (1-3 PM)', startTime: '13:00', endTime: '15:00' },
+        { code: 'LATE_AFTERNOON', displayName: 'Late Afternoon (3-5 PM)', startTime: '15:00', endTime: '17:00' }
+      ]),
+      hourlyEnabled: true,
+      minimumHours: 1.0,
+      maximumHours: 8.0,
+      allowedLeaveTypes: JSON.stringify(['SICK_LEAVE', 'CASUAL_LEAVE']),
+      allowMixedDuration: true,
+      roundingMethod: 'NEAREST',
+      roundingPrecision: 0.5,
+      isActive: true
+    }
+  });
+
+  // 2. USA Duration Configuration
+  const usaDuration = await prisma.leaveDurationConfiguration.create({
+    data: {
+      region: 'USA',
+      fullDayEnabled: true,
+      fullDayHours: 8.0,
+      halfDayEnabled: true,
+      halfDayHours: 4.0,
+      halfDaySlots: JSON.stringify([
+        { code: 'AM', displayName: 'Morning', startTime: '08:00', endTime: '12:00' },
+        { code: 'PM', displayName: 'Afternoon', startTime: '12:00', endTime: '17:00' }
+      ]),
+      quarterDayEnabled: false,
+      quarterDayHours: 2.0,
+      quarterDaySlots: null,
+      hourlyEnabled: true,
+      minimumHours: 2.0,
+      maximumHours: 8.0,
+      allowedLeaveTypes: JSON.stringify(['PTO']),
+      allowMixedDuration: false,
+      roundingMethod: 'UP',
+      roundingPrecision: 0.5,
+      isActive: true
+    }
+  });
+
+  // 3. Global Duration Configuration
+  const globalDuration = await prisma.leaveDurationConfiguration.create({
+    data: {
+      region: 'GLOBAL',
+      fullDayEnabled: true,
+      fullDayHours: 8.0,
+      halfDayEnabled: true,
+      halfDayHours: 4.0,
+      halfDaySlots: JSON.stringify([
+        { code: 'FIRST_HALF', displayName: 'First Half', startTime: '09:00', endTime: '13:00' },
+        { code: 'SECOND_HALF', displayName: 'Second Half', startTime: '13:00', endTime: '18:00' }
+      ]),
+      quarterDayEnabled: false,
+      quarterDayHours: 2.0,
+      quarterDaySlots: null,
+      hourlyEnabled: false,
+      minimumHours: 1.0,
+      maximumHours: 8.0,
+      allowedLeaveTypes: null,
+      allowMixedDuration: false,
+      roundingMethod: 'NEAREST',
+      roundingPrecision: 1.0,
+      isActive: true
+    }
+  });
+
+  console.log(`✅ Created 3 leave duration configurations`);
+
+  console.log('📅 Creating team calendar configurations...');
+
+  // 1. Default Team Calendar
+  const defaultCalendar = await prisma.teamCalendarConfiguration.create({
+    data: {
+      department: null,
+      teamDefinitionType: 'REPORTING_HIERARCHY',
+      includeSubordinates: true,
+      subordinateDepth: 2,
+      displayConfig: JSON.stringify({
+        defaultView: 'MONTH',
+        showWeekends: true,
+        showHolidays: true,
+        colorScheme: 'DEFAULT'
+      }),
+      overlapEnabled: true,
+      overlapCalculation: 'PERCENTAGE',
+      overlapThreshold: 20.0,
+      excludeLeaveTypes: JSON.stringify(['SICK_LEAVE']),
+      minimumTeamSize: 3,
+      overlapActions: JSON.stringify({
+        showWarning: true,
+        blockApplication: false,
+        notifyManager: true
+      }),
+      externalCalendarEnabled: false,
+      syncProviders: null,
+      syncFrequencyMinutes: 30,
+      showEmployeeNames: true,
+      showLeaveTypes: true,
+      showLeaveDuration: true,
+      showLeaveReason: false,
+      isActive: true
+    }
+  });
+
+  // 2. IT Department Calendar (stricter overlap rules)
+  const itCalendar = await prisma.teamCalendarConfiguration.create({
+    data: {
+      department: 'Information Technology',
+      teamDefinitionType: 'DEPARTMENT',
+      includeSubordinates: true,
+      subordinateDepth: 3,
+      displayConfig: JSON.stringify({
+        defaultView: 'WEEK',
+        showWeekends: false,
+        showHolidays: true,
+        colorScheme: 'TECH'
+      }),
+      overlapEnabled: true,
+      overlapCalculation: 'ABSOLUTE_COUNT',
+      overlapThreshold: 2.0,
+      excludeLeaveTypes: JSON.stringify(['SICK_LEAVE', 'COMP_OFF']),
+      minimumTeamSize: 5,
+      overlapActions: JSON.stringify({
+        showWarning: true,
+        blockApplication: true,
+        notifyManager: true,
+        requireManagerOverride: true
+      }),
+      externalCalendarEnabled: true,
+      syncProviders: JSON.stringify(['GOOGLE', 'OUTLOOK']),
+      syncFrequencyMinutes: 15,
+      showEmployeeNames: true,
+      showLeaveTypes: true,
+      showLeaveDuration: true,
+      showLeaveReason: false,
+      isActive: true
+    }
+  });
+
+  console.log(`✅ Created 2 team calendar configurations`);
+
   console.log('✅ Comprehensive database seeded successfully!');
   console.log('📊 Created:');
   console.log('  - 6 Departments (HR, IT, Sales, Marketing, Finance, Operations)');
@@ -1274,6 +1588,9 @@ async function main() {
   console.log('  - 17 Holidays (National, Regional, Company-specific)');
   console.log('  - 15 Notifications (Approvals, Rejections, Reminders)');
   console.log('  - 10 Audit Logs (Login, Leave actions, System activities)');
+  console.log('  - 4 Workflow Configurations (Leave, Comp Off, LWP, Fast Track)');
+  console.log('  - 3 Leave Duration Configurations (India, USA, Global)');
+  console.log('  - 2 Team Calendar Configurations (Default, IT Department)');
   console.log('');
   console.log('🔐 Login Credentials (INDIA):');
   console.log('  HR Admin: admin@company.com / password123');

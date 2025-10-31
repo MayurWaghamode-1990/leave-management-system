@@ -548,3 +548,328 @@ model SystemConfiguration {
   @@index([isActive])
   @@map("system_configurations")
 }
+
+// Leave Type Configuration - Enhanced configurable leave types
+model LeaveTypeConfiguration {
+  id                    String   @id @default(cuid())
+  leaveTypeCode         String   @unique // CASUAL_LEAVE, PRIVILEGE_LEAVE, PTO, etc.
+  displayName           String
+  description           String?
+  region                String   // INDIA, USA, GLOBAL
+  isActive              Boolean  @default(true)
+  sortOrder             Int      @default(0)
+
+  // Entitlement Configuration
+  defaultEntitlement    Float    @default(0)
+  allowNegativeBalance  Boolean  @default(false)
+  negativeBalanceLimit  Float    @default(0)
+
+  // Documentation Requirements
+  requiresDocumentation Boolean  @default(false)
+  documentationThreshold Int     @default(0) // Days threshold for requiring documentation
+
+  // Eligibility Criteria (JSON)
+  eligibilityCriteria   String?  @db.Text // JSON: gender, maritalStatus, tenure, designation, etc.
+
+  // Leave Application Rules
+  minimumAdvanceNoticeDays Int   @default(0)
+  maxFutureBookingDays     Int   @default(365)
+  minimumGapDays           Int   @default(0)
+  maxConsecutiveDays       Int   @default(365)
+  allowBackdatedLeave      Boolean @default(false)
+  backdatedLimitDays       Int   @default(0)
+
+  // Duration Options
+  allowFullDay         Boolean  @default(true)
+  allowHalfDay         Boolean  @default(true)
+  allowQuarterDay      Boolean  @default(false)
+  allowHourly          Boolean  @default(false)
+
+  // Color for UI
+  colorCode            String   @default("#3B82F6")
+  icon                 String?
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([region])
+  @@index([isActive])
+  @@map("leave_type_configurations")
+}
+
+// Dashboard Widget Configuration
+model DashboardConfiguration {
+  id                String   @id @default(cuid())
+  userId            String?  // User-specific or null for role-based
+  role              String?  // Role-based default configuration
+  isDefault         Boolean  @default(false)
+  name              String
+  description       String?
+
+  // Layout Configuration (JSON)
+  layoutConfig      String   @db.Text // JSON: grid layout, widget positions, sizes
+
+  // Theme Configuration
+  colorScheme       String   @default("LIGHT") // LIGHT, DARK, AUTO
+  primaryColor      String   @default("#3B82F6")
+  accentColor       String   @default("#10B981")
+
+  // Preferences
+  defaultView       String   @default("GRID") // GRID, LIST
+  compactMode       Boolean  @default(false)
+  showAnimations    Boolean  @default(true)
+
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([role])
+  @@index([isDefault])
+  @@map("dashboard_configurations")
+}
+
+// Widget Definition - Available widgets in the system
+model WidgetDefinition {
+  id                    String   @id @default(cuid())
+  widgetType            String   @unique // LEAVE_BALANCE, UPCOMING_HOLIDAYS, TEAM_CALENDAR, etc.
+  displayName           String
+  description           String?
+  category              String   // PERSONAL, TEAM, ANALYTICS, ADMIN
+  icon                  String?
+
+  // Size Constraints
+  defaultWidth          Int      @default(4) // Grid columns (out of 12)
+  defaultHeight         Int      @default(3) // Grid rows
+  minWidth              Int      @default(2)
+  minHeight             Int      @default(2)
+  maxWidth              Int      @default(12)
+  maxHeight             Int      @default(8)
+
+  // Configuration Schema (JSON)
+  configurableProperties String? // JSON: list of configurable properties
+
+  // Data and Rendering
+  dataSourceEndpoint    String?  // API endpoint for data
+  refreshIntervalSeconds Int     @default(0) // 0 = no auto-refresh
+
+  // Permissions
+  requiredPermissions   String?  // JSON array of required permissions
+  allowedRoles          String?  // JSON array of allowed roles
+
+  isCustom              Boolean  @default(false)
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("widget_definitions")
+}
+
+// Bulk Action Configuration
+model BulkActionConfiguration {
+  id                    String   @id @default(cuid())
+  actionType            String   // APPROVE, REJECT, CANCEL, EXPORT, EMAIL, STATUS_UPDATE
+  enabled               Boolean  @default(true)
+  allowedRoles          String   // JSON array of allowed roles
+
+  // Limits
+  maxItemsPerAction     Int      @default(100)
+  requiresConfirmation  Boolean  @default(true)
+  requiresReason        Boolean  @default(false)
+
+  // Validation Rules (JSON)
+  validationRules       String?  @db.Text // JSON: sameLeaveType, sameDepartment, etc.
+
+  // Confirmation Dialog Config (JSON)
+  confirmationConfig    String?  @db.Text // JSON: showSummary, summaryFields, warningThreshold
+
+  // Audit Configuration (JSON)
+  auditConfig           String   @db.Text // JSON: logLevel, captureBeforeState, notifyOnCompletion
+
+  // Performance
+  executionMode         String   @default("SYNCHRONOUS") // SYNCHRONOUS, ASYNCHRONOUS, BATCHED
+  batchSize             Int      @default(50)
+  timeoutSeconds        Int      @default(300)
+
+  // Rollback
+  allowRollback         Boolean  @default(false)
+  rollbackWindowMinutes Int      @default(60)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([actionType])
+  @@index([enabled])
+  @@map("bulk_action_configurations")
+}
+
+// Workflow Configuration - Dynamic approval workflows
+model WorkflowConfiguration {
+  id                String   @id @default(cuid())
+  workflowType      String   // LEAVE_REQUEST, COMP_OFF_REQUEST, LWP_REQUEST
+  name              String
+  description       String?
+  isDefault         Boolean  @default(false)
+  priority          Int      @default(0)
+
+  // Conditions for applying this workflow (JSON)
+  conditions        String?  @db.Text // JSON: leaveType, duration, department, etc.
+
+  // Workflow Steps (JSON)
+  steps             String   @db.Text // JSON array of workflow steps with levels, roles, execution mode
+
+  // Auto-approval Rules (JSON)
+  autoApprovalRules String?  @db.Text // JSON: conditions for auto-approval
+
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([workflowType])
+  @@index([isDefault])
+  @@index([isActive])
+  @@map("workflow_configurations")
+}
+
+// Leave Application Field Configuration
+model LeaveApplicationFieldConfig {
+  id                String   @id @default(cuid())
+  leaveTypeCode     String   // Reference to leave type
+  fieldName         String
+  displayLabel      String
+  fieldType         String   // TEXT, TEXTAREA, FILE, PHONE, EMAIL, DATE, USER_SELECTION
+
+  // Mandatory Settings
+  isMandatory       Boolean  @default(false)
+  conditionalMandatory String? @db.Text // JSON: conditions when field becomes mandatory
+
+  // Validation Rules (JSON)
+  validationRules   String?  @db.Text // JSON: minLength, maxLength, pattern, allowedFileTypes, etc.
+
+  // Display Settings
+  helpText          String?
+  placeholder       String?
+  defaultValue      String?
+  sortOrder         Int      @default(0)
+
+  // Permissions
+  visibleToRoles    String   // JSON array
+  editableByRoles   String   // JSON array
+
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([leaveTypeCode, fieldName])
+  @@index([leaveTypeCode])
+  @@map("leave_application_field_configs")
+}
+
+// Leave Duration Configuration
+model LeaveDurationConfiguration {
+  id                String   @id @default(cuid())
+  region            String   // INDIA, USA, GLOBAL
+
+  // Full Day Configuration
+  fullDayEnabled    Boolean  @default(true)
+  fullDayHours      Float    @default(8.0)
+
+  // Half Day Configuration
+  halfDayEnabled    Boolean  @default(true)
+  halfDayHours      Float    @default(4.0)
+  halfDaySlots      String?  @db.Text // JSON: slots with times
+
+  // Quarter Day Configuration
+  quarterDayEnabled Boolean  @default(false)
+  quarterDayHours   Float    @default(2.0)
+  quarterDaySlots   String?  @db.Text // JSON: slots with times
+
+  // Hourly Configuration
+  hourlyEnabled     Boolean  @default(false)
+  minimumHours      Float    @default(1.0)
+  maximumHours      Float    @default(8.0)
+  allowedLeaveTypes String?  @db.Text // JSON: array of leave types that allow hourly
+
+  // Rounding Rules
+  allowMixedDuration Boolean @default(false)
+  roundingMethod    String   @default("NEAREST") // UP, DOWN, NEAREST
+  roundingPrecision Float    @default(0.5)
+
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([region])
+  @@map("leave_duration_configurations")
+}
+
+// Team Calendar Configuration
+model TeamCalendarConfiguration {
+  id                    String   @id @default(cuid())
+  department            String?  // Department-specific or null for global
+
+  // Team Definition
+  teamDefinitionType    String   @default("REPORTING_HIERARCHY") // REPORTING_HIERARCHY, DEPARTMENT, CUSTOM_GROUP
+  includeSubordinates   Boolean  @default(true)
+  subordinateDepth      Int      @default(2)
+
+  // Display Configuration (JSON)
+  displayConfig         String   @db.Text // JSON: defaultView, colors, showWeekends, etc.
+
+  // Overlap Rules
+  overlapEnabled        Boolean  @default(false)
+  overlapCalculation    String   @default("PERCENTAGE") // PERCENTAGE, ABSOLUTE_COUNT
+  overlapThreshold      Float    @default(20.0)
+  excludeLeaveTypes     String?  @db.Text // JSON array
+  minimumTeamSize       Int      @default(2)
+
+  // Overlap Actions (JSON)
+  overlapActions        String   @db.Text // JSON: showWarning, blockApplication, notifyManager
+
+  // External Calendar Integration
+  externalCalendarEnabled Boolean @default(false)
+  syncProviders         String?  @db.Text // JSON: GOOGLE, OUTLOOK, APPLE
+  syncFrequencyMinutes  Int      @default(30)
+
+  // Privacy Settings
+  showEmployeeNames     Boolean  @default(true)
+  showLeaveTypes        Boolean  @default(true)
+  showLeaveDuration     Boolean  @default(true)
+  showLeaveReason       Boolean  @default(false)
+
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([department])
+  @@map("team_calendar_configurations")
+}
+
+// Leave Balance Visibility Configuration
+model LeaveBalanceVisibilityConfig {
+  id                        String   @id @default(cuid())
+  role                      String   @unique
+
+  // Visibility Permissions
+  canViewOwnBalance         Boolean  @default(true)
+  canViewTeamBalance        Boolean  @default(false)
+  canViewDepartmentBalance  Boolean  @default(false)
+  canViewOrganizationBalance Boolean @default(false)
+  canViewBalanceHistory     Boolean  @default(false)
+  canViewProjectedBalance   Boolean  @default(false)
+  canExportBalances         Boolean  @default(false)
+
+  // Display Options (JSON)
+  displayOptions            String   @db.Text // JSON: showInDashboard, showDetailedBreakdown, etc.
+
+  // Alert Configuration (JSON)
+  alertConfig               String?  @db.Text // JSON: thresholds, notification channels
+
+  isActive                  Boolean  @default(true)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("leave_balance_visibility_configs")
+}
