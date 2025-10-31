@@ -928,3 +928,222 @@ model LeaveBalanceVisibilityConfig {
 
   @@map("leave_balance_visibility_configs")
 }
+
+// USA PTO Automation Models
+model UsaPtoPolicy {
+  id                    String    @id @default(cuid())
+  designation           String    // VP, AVP, SENIOR_MANAGER, MANAGER, etc.
+  annualPtoDays         Float     // Annual PTO entitlement
+  accrualFrequency      String    @default("YEARLY") // YEARLY, MONTHLY, BI_WEEKLY
+  accrualRate           Float     // Days accrued per period
+  maxCarryForward       Float     @default(5) // Max days that can be carried forward
+  carryForwardExpiry    Int       @default(90) // Days until carry-forward expires (Q1)
+  proRataCalculation    Boolean   @default(true) // Enable pro-rata for mid-year joiners
+  minimumServiceMonths  Int       @default(0) // Minimum service months to accrue
+  isActive              Boolean   @default(true)
+  effectiveFrom         DateTime  @default(now())
+  effectiveTo           DateTime?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([designation])
+  @@index([isActive])
+  @@map("usa_pto_policies")
+}
+
+model UsaPtoAccrual {
+  id                  String    @id @default(cuid())
+  employeeId          String
+  year                Int
+  month               Int?      // Null for yearly accrual
+  designation         String
+  accrualAmount       Float     // PTO days accrued this period
+  carryForwardAmount  Float     @default(0) // Carried from previous year
+  totalAvailable      Float     // accrualAmount + carryForwardAmount
+  used                Float     @default(0)
+  balance             Float     // totalAvailable - used
+  proRated            Boolean   @default(false) // Was this pro-rated?
+  proRataMonths       Int?      // Number of months worked (for mid-year joiners)
+  status              String    @default("PROCESSED") // PROCESSED, SKIPPED, ERROR
+  notes               String?   @db.Text
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([employeeId, year, month])
+  @@index([employeeId])
+  @@index([year])
+  @@index([status])
+  @@map("usa_pto_accruals")
+}
+
+model UsaPtoCarryForward {
+  id                    String    @id @default(cuid())
+  employeeId            String
+  fromYear              Int
+  toYear                Int
+  carriedDays           Float     // Days carried forward
+  expiryDate            DateTime  // Typically March 31st of toYear
+  used                  Float     @default(0)
+  expired               Float     @default(0)
+  remaining             Float     // carriedDays - used - expired
+  status                String    @default("ACTIVE") // ACTIVE, EXPIRED, FULLY_USED
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([employeeId, fromYear, toYear])
+  @@index([employeeId])
+  @@index([status])
+  @@index([expiryDate])
+  @@map("usa_pto_carry_forwards")
+}
+
+// Advanced Reporting & Analytics Models
+model LeaveAnalytics {
+  id                      String    @id @default(cuid())
+  reportDate              DateTime  @default(now())
+  reportType              String    // DAILY, WEEKLY, MONTHLY, QUARTERLY, YEARLY
+  department              String?
+  location                String?
+  region                  String?   // USA, INDIA
+
+  // Leave Statistics
+  totalLeaveRequests      Int       @default(0)
+  approvedLeaves          Int       @default(0)
+  rejectedLeaves          Int       @default(0)
+  pendingLeaves           Int       @default(0)
+  cancelledLeaves         Int       @default(0)
+  totalLeaveDays          Float     @default(0)
+  averageLeaveDuration    Float     @default(0)
+
+  // Leave Type Breakdown (JSON)
+  leaveTypeBreakdown      String    @db.Text // JSON: {CASUAL_LEAVE: 50, SICK_LEAVE: 30, ...}
+
+  // Absenteeism Metrics
+  totalWorkingDays        Int       @default(0)
+  totalAbsentDays         Float     @default(0)
+  absenteeismRate         Float     @default(0) // Percentage
+  employeeCount           Int       @default(0)
+  averageAbsencePerEmployee Float   @default(0)
+
+  // Peak Period Analysis
+  peakLeaveMonth          String?
+  peakLeaveDays           Float     @default(0)
+  peakLeaveWeek           String?   // ISO week number
+
+  // Team Utilization
+  teamSize                Int       @default(0)
+  teamAvailability        Float     @default(100) // Percentage
+  criticalCoverageAlerts  Int       @default(0)
+
+  // Metadata
+  generatedAt             DateTime  @default(now())
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([reportDate])
+  @@index([reportType])
+  @@index([department])
+  @@index([region])
+  @@map("leave_analytics")
+}
+
+model DepartmentLeaveStats {
+  id                        String    @id @default(cuid())
+  department                String
+  month                     Int       // 1-12
+  year                      Int
+
+  // Department Metrics
+  totalEmployees            Int       @default(0)
+  leavesThisMonth           Int       @default(0)
+  totalLeaveDays            Float     @default(0)
+  averageLeaveDaysPerEmployee Float   @default(0)
+
+  // Leave Type Distribution
+  casualLeaves              Int       @default(0)
+  sickLeaves                Int       @default(0)
+  earnedLeaves              Int       @default(0)
+  maternityLeaves           Int       @default(0)
+  paternityLeaves           Int       @default(0)
+  unpaidLeaves              Int       @default(0)
+
+  // Trends
+  monthOverMonthChange      Float     @default(0) // Percentage
+  yearOverYearChange        Float     @default(0) // Percentage
+  absenteeismTrend          String    @default("STABLE") // INCREASING, DECREASING, STABLE
+
+  // Predictions (JSON)
+  nextMonthForecast         String?   @db.Text // JSON: predicted leave count
+
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  @@unique([department, year, month])
+  @@index([department])
+  @@index([year, month])
+  @@map("department_leave_stats")
+}
+
+model LeavePatternAnalysis {
+  id                      String    @id @default(cuid())
+  employeeId              String?   // Null for organization-wide patterns
+  patternType             String    // SEASONAL, DAY_OF_WEEK, PRE_WEEKEND, POST_WEEKEND, HOLIDAY_ADJACENT
+
+  // Pattern Details (JSON)
+  patternData             String    @db.Text // JSON: detailed pattern information
+
+  // Frequency
+  occurrenceCount         Int       @default(0)
+  confidence              Float     @default(0) // 0-100 percentage
+
+  // Time Range
+  analyzedFrom            DateTime
+  analyzedTo              DateTime
+
+  // Insights
+  recommendation          String?   @db.Text
+  riskLevel               String    @default("LOW") // LOW, MEDIUM, HIGH
+
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([patternType])
+  @@index([confidence])
+  @@map("leave_pattern_analysis")
+}
+
+model TeamAvailabilityForecast {
+  id                    String    @id @default(cuid())
+  department            String
+  forecastDate          DateTime  // The date being forecasted
+
+  // Team Metrics
+  totalTeamSize         Int
+  projectedAbsent       Int       // Predicted number absent
+  projectedAvailable    Int       // Predicted number available
+  availabilityRate      Float     // Percentage
+
+  // Risk Assessment
+  riskLevel             String    @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  criticalRoles         String?   @db.Text // JSON: array of roles at risk
+
+  // Recommendations (JSON)
+  recommendations       String?   @db.Text // JSON: suggested actions
+
+  // Forecast Metadata
+  confidenceScore       Float     @default(0) // 0-100
+  modelVersion          String    @default("1.0")
+  generatedAt           DateTime  @default(now())
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([department])
+  @@index([forecastDate])
+  @@index([riskLevel])
+  @@map("team_availability_forecasts")
+}
