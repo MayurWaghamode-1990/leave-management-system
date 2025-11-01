@@ -30,132 +30,61 @@ import GradientButton from '@/components/common/GradientButton'
 import { fadeInUp, fadeInDown, scaleIn } from '@/theme/animations'
 
 // Test user credentials - EXACT MATCH with MySQL Database
+// These credentials match the users created in backend/src/scripts/dev-seed.ts
 const TEST_USERS = [
   {
-    id: 'admin',
-    name: 'Maya Sharma',
+    id: 'admin-001',
+    name: 'System Administrator',
     email: 'admin@company.com',
-    password: 'password123',
+    password: 'admin123',
     role: 'Admin',
+    department: 'IT',
+    description: 'System Admin • Full access • Mumbai'
+  },
+  {
+    id: 'mgr-hr',
+    name: 'HR Manager',
+    email: 'hr.manager@company.com',
+    password: 'manager123',
+    role: 'Manager',
     department: 'Human Resources',
-    description: 'HR Admin • Full system access • Bengaluru'
+    description: 'HR Manager • Reports to Admin • Mumbai'
   },
   {
-    id: 'manager1',
+    id: 'mgr-engineering',
     name: 'Rajesh Kumar',
-    email: 'manager@company.com',
-    password: 'password123',
+    email: 'engineering.manager@company.com',
+    password: 'manager123',
     role: 'Manager',
-    department: 'Information Technology',
-    description: 'IT Manager • 3 team members • Bengaluru'
+    department: 'Engineering',
+    description: 'Engineering Manager • Reports to Admin • Bangalore'
   },
   {
-    id: 'manager2',
-    name: 'Amit Gupta',
-    email: 'sales.manager@company.com',
-    password: 'password123',
-    role: 'Manager',
-    department: 'Sales',
-    description: 'Sales Manager • 2 team members • Mumbai'
-  },
-  {
-    id: 'manager3',
-    name: 'Sneha Reddy',
-    email: 'marketing.manager@company.com',
-    password: 'password123',
-    role: 'Manager',
-    department: 'Marketing',
-    description: 'Marketing Manager • 2 team members • Delhi'
-  },
-  {
-    id: 'employee1',
-    name: 'Priya Patel',
-    email: 'user@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Information Technology',
-    description: 'IT Developer • Reports to Rajesh • Bengaluru'
-  },
-  {
-    id: 'employee2',
-    name: 'Arjun Singh',
-    email: 'arjun@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Information Technology',
-    description: 'IT Developer • Reports to Rajesh • Bengaluru'
-  },
-  {
-    id: 'employee3',
-    name: 'Kavya Menon',
-    email: 'kavya@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Information Technology',
-    description: 'IT Developer • Reports to Rajesh • Bengaluru'
-  },
-  {
-    id: 'employee4',
+    id: 'emp-001',
     name: 'John Doe',
-    email: 'john@company.com',
-    password: 'password123',
+    email: 'john.doe@company.com',
+    password: 'employee123',
     role: 'Employee',
-    department: 'Sales',
-    description: 'Sales Executive • Reports to Amit • Mumbai'
+    department: 'Engineering',
+    description: 'Software Developer • Reports to Rajesh • Bangalore'
   },
   {
-    id: 'employee5',
-    name: 'Rahul Verma',
-    email: 'rahul@company.com',
-    password: 'password123',
+    id: 'emp-002',
+    name: 'Jane Smith',
+    email: 'jane.smith@company.com',
+    password: 'employee123',
     role: 'Employee',
-    department: 'Sales',
-    description: 'Sales Executive • Reports to Amit • Mumbai'
+    department: 'Engineering',
+    description: 'Software Developer • Reports to Rajesh • Bangalore'
   },
   {
-    id: 'employee6',
-    name: 'Anita Joshi',
-    email: 'anita@company.com',
-    password: 'password123',
+    id: 'emp-hr-001',
+    name: 'Sarah Wilson',
+    email: 'sarah.wilson@company.com',
+    password: 'employee123',
     role: 'Employee',
-    department: 'Marketing',
-    description: 'Marketing Employee • Reports to Sneha • Delhi'
-  },
-  {
-    id: 'employee7',
-    name: 'Deepak Agarwal',
-    email: 'deepak@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Marketing',
-    description: 'Marketing Employee • Reports to Sneha • Delhi'
-  },
-  {
-    id: 'employee8',
-    name: 'Suresh Nair',
-    email: 'suresh@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Finance',
-    description: 'Finance Employee • Bengaluru'
-  },
-  {
-    id: 'employee9',
-    name: 'Meera Iyer',
-    email: 'meera@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Finance',
-    description: 'Finance Employee • Bengaluru'
-  },
-  {
-    id: 'employee10',
-    name: 'Vikram Yadav',
-    email: 'vikram@company.com',
-    password: 'password123',
-    role: 'Employee',
-    department: 'Operations',
-    description: 'Operations Employee • Pune'
+    department: 'Human Resources',
+    description: 'HR Executive • Reports to HR Manager • Mumbai'
   }
 ]
 
