@@ -70,6 +70,7 @@ const io = new SocketIOServer(server, {
       'http://localhost:5176',
       'http://localhost:5177',
       'http://localhost:5178',
+      'http://192.168.1.35:5173',
       process.env.CORS_ORIGIN || 'http://localhost:5174'
     ],
     methods: ['GET', 'POST'],
@@ -99,6 +100,7 @@ app.use(cors({
     'http://localhost:5176',
     'http://localhost:5177',
     'http://localhost:5178',
+    'http://192.168.1.35:5173',
     process.env.CORS_ORIGIN || 'http://localhost:5174'
   ],
   credentials: true,
