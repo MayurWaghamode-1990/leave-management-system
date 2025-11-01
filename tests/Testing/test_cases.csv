@@ -1,0 +1,504 @@
+TestID,Title,Priority,Category,Pre-conditions,Steps,TestDataReference,ExpectedResult,Notes
+TC_AUTH_001,Login with valid Employee credentials,High,Functional,User exists in system,"1. Navigate to login page
+2. Enter email: DATA_001
+3. Enter password: DATA_001
+4. Click Login button",DATA_001,"User logged in successfully, redirected to dashboard, role=EMPLOYEE",Critical auth flow
+TC_AUTH_002,Login with valid Manager credentials,High,Functional,Manager user exists,"1. Navigate to login page
+2. Enter email: DATA_002
+3. Enter password: DATA_002
+4. Click Login button",DATA_002,"User logged in successfully, redirected to dashboard, role=MANAGER",Manager access validation
+TC_AUTH_003,Login with valid HR credentials,High,Functional,HR user exists,"1. Navigate to login page
+2. Enter email: DATA_003
+3. Enter password: DATA_003
+4. Click Login button",DATA_003,"User logged in successfully, redirected to dashboard, role=HR",HR access validation
+TC_AUTH_004,Login with valid Admin credentials,High,Functional,Admin user exists,"1. Navigate to login page
+2. Enter email: DATA_004
+3. Enter password: DATA_004
+4. Click Login button",DATA_004,"User logged in successfully, redirected to admin dashboard, role=ADMIN",Admin super-user access
+TC_AUTH_005,Login with invalid credentials,High,Negative,User exists,"1. Navigate to login page
+2. Enter email: DATA_001
+3. Enter wrong password: WrongPassword123
+4. Click Login button",DATA_001,"Error message: 'Invalid credentials', user not logged in",Security - invalid password
+TC_AUTH_006,Login with non-existent user,Medium,Negative,NA,"1. Navigate to login page
+2. Enter email: nonexistent@test.com
+3. Enter password: Test@123
+4. Click Login button",N/A,"Error message: 'User not found', user not logged in",Security - user enumeration check
+TC_AUTH_007,Login with empty credentials,Medium,Negative,NA,"1. Navigate to login page
+2. Leave email and password empty
+3. Click Login button",N/A,"Validation errors: 'Email required', 'Password required'",Client-side validation
+TC_AUTH_008,Token expiration after timeout,High,Security,User logged in,"1. Login successfully
+2. Wait for token expiration (30 min assumed)
+3. Try to access protected API endpoint",DATA_001,"401 Unauthorized error, user redirected to login",JWT token expiration
+TC_AUTH_009,Concurrent login sessions,Medium,Security,User credentials,"1. Login on browser 1
+2. Login same user on browser 2
+3. Verify both sessions active",DATA_001,"Both sessions active OR session 1 invalidated (depends on design)",Session management
+TC_AUTH_010,Logout functionality,High,Functional,User logged in,"1. Login successfully
+2. Click Logout button
+3. Try accessing protected page",DATA_001,"User logged out, token invalidated, redirected to login page",Session termination
+TC_LEAVE_001,Apply full day Casual Leave - India employee,High,Functional,"India employee logged in, CL balance > 0","1. Navigate to Leave Application
+2. Select Leave Type: Casual Leave
+3. Select Date From: 2024-12-10 (weekday)
+4. Select Date To: 2024-12-10
+5. Select Duration: Full Day
+6. Enter Reason: Personal work
+7. Click Submit",DATA_010,"Leave request created with status 'PENDING_L1_APPROVAL', balance reduced by 1, email sent to manager",Core leave functionality
+TC_LEAVE_002,Apply half day Privilege Leave - first half,High,Functional,"India employee logged in, PL balance > 0","1. Navigate to Leave Application
+2. Select Leave Type: Privilege Leave
+3. Select Date From: 2024-12-11
+4. Select Date To: 2024-12-11
+5. Select Duration: Half Day
+6. Select Half: First Half
+7. Enter Reason: Medical appointment
+8. Click Submit",DATA_010,"Leave request created, balance reduced by 0.5, email sent",Half-day leave logic
+TC_LEAVE_003,Apply half day leave - second half,High,Functional,"India employee, PL balance > 0","1. Navigate to Leave Application
+2. Select Leave Type: Privilege Leave
+3. Select Date From: 2024-12-12
+4. Select Date To: 2024-12-12
+5. Select Duration: Half Day
+6. Select Half: Second Half
+7. Enter Reason: Personal
+8. Click Submit",DATA_010,"Leave request created, balance reduced by 0.5, status PENDING",Second half logic
+TC_LEAVE_004,Apply multi-day leave excluding weekends,High,Functional,"Employee logged in, sufficient balance","1. Navigate to Leave Application
+2. Select Leave Type: Privilege Leave
+3. Select Date From: 2024-12-09 (Monday)
+4. Select Date To: 2024-12-13 (Friday)
+5. Duration: Full Day
+6. Reason: Vacation
+7. Submit",DATA_010,"Leave created for 5 days (Mon-Fri), weekends excluded, balance reduced by 5",Weekend exclusion logic
+TC_LEAVE_005,Apply multi-day leave including holiday,High,Functional,"Employee logged in, holiday exists 2024-12-25","1. Navigate to Leave Application
+2. Select Leave Type: Casual Leave
+3. Date From: 2024-12-24 (Tue)
+4. Date To: 2024-12-26 (Thu)
+5. Duration: Full Day
+6. Reason: Christmas holiday
+7. Submit",DATA_010,"Leave created for 2 days only (24th and 26th), 25th (holiday) excluded, balance reduced by 2",Holiday exclusion logic
+TC_LEAVE_006,Apply leave with insufficient balance,High,Negative,"Employee balance: 0.5 days","1. Navigate to Leave Application
+2. Select Leave Type: Casual Leave
+3. Date From: 2024-12-10
+4. Date To: 2024-12-11 (2 days)
+5. Duration: Full Day
+6. Submit",DATA_011,"Error: 'Insufficient leave balance. Available: 0.5, Required: 2'",Insufficient balance validation
+TC_LEAVE_007,Apply leave for past date,High,Negative,Employee logged in,"1. Navigate to Leave Application
+2. Select Leave Type: Privilege Leave
+3. Date From: 2024-11-01 (past date)
+4. Date To: 2024-11-01
+5. Submit",DATA_010,"Error: 'Cannot apply leave for past dates'",Past date validation
+TC_LEAVE_008,Apply leave with Date To before Date From,Medium,Negative,Employee logged in,"1. Navigate to Leave Application
+2. Select Leave Type: Casual Leave
+3. Date From: 2024-12-15
+4. Date To: 2024-12-10 (before From)
+5. Submit",DATA_010,"Error: 'End date cannot be before start date'",Date range validation
+TC_LEAVE_009,Apply overlapping leave,High,Negative,"Existing leave: 2024-12-10 to 2024-12-12","1. Navigate to Leave Application
+2. Select Leave Type: Privilege Leave
+3. Date From: 2024-12-11
+4. Date To: 2024-12-13
+5. Submit",DATA_012,"Error: 'Leave overlaps with existing leave (12/10-12/12)'",Overlap prevention
+TC_LEAVE_010,Apply leave without selecting leave type,Medium,Negative,Employee logged in,"1. Navigate to Leave Application
+2. Leave 'Leave Type' unselected
+3. Date From: 2024-12-10
+4. Date To: 2024-12-10
+5. Submit",N/A,"Validation error: 'Leave type is required'",Mandatory field validation
+TC_LEAVE_011,Apply leave without reason,Medium,Negative,Employee logged in,"1. Navigate to Leave Application
+2. Select Leave Type: Casual Leave
+3. Date From: 2024-12-10
+4. Date To: 2024-12-10
+5. Leave Reason empty
+6. Submit",DATA_010,"Validation error: 'Reason is required'",Mandatory field - reason
+TC_LEAVE_012,View leave balance on dashboard,High,Functional,Employee logged in,"1. Login as employee
+2. Navigate to Dashboard
+3. Observe Leave Balance section",DATA_010,"Dashboard displays: CL balance, PL balance, Comp Off balance, accurate values",Dashboard data accuracy
+TC_LEAVE_013,View leave application status - Pending,High,Functional,"Leave submitted, pending approval","1. Login as employee
+2. Navigate to Leave Application Status
+3. View submitted leave",DATA_010,"Leave displayed with status 'Pending L1 Approval', Manager name visible",Status tracking
+TC_LEAVE_014,View leave application status - Approved,High,Functional,"Leave approved by manager","1. Login as employee
+2. Navigate to Leave Application Status
+3. View approved leave",DATA_013,"Leave displayed with status 'Approved', Approver name and date visible",Approved status
+TC_LEAVE_015,View leave application status - Rejected,Medium,Functional,"Leave rejected by manager","1. Login as employee
+2. Navigate to Leave Application Status
+3. View rejected leave",DATA_014,"Leave displayed with status 'Rejected', Rejection reason visible",Rejected status
+TC_LEAVE_016,Cancel pending leave,High,Functional,Leave in pending status,"1. Login as employee
+2. Navigate to Leave Application Status
+3. Select pending leave
+4. Click Cancel button
+5. Confirm cancellation",DATA_010,"Leave cancelled, status changed to 'CANCELLED', balance restored, email sent",Cancellation flow
+TC_LEAVE_017,Attempt to cancel approved leave,Medium,Negative,Leave approved,"1. Login as employee
+2. Navigate to Leave Application Status
+3. Select approved leave
+4. Try to cancel",DATA_013,"Error: 'Cannot cancel approved leave. Contact HR' OR cancel allowed with manager approval",Business rule - cancellation
+TC_LEAVE_018,Manager approves leave request,High,Functional,"Leave pending L1 approval, manager logged in","1. Login as manager
+2. Navigate to Leave Approval
+3. Select pending leave request
+4. Click Approve
+5. Confirm",DATA_020,"Leave status changed to 'APPROVED' or 'PENDING_HR' (if HR approval needed), email sent to employee and HR",Manager approval flow
+TC_LEAVE_019,Manager rejects leave request,High,Functional,"Leave pending, manager logged in","1. Login as manager
+2. Navigate to Leave Approval
+3. Select pending leave
+4. Enter rejection reason: Team coverage issue
+5. Click Reject",DATA_020,"Leave status 'REJECTED', balance restored to employee, rejection reason stored, email sent",Manager rejection flow
+TC_LEAVE_020,Manager bulk approves multiple leaves,Medium,Functional,"Multiple pending leaves, manager logged in","1. Login as manager
+2. Navigate to Leave Approval
+3. Select multiple leave checkboxes (3 leaves)
+4. Click Bulk Approve
+5. Confirm",DATA_020,"All selected leaves approved, emails sent to all employees",Bulk action
+TC_LEAVE_021,HR approves leave after manager approval,High,Functional,"Leave approved by manager, pending HR","1. Login as HR
+2. Navigate to Admin Leave Approval
+3. Select leave pending HR approval
+4. Click Approve",DATA_030,"Leave status 'APPROVED' (final), employee notified",Multi-level approval
+TC_LEAVE_022,HR overrides manager rejection,High,Functional,"Leave rejected by manager, HR logged in","1. Login as HR
+2. Navigate to Admin Leave Approval
+3. Select rejected leave
+4. Override: Approve
+5. Enter override reason",DATA_030,"Leave status changed to 'APPROVED', override reason logged, notifications sent",HR override capability
+TC_LEAVE_023,View team calendar with leave overlaps,Medium,Functional,Manager logged in,"1. Login as manager
+2. Navigate to Leave Approval > Team Calendar
+3. Select date range: 2024-12-01 to 2024-12-31",DATA_020,"Calendar displays all team member leaves, overlapping leaves highlighted or flagged",Team calendar view
+TC_LEAVE_024,Apply PTO - USA AVP employee,High,Functional,"USA employee (AVP), PTO balance > 0","1. Login as USA employee (AVP)
+2. Navigate to Leave Application
+3. Select Leave Type: PTO
+4. Date From: 2024-12-10
+5. Date To: 2024-12-12 (3 days)
+6. Submit",DATA_040,"Leave request created, PTO balance reduced by 3, status PENDING",USA PTO functionality
+TC_LEAVE_025,Apply PTO - USA VP employee,High,Functional,"USA VP employee, PTO balance > 0","1. Login as USA VP
+2. Navigate to Leave Application
+3. Select Leave Type: PTO
+4. Date From: 2024-12-15
+5. Date To: 2024-12-17 (3 days)
+6. Submit",DATA_041,"Leave request created, PTO balance reduced by 3",VP PTO allocation (20 days)
+TC_LEAVE_026,Apply Bereavement Leave - USA,High,Functional,USA employee logged in,"1. Login as USA employee
+2. Navigate to Leave Application
+3. Select Leave Type: Bereavement Leave
+4. Date From: 2024-12-18
+5. Date To: 2024-12-20 (3 days)
+6. Reason: Family bereavement
+7. Submit",DATA_040,"Leave request created, status PENDING, separate from PTO balance",Special leave type
+TC_LEAVE_027,Apply Maternity Leave - married female India,High,Functional,"India employee, female, married, ML balance 180 days","1. Login as married female employee
+2. Navigate to Leave Application
+3. Select Leave Type: Maternity Leave
+4. Date From: 2024-12-01
+5. Date To: 2025-05-29 (180 days)
+6. Attach medical certificate
+7. Submit",DATA_050,"Leave request created, ML balance reduced, CL/PL accrual paused during ML period",Maternity leave - eligibility
+TC_LEAVE_028,Apply Maternity Leave - unmarried female,High,Negative,"India employee, female, unmarried","1. Login as unmarried female employee
+2. Navigate to Leave Application
+3. Try to select Leave Type: Maternity Leave",DATA_051,"Maternity Leave option not visible OR error: 'Maternity leave only for married female employees'",Eligibility validation
+TC_LEAVE_029,Apply Maternity Leave - male employee,High,Negative,"India employee, male, married","1. Login as married male employee
+2. Try to select Leave Type: Maternity Leave",DATA_052,"Maternity Leave option not visible OR error: 'Not eligible'",Gender-based eligibility
+TC_LEAVE_030,Apply Paternity Leave - married male,High,Functional,"India employee, male, married, PL balance 5 days","1. Login as married male employee
+2. Navigate to Leave Application
+3. Select Leave Type: Paternity Leave
+4. Date From: 2024-12-10
+5. Date To: 2024-12-14 (5 days)
+6. Submit",DATA_052,"Leave request created, PL balance reduced by 5",Paternity leave - eligibility
+TC_LEAVE_031,Apply Paternity Leave - unmarried male,High,Negative,"India employee, male, unmarried","1. Login as unmarried male employee
+2. Try to apply Paternity Leave",DATA_053,"Paternity Leave not visible OR error: 'Only for married male employees'",Eligibility validation
+TC_LEAVE_032,Apply Leave Without Pay (LWP),Medium,Functional,"Employee logged in, no paid leave balance","1. Navigate to Leave Application
+2. Select Leave Type: LWP
+3. Date From: 2024-12-20
+4. Date To: 2024-12-22 (3 days)
+5. Reason: Personal emergency
+6. Submit",DATA_011,"LWP request created, no balance deduction, status PENDING, flagged for payroll",LWP - unpaid leave
+TC_COMPOFF_001,Apply comp off for weekend work - 8 hours,High,Functional,"Employee logged in, no comp off balance","1. Navigate to Comp Off Application
+2. Enter Date Worked: 2024-11-30 (Saturday)
+3. From Time: 09:00
+4. To Time: 17:00 (8 hours)
+5. Project: Project Alpha
+6. Submit",DATA_060,"Comp off request created, status PENDING_L1, 1 full day comp off calculated",Comp off - 8 hrs = 1 day
+TC_COMPOFF_002,Apply comp off for weekend work - 5 hours,High,Functional,Employee logged in,"1. Navigate to Comp Off Application
+2. Date Worked: 2024-12-01 (Sunday)
+3. From Time: 10:00
+4. To Time: 15:00 (5 hours)
+5. Project: Project Beta
+6. Submit",DATA_060,"Comp off request created, 0.5 day comp off calculated, status PENDING",Comp off - 5 hrs = 0.5 day
+TC_COMPOFF_003,Apply comp off for weekday work,High,Negative,"Employee logged in, date is weekday","1. Navigate to Comp Off Application
+2. Date Worked: 2024-12-10 (Tuesday)
+3. From Time: 09:00
+4. To Time: 17:00
+5. Submit",DATA_060,"Error: 'Comp off only for weekend or holiday work'",Eligibility - weekends/holidays only
+TC_COMPOFF_004,Apply comp off for holiday work,High,Functional,"Employee logged in, 2024-12-25 is holiday","1. Navigate to Comp Off Application
+2. Date Worked: 2024-12-25 (holiday)
+3. From Time: 09:00
+4. To Time: 17:00 (8 hours)
+5. Project: Urgent delivery
+6. Submit",DATA_060,"Comp off request created, 1 day comp off, status PENDING",Comp off - holiday work
+TC_COMPOFF_005,Apply comp off for less than 5 hours,Medium,Negative,Employee logged in,"1. Navigate to Comp Off Application
+2. Date Worked: 2024-12-07 (Saturday)
+3. From Time: 10:00
+4. To Time: 14:30 (4.5 hours)
+5. Submit",DATA_060,"Error: 'Minimum 5 hours required for comp off'",Comp off threshold
+TC_COMPOFF_006,Manager L1 approves comp off,High,Functional,"Comp off pending L1, manager logged in","1. Login as L1 manager
+2. Navigate to Comp Off Approval
+3. Select pending comp off request
+4. Review work details
+5. Click Approve",DATA_061,"Comp off status changed to PENDING_L2, L2 manager notified",Multi-level comp off - L1
+TC_COMPOFF_007,Manager L2 approves comp off,High,Functional,"Comp off pending L2, L2 manager logged in","1. Login as L2 manager
+2. Navigate to Comp Off Approval
+3. Select comp off pending L2
+4. Click Approve",DATA_062,"Comp off status changed to PENDING_HR, HR notified",Multi-level comp off - L2
+TC_COMPOFF_008,HR approves comp off,High,Functional,"Comp off pending HR, HR logged in","1. Login as HR
+2. Navigate to Admin Comp Off Approval
+3. Select comp off
+4. Click Approve",DATA_030,"Comp off APPROVED, balance credited to employee, expiry date set (approval date + 3 months), email sent",Multi-level comp off - HR final
+TC_COMPOFF_009,Manager L1 rejects comp off,High,Functional,"Comp off pending L1, manager logged in","1. Login as L1 manager
+2. Navigate to Comp Off Approval
+3. Select comp off
+4. Enter reason: Work hours not verified
+5. Click Reject",DATA_061,"Comp off REJECTED, no balance credited, rejection reason stored, employee notified",Comp off rejection
+TC_COMPOFF_010,View comp off balance,High,Functional,"Employee with comp off balance, logged in","1. Login as employee
+2. Navigate to Comp Off Balance
+3. View balance details",DATA_063,"Displays: Earned Days, Used Days, Available Days, Expiring Soon count, table with earned dates and expiry dates",Comp off balance view
+TC_COMPOFF_011,Use comp off to apply leave,High,Functional,"Employee with comp off balance > 0","1. Login as employee
+2. Navigate to Leave Application
+3. Select Leave Type: Comp Off
+4. Date From: 2024-12-20
+5. Date To: 2024-12-20 (1 day)
+6. Submit",DATA_063,"Leave request created using comp off balance, comp off balance reduced by 1, status PENDING",Use comp off balance
+TC_COMPOFF_012,Comp off auto-expiry after 3 months,High,Functional,"Comp off approved on 2024-09-01, current date 2024-12-02","1. Run scheduled job: Comp Off Expiry Service
+2. Check employee comp off balance",DATA_064,"Comp off expired (status EXPIRED), balance not available, employee notified before expiry",Auto-expiry logic
+TC_COMPOFF_013,Comp off expiry reminder notification,Medium,Functional,"Comp off expiring in 7 days, reminder scheduled","1. Run scheduled reminder job
+2. Check employee email",DATA_064,"Email sent to employee: 'Your 1 day comp off is expiring on 2024-12-08. Use it before it expires.'",Expiry reminder
+TC_ACCRUAL_001,Monthly accrual - 1st of month India employee,High,Functional,"India employee, date is 1st of month, accrual job scheduled","1. System date: 2024-12-01 00:00
+2. Run accrual job
+3. Check employee leave balance",DATA_070,"1 CL and 1 PL credited to employee balance, total balance updated",Monthly accrual job
+TC_ACCRUAL_002,No accrual for USA employees on 1st of month,High,Functional,"USA employee, date is 1st of month","1. System date: 2024-12-01
+2. Run accrual job
+3. Check USA employee balance",DATA_071,"No accrual for USA employee, balance unchanged",USA annual allocation model
+TC_ACCRUAL_003,Joining-based accrual - joined 1st to 15th,High,Functional,"New India employee joined 2024-12-05","1. Employee onboarded with join date: 2024-12-05
+2. Initial balance calculated
+3. View leave balance",DATA_072,"1 full CL + 1 full PL credited for Dec (joined before 15th), pro-rata logic applied",Joining accrual - full month
+TC_ACCRUAL_004,Joining-based accrual - joined after 15th,High,Functional,"New India employee joined 2024-12-20","1. Employee onboarded with join date: 2024-12-20
+2. Initial balance calculated
+3. View leave balance",DATA_073,"0.5 CL + 0.5 PL credited for Dec (joined after 15th)",Joining accrual - half month
+TC_ACCRUAL_005,USA PTO allocation at year start - AVP,High,Functional,"USA AVP employee, year start 2024-01-01","1. Run annual PTO allocation job
+2. Check employee PTO balance",DATA_074,"15 days PTO credited to AVP employee at year start",USA PTO - AVP allocation
+TC_ACCRUAL_006,USA PTO allocation at year start - VP,High,Functional,"USA VP employee, year start 2024-01-01","1. Run annual PTO allocation job
+2. Check VP balance",DATA_075,"20 days PTO credited to VP employee at year start",USA PTO - VP allocation
+TC_ACCRUAL_007,USA PTO prorated for mid-year joining,High,Functional,"USA AVP joined 2024-07-01 (mid-year)","1. Employee onboarded with join date: 2024-07-01
+2. PTO balance calculated
+3. View balance",DATA_076,"Prorated PTO = (15 days / 12 months) × 6 months remaining = 7.5 days credited",USA PTO - prorated
+TC_ACCRUAL_008,No CL/PL accrual during maternity leave,High,Functional,"India female on maternity leave (180 days), accrual job runs","1. Employee on ML: 2024-12-01 to 2025-05-29
+2. Run monthly accrual job on 2025-01-01
+3. Check balance",DATA_077,"No CL/PL accrued during ML period, balance remains same",Maternity pause accrual
+TC_CARRYFORWARD_001,Year-end carry-forward - CL expiry India,High,Functional,"India employee with 3 CL balance, date: 2024-12-31","1. Run year-end carry-forward job on 2024-12-31
+2. Check employee balance on 2025-01-01",DATA_080,"CL balance reset to 0 on Jan 1, 2025, CL expired, employee notified",CL expiry rule
+TC_CARRYFORWARD_002,Year-end carry-forward - PL max 30 days,High,Functional,"India employee with 35 PL balance, date: 2024-12-31","1. Run carry-forward job on 2024-12-31
+2. Check balance on 2025-01-01",DATA_081,"Only 30 PL carried forward to 2025, 5 PL forfeited, employee notified",PL max carry-forward
+TC_CARRYFORWARD_003,Year-end carry-forward - PL less than 30,High,Functional,"India employee with 20 PL balance, date: 2024-12-31","1. Run carry-forward job
+2. Check balance on 2025-01-01",DATA_082,"All 20 PL carried forward to 2025",PL carry-forward within limit
+TC_CARRYFORWARD_004,USA PTO carry-forward - AVP max 5 days,High,Functional,"USA AVP with 6 PTO balance, date: 2024-12-31","1. Run carry-forward job
+2. Check balance on 2025-01-01",DATA_083,"Only 5 PTO carried forward, 1 PTO forfeited, employee notified, new 15 PTO allocated",USA AVP carry-forward
+TC_CARRYFORWARD_005,USA PTO carry-forward - AVP less than 5,High,Functional,"USA AVP with 3 PTO balance, date: 2024-12-31","1. Run carry-forward job
+2. Check balance on 2025-01-01",DATA_084,"All 3 PTO carried forward, new 15 PTO allocated, total 18 PTO",USA AVP within limit
+TC_CARRYFORWARD_006,USA PTO no carry-forward - VP,High,Functional,"USA VP with 10 PTO balance, date: 2024-12-31","1. Run carry-forward job
+2. Check balance on 2025-01-01",DATA_085,"0 PTO carried forward, 10 PTO forfeited, new 20 PTO allocated, total 20 PTO",USA VP no carry-forward
+TC_DASHBOARD_001,Dashboard displays leave policy,Medium,Functional,Employee logged in,"1. Login as employee
+2. Navigate to Dashboard
+3. View Leave and Comp Off Policy section",DATA_010,"Policy section displays: Leave types, accrual rules, carry-forward rules, comp off policy",Dashboard - policy info
+TC_DASHBOARD_002,Dashboard displays booked leaves,High,Functional,"Employee with pending leave, logged in","1. Login as employee
+2. Navigate to Dashboard
+3. View Booked Leaves section",DATA_010,"Displays pending leave: Date, Leave type, Status=Pending",Dashboard - booked leaves
+TC_DASHBOARD_003,Dashboard displays approved leaves status,High,Functional,"Employee with approved leaves","1. Login as employee
+2. Dashboard > Approved Leaves Status",DATA_013,"Displays approved leave count: 10 Days, 4 Sick (example)",Dashboard - approved status
+TC_DASHBOARD_004,Dashboard displays upcoming holiday,Medium,Functional,"Employee logged in, upcoming holiday exists","1. Login as employee
+2. Dashboard > Upcoming Holidays",DATA_010,"Displays next upcoming holiday: Date and Name",Dashboard - upcoming holiday
+TC_DASHBOARD_005,Dashboard pie chart of leaves applied,Low,Functional,"Employee with leave history, chart enabled","1. Login as employee
+2. Dashboard > Pie Chart of Leaves Applied",DATA_010,"Pie chart displays leave breakdown by type: Vacation, Sick, Other with percentages",Dashboard - visualization
+TC_HOLIDAY_001,View India holiday list,Medium,Functional,"Employee logged in, India location","1. Login as India employee
+2. Navigate to Settings > Holidays
+3. Select India tab",DATA_010,"Displays India holiday list: Republic Day (Jan 26), Holi (Mar 25), etc. for 2024",Holiday management
+TC_HOLIDAY_002,View USA holiday list,Medium,Functional,"USA employee logged in","1. Login as USA employee
+2. Navigate to Settings > Holidays
+3. Select USA tab",DATA_040,"Displays USA holiday list: New Year, Independence Day, Thanksgiving, Christmas",Holiday - USA list
+TC_HOLIDAY_003,Holiday reminder email,Medium,Functional,"Scheduled reminder job, upcoming holiday in 3 days","1. Run holiday reminder job
+2. Check employee email inbox",DATA_010,"Email received: 'Upcoming Holiday - Holi on March 25, 2024'",Holiday reminder
+TC_NOTIFICATION_001,Email on leave submission,High,Functional,Employee submits leave,"1. Employee submits leave request
+2. Check employee email
+3. Check manager email
+4. Check HR email",DATA_010,"Employee receives confirmation email, Manager receives approval request, HR in CC",Email - leave submission
+TC_NOTIFICATION_002,Email on leave approval,High,Functional,Manager approves leave,"1. Manager approves leave
+2. Check employee email
+3. Check HR email",DATA_020,"Employee receives approval email with leave details, HR in CC",Email - approval
+TC_NOTIFICATION_003,Email on leave rejection,High,Functional,Manager rejects leave,"1. Manager rejects leave with reason
+2. Check employee email",DATA_020,"Employee receives rejection email with reason provided by manager",Email - rejection
+TC_NOTIFICATION_004,Email contains Approve/Reject buttons,High,Functional,"Leave submitted, manager receives email","1. Submit leave
+2. Open manager email
+3. Check email content",DATA_010,"Email contains Approve and Reject action buttons/links for quick action",Email action buttons
+TC_NOTIFICATION_005,Email approve action via button,High,Functional,"Manager receives email, clicks Approve button","1. Manager opens email
+2. Clicks Approve button in email
+3. Redirected to approval page",DATA_020,"Leave approved, manager redirected to confirmation page, employee notified",Email quick approve
+TC_NOTIFICATION_006,Email on leave balance change,Medium,Functional,"Leave approved, balance deducted","1. Leave approved by manager
+2. Check employee email",DATA_010,"Email sent: 'Your leave has been approved. Updated balance: CL=10, PL=14'",Balance update notification
+TC_NOTIFICATION_007,Email on leave cancellation,Medium,Functional,"Employee cancels pending leave","1. Employee cancels leave
+2. Check manager and HR email",DATA_010,"Manager and HR receive cancellation notification, balance restored",Cancellation email
+TC_REPORT_001,Generate leave report by date range,Medium,Functional,"HR logged in, historical leave data exists","1. Login as HR
+2. Navigate to Reports > Leave Reports
+3. Select Date From: 2024-01-01
+4. Select Date To: 2024-03-31
+5. Click Generate",DATA_030,"Report displays: Pending Requests, Approved Requests, Average Duration, Employees on Leave, Leave Trend chart, Leave by Type, Leave by Team",Leave report generation
+TC_REPORT_002,Export leave report to CSV,Medium,Functional,Leave report generated,"1. Generate leave report
+2. Click Export button
+3. Select format: CSV",DATA_030,"CSV file downloaded with leave details: Employee, Date, Leave Type, Status, Approved",Export functionality
+TC_REPORT_003,Leave trend chart displays correctly,Medium,Functional,Historical leave data exists,"1. Generate leave report
+2. View Leave Trend section",DATA_030,"Heatmap displays leave intensity by month and day of week, color-coded",Leave trend visualization
+TC_REPORT_004,Leave by type pie chart,Medium,Functional,Leave data exists,"1. Generate leave report
+2. View Leave by Type section",DATA_030,"Pie chart displays: PTO, Sick Leave, Unpaid Leave, Other with percentages",Leave type breakdown
+TC_REPORT_005,Leave by team stacked bar chart,Medium,Functional,Multiple teams with leave data,"1. Generate leave report
+2. View Leave by Team section",DATA_030,"Stacked bar chart displays leave count per team (Develop, Salent, Sales, HR) with leave type breakdown",Team-wise leave distribution
+TC_SECURITY_001,Role-based access - Employee cannot access HR pages,High,Security,Employee logged in,"1. Login as employee
+2. Try to access URL: /admin/leave-approval
+3. Try to navigate to Admin menu",DATA_010,"Access denied: 403 Forbidden OR redirected to dashboard, error message displayed",RBAC - employee restriction
+TC_SECURITY_002,Role-based access - Manager can access approvals,High,Security,Manager logged in,"1. Login as manager
+2. Navigate to Leave Approval
+3. View pending approvals",DATA_020,"Manager can access Leave Approval page, view team member requests only (not other teams)",RBAC - manager access
+TC_SECURITY_003,Role-based access - HR can access all data,High,Security,HR logged in,"1. Login as HR
+2. Navigate to Admin Leave Approval
+3. Navigate to All Reports
+4. View all employee data",DATA_030,"HR can access all modules, view all employee leave data across organization",RBAC - HR full access
+TC_SECURITY_004,SQL injection in leave reason field,High,Security,Employee logged in,"1. Navigate to Leave Application
+2. In Reason field enter: '; DROP TABLE leaves; --
+3. Submit leave",DATA_010,"Leave rejected with validation error OR submitted safely without SQL injection, database intact",SQL injection prevention
+TC_SECURITY_005,XSS attack in leave reason field,High,Security,Employee logged in,"1. Navigate to Leave Application
+2. In Reason field enter: <script>alert('XSS')</script>
+3. Submit leave",DATA_010,"Script not executed, displayed as plain text or sanitized",XSS prevention
+TC_SECURITY_006,CSRF token validation,High,Security,User logged in,"1. Login as employee
+2. Capture leave submission POST request
+3. Replay request without CSRF token
+4. Observe result",DATA_010,"Request rejected with 403 Forbidden, CSRF token validation enforced",CSRF protection
+TC_SECURITY_007,API endpoint requires authentication,High,Security,No user logged in,"1. Using Postman/curl
+2. Send GET request to /api/leaves without auth token
+3. Observe response",N/A,"401 Unauthorized response, error: 'Authentication required'",API authentication
+TC_SECURITY_008,API endpoint with expired token,High,Security,"Token expired (30+ min old)","1. Use expired JWT token
+2. Send GET request to /api/leaves
+3. Observe response",N/A,"401 Unauthorized, error: 'Token expired'",Token expiration
+TC_SECURITY_009,User cannot access other user's leave data,High,Security,Employee logged in,"1. Login as Employee A
+2. Try API call: GET /api/leaves?employeeId=EmployeeB
+3. Observe response",DATA_010,"403 Forbidden OR returns only Employee A's data, data isolation enforced",Data isolation
+TC_SECURITY_010,Manager can only approve team member leaves,High,Security,Manager logged in,"1. Login as Manager A
+2. Try to approve leave of employee not in Manager A's team
+3. Observe result",DATA_020,"403 Forbidden OR error: 'Not authorized to approve this leave'",Manager scope limitation
+TC_PERFORMANCE_001,API response time - Get leave balance,High,Performance,Employee logged in,"1. Send GET request to /api/leaves/balance
+2. Measure response time",DATA_010,"Response time < 1s for 95% requests",Performance - response time
+TC_PERFORMANCE_002,API response time - Submit leave,High,Performance,Employee logged in,"1. Send POST request to /api/leaves
+2. Measure response time",DATA_010,"Response time < 2s for 95% requests",Performance - write operation
+TC_PERFORMANCE_003,Load test - 100 concurrent users,High,Performance,100 user accounts,"1. Setup JMeter/k6 with 100 virtual users
+2. Simulate login and leave submission
+3. Measure response times and error rate",DATA_100,"Error rate < 1%, average response time < 3s, no server crashes",Load test - typical
+TC_PERFORMANCE_004,Load test - 500 concurrent users,High,Performance,500 user accounts,"1. Setup load test with 500 users
+2. Simulate mixed workload (view, submit, approve)
+3. Monitor server metrics",DATA_100,"Error rate < 5%, average response time < 5s, CPU < 80%, memory stable",Load test - peak
+TC_PERFORMANCE_005,Stress test - bulk leave upload,Medium,Performance,CSV with 10000 leave records,"1. Prepare CSV with 10K leave records
+2. Upload via bulk import API
+3. Monitor processing time",DATA_101,"Processing completes within 5 minutes, all records processed correctly, no data loss",Bulk upload stress
+TC_PERFORMANCE_006,Database query optimization - Leave list,Medium,Performance,"Employee with 1000+ leave records","1. Fetch leave list: GET /api/leaves?employeeId=X&year=2024
+2. Check query execution time",DATA_010,"Query execution < 500ms, proper indexing on employeeId and date columns",DB optimization
+TC_EDGE_001,Apply leave spanning year-end,High,Edge Case,"Employee logged in, sufficient balance","1. Navigate to Leave Application
+2. Date From: 2024-12-30
+3. Date To: 2025-01-03
+4. Submit",DATA_010,"Error: 'Leave cannot span across years. Apply separately for each year' OR leave split into two records (2024 and 2025)",Year-end boundary
+TC_EDGE_002,Apply leave on Feb 29 (leap year),Medium,Edge Case,"Employee logged in, year 2024 (leap year)","1. Navigate to Leave Application
+2. Date From: 2024-02-29
+3. Date To: 2024-02-29
+4. Submit",DATA_010,"Leave applied successfully for Feb 29, no date calculation errors",Leap year handling
+TC_EDGE_003,Apply leave with special characters in reason,Medium,Edge Case,Employee logged in,"1. Navigate to Leave Application
+2. Reason: Going to meet @ friend's house & relax!!! #vacation
+3. Submit",DATA_010,"Leave submitted successfully, special characters stored and displayed correctly",Special characters
+TC_EDGE_004,Employee with zero balance on all leave types,High,Edge Case,"Newly joined employee, no accruals yet","1. Login as new employee (joined yesterday)
+2. Navigate to Leave Application
+3. Try to apply CL or PL",DATA_011,"Error: 'Insufficient leave balance' OR only LWP option available",Zero balance scenario
+TC_EDGE_005,Multiple half-day leaves on same day,High,Edge Case,Employee logged in,"1. Apply first half leave for 2024-12-10
+2. Try to apply second half leave for same date 2024-12-10",DATA_010,"Error: 'Leave already exists for this date' OR both halves combined into full day automatically",Same-day conflict
+TC_EDGE_006,Comp off application for 23 hours continuous work,Medium,Edge Case,Employee logged in,"1. Navigate to Comp Off Application
+2. Date: 2024-12-07 (Saturday)
+3. From Time: 09:00
+4. To Time: 08:00 (next day)
+5. Submit",DATA_060,"Error: 'To Time must be same day' OR 23 hours calculated = 2.5 days comp off (if overnight allowed)",Overnight work hours
+TC_EDGE_007,Manager approves leave while employee is deleting it,High,Edge Case,"Leave in pending state, concurrent actions","1. Employee clicks Delete on pending leave
+2. Simultaneously, manager clicks Approve
+3. Observe outcome",DATA_010,"Transaction conflict handled: Either deletion wins (leave cancelled) OR approval wins (leave approved), no data corruption",Concurrent modification
+TC_EDGE_008,Timezone difference - USA employee submitting leave,Medium,Edge Case,"USA employee in PST timezone, server in UTC","1. Login as USA employee at 2024-12-10 18:00 PST (2024-12-11 02:00 UTC)
+2. Apply leave for 2024-12-10
+3. Check submitted date",DATA_040,"Leave date stored correctly as 2024-12-10 in employee's timezone, no date offset issues",Timezone handling
+TC_EDGE_009,Employee name with non-ASCII characters,Low,Edge Case,"Employee name: François José","1. Login as employee with special characters in name
+2. Apply leave
+3. View in manager's approval list
+4. Check email notifications",DATA_090,"Name displayed correctly throughout UI and emails, UTF-8 encoding supported",Unicode character support
+TC_EDGE_010,Maximum leave duration - 180 days maternity,High,Edge Case,"Female employee, married, applying 180-day ML","1. Apply Maternity Leave: 2024-12-01 to 2025-05-29 (180 days)
+2. Submit",DATA_050,"Leave applied successfully for 180 days, no max duration error",Maximum duration boundary
+TC_ACCESSIBILITY_001,Keyboard navigation - Leave application form,Medium,Accessibility,User with keyboard only,"1. Navigate to Leave Application using Tab key
+2. Fill form using keyboard only
+3. Submit using Enter key",DATA_010,"All form fields accessible via Tab, dropdown selectable with arrow keys, form submittable via Enter, no mouse required",Keyboard navigation
+TC_ACCESSIBILITY_002,Screen reader - Dashboard elements,Medium,Accessibility,"Screen reader (NVDA) running, employee logged in","1. Navigate to Dashboard with screen reader
+2. Listen to announcements for Leave Balance
+3. Check all elements announced",DATA_010,"Screen reader announces: 'Leave Balance section. Casual Leave: 10 days. Privilege Leave: 15 days.' Proper ARIA labels present",Screen reader support
+TC_ACCESSIBILITY_003,Color contrast - Status badges,Low,Accessibility,Employee viewing leave status,"1. Navigate to Leave Application Status
+2. Check color contrast of Pending/Approved/Rejected badges
+3. Use browser color contrast checker",N/A,"Color contrast ratio ≥ 4.5:1 for normal text, ≥ 3:1 for large text (WCAG AA compliant)",Color contrast WCAG AA
+TC_ACCESSIBILITY_004,Focus indicators visible,Low,Accessibility,User navigating with Tab,"1. Navigate through leave form with Tab key
+2. Observe focus indicators on each field",N/A,"Focus indicators clearly visible on all interactive elements (buttons, inputs, dropdowns)",Focus visibility
+TC_INTEGRATION_001,Email service unavailable - Leave submission,High,Integration,"Email service down, employee submits leave","1. Disconnect email service (simulate SMTP failure)
+2. Submit leave request
+3. Check leave status",DATA_010,"Leave submitted successfully and stored in DB, status updated, email marked as failed/queued for retry, process not blocked",Email service failure handling
+TC_INTEGRATION_002,Calendar sync - Export leave to Outlook,Medium,Integration,"Employee with Outlook calendar integrated","1. Apply and get leave approved
+2. Trigger calendar sync
+3. Check Outlook calendar",DATA_010,"Leave event added to Outlook calendar with title: 'Leave - [Type]', date range, status",Calendar export
+TC_INTEGRATION_003,Calendar sync - Export leave to Google Calendar,Medium,Integration,"Employee with Google Calendar integrated","1. Apply and get leave approved
+2. Trigger calendar sync
+3. Check Google Calendar",DATA_010,"Leave event added to Google Calendar with proper details",Google Calendar integration
+TC_INTEGRATION_004,Database transaction rollback on error,High,Integration,"Employee applies leave, DB constraint violation","1. Simulate DB error (e.g., unique constraint)
+2. Apply leave
+3. Check balance and leave record",DATA_010,"Transaction rolled back, leave not created, balance unchanged, error returned to user",Transaction integrity
+TC_BOUNDARY_001,Leave balance exactly zero,High,Boundary,Employee with 0 CL balance,"1. Check balance: CL=0
+2. Try to apply 1 day CL",DATA_011,"Error: 'Insufficient leave balance. Available: 0, Required: 1'",Zero balance boundary
+TC_BOUNDARY_002,Leave balance exactly sufficient,High,Boundary,"Employee with 1 day CL balance","1. Check balance: CL=1
+2. Apply 1 day CL",DATA_012,"Leave applied successfully, balance becomes 0",Exact balance match
+TC_BOUNDARY_003,Carry-forward exactly at limit,High,Boundary,"India employee with exactly 30 PL balance on Dec 31","1. Run carry-forward job
+2. Check balance on Jan 1",DATA_082,"All 30 PL carried forward to next year",Exact limit boundary
+TC_BOUNDARY_004,Carry-forward exceeds limit by 0.5,High,Boundary,"India employee with 30.5 PL balance on Dec 31","1. Run carry-forward job
+2. Check balance on Jan 1",DATA_081,"30 PL carried forward, 0.5 PL forfeited",Exceeds limit boundary
+TC_BOUNDARY_005,Comp off hours exactly 5.0,High,Boundary,Employee applies comp off for exactly 5 hours,"1. Apply comp off: 10:00 to 15:00 (5 hours)
+2. Submit",DATA_060,"0.5 day comp off granted",Exact 5-hour boundary
+TC_BOUNDARY_006,Comp off hours exactly 8.0,High,Boundary,Employee applies comp off for exactly 8 hours,"1. Apply comp off: 09:00 to 17:00 (8 hours)
+2. Submit",DATA_060,"1 full day comp off granted",Exact 8-hour boundary
+TC_BOUNDARY_007,Comp off expiry exactly 3 months,High,Boundary,"Comp off approved on 2024-09-01, date is 2024-12-01 (exactly 3 months)","1. Run expiry job on 2024-12-01
+2. Check comp off status",DATA_064,"Comp off expired on 2024-12-01, status EXPIRED",Exact 3-month expiry
+TC_BOUNDARY_008,Joining date exactly on 15th,High,Boundary,"New employee joins on 2024-12-15 (exactly on cutoff)","1. Onboard employee with join date: 2024-12-15
+2. Calculate initial leave balance",DATA_072,"1 full CL + 1 full PL credited (15th inclusive in 1-15 range)",Joining date on cutoff
+TC_BOUNDARY_009,Joining date exactly on 16th,High,Boundary,"New employee joins on 2024-12-16","1. Onboard employee with join date: 2024-12-16
+2. Calculate initial balance",DATA_073,"0.5 CL + 0.5 PL credited (after 15th cutoff)",Joining date after cutoff
+TC_NEGATIVE_001,Submit leave application without authentication,High,Negative,No user logged in,"1. Logout or clear tokens
+2. Send POST request to /api/leaves
+3. Observe response",N/A,"401 Unauthorized, leave not created",Auth required
+TC_NEGATIVE_002,Manager approves leave without permission,High,Negative,"Manager tries to approve leave outside their team","1. Login as Manager A
+2. Try to approve leave of employee in Team B
+3. Send approval request",DATA_020,"403 Forbidden, error: 'Not authorized to approve this leave', leave status unchanged",Permission denied
+TC_NEGATIVE_003,Negative leave balance scenario,High,Negative,"Simulate negative balance (data corruption or bug)","1. Manually set employee balance to -1 (via DB update)
+2. Employee logs in and views balance
+3. Try to apply leave",DATA_011,"UI displays balance: 0 (or error indicator), application prevents further leave, admin alerted",Negative balance handling
+TC_NEGATIVE_004,Apply leave with future date beyond 1 year,Medium,Negative,Employee logged in,"1. Navigate to Leave Application
+2. Date From: 2025-12-01 (more than 1 year in future)
+3. Submit",DATA_010,"Error: 'Cannot apply leave more than 12 months in advance' (if policy exists) OR allowed (verify business rule)",Future date limit
+TC_NEGATIVE_005,Delete leave that doesn't exist,Medium,Negative,Employee logged in,"1. Send DELETE request to /api/leaves/99999 (non-existent ID)
+2. Observe response",N/A,"404 Not Found, error: 'Leave not found'",Resource not found
+TC_NEGATIVE_006,Apply leave with From and To dates swapped,Medium,Negative,Employee logged in,"1. Programmatically send POST with Date To < Date From
+2. Observe response",DATA_010,"400 Bad Request, error: 'End date cannot be before start date'",Date validation API level
+TC_NEGATIVE_007,XSS in notification email,High,Negative,Employee applies leave with malicious reason,"1. Apply leave with Reason: <img src=x onerror=alert('XSS')>
+2. Manager receives email
+3. Open email in browser",DATA_010,"Email content sanitized, script not executed, displayed as plain text",XSS in email
+TC_NEGATIVE_008,Broken file upload - Maternity leave attachment,Medium,Negative,"Employee uploads corrupt file as medical certificate","1. Apply Maternity Leave
+2. Attach corrupt or invalid file (e.g., .exe renamed to .pdf)
+3. Submit",DATA_050,"Error: 'Invalid file format' OR 'File corrupted', leave not submitted",File validation
+TC_NEGATIVE_009,Rate limiting - Too many requests,Medium,Negative,Employee making rapid API calls,"1. Send 100+ API requests in 1 minute
+2. Observe response after limit",DATA_010,"429 Too Many Requests after rate limit exceeded, error: 'Rate limit exceeded. Try again later.'",Rate limiting
+TC_REGRESSION_001,Leave balance accuracy after multiple operations,High,Regression,"Employee performs: Submit, Approve, Cancel, Submit again","1. Initial balance: CL=10
+2. Apply 2-day CL (balance=8)
+3. Approve (balance=8)
+4. Cancel (balance=10)
+5. Apply 1-day CL (balance=9)
+6. Verify final balance",DATA_010,"Final balance accurate: CL=9, no data corruption, audit trail correct",Balance integrity regression
+TC_REGRESSION_002,Multi-level approval workflow intact,High,Regression,"Full workflow: Employee → L1 → L2 → HR","1. Employee submits comp off
+2. L1 approves
+3. L2 approves
+4. HR approves
+5. Verify final status",DATA_060,"Comp off status: APPROVED, balance credited, all notifications sent, workflow intact",Workflow regression
+TC_REGRESSION_003,Year-end processing doesn't affect mid-year leaves,High,Regression,"Approved leaves exist in Dec, run year-end processing","1. Have approved leaves: Dec 20-22, 2024
+2. Run year-end carry-forward job on Dec 31
+3. Verify leave records intact",DATA_013,"Approved leaves remain approved, no status change, no data loss, only balances adjusted",Year-end data integrity

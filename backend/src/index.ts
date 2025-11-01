@@ -63,15 +63,12 @@ const API_PREFIX = process.env.API_PREFIX || '/api/v1';
 const server = createServer(app);
 const io = new SocketIOServer(server, {
   cors: {
-    origin: [
+    // SECURITY FIX: Removed hardcoded local IP address (MEDIUM vulnerability fix)
+    // Use environment variable for production CORS configuration
+    origin: process.env.CORS_ORIGINS?.split(',') || [
       'http://localhost:5173',
       'http://localhost:5174',
-      'http://localhost:5175',
-      'http://localhost:5176',
-      'http://localhost:5177',
-      'http://localhost:5178',
-      'http://192.168.1.35:5173',
-      process.env.CORS_ORIGIN || 'http://localhost:5174'
+      'http://localhost:5175'
     ],
     methods: ['GET', 'POST'],
     credentials: true
@@ -92,16 +89,13 @@ const limiter = rateLimit({
 });
 
 // CORS configuration - MUST be before rate limiting
+// SECURITY FIX: Removed hardcoded local IP address (MEDIUM vulnerability fix)
+// Use environment variable CORS_ORIGINS for production: CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 app.use(cors({
-  origin: [
+  origin: process.env.CORS_ORIGINS?.split(',') || [
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-    'http://localhost:5177',
-    'http://localhost:5178',
-    'http://192.168.1.35:5173',
-    process.env.CORS_ORIGIN || 'http://localhost:5174'
+    'http://localhost:5175'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

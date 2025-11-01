@@ -1,0 +1,344 @@
+DataID,Field,Value,DataType,Purpose,RelatedTestIDs
+DATA_001,Email,employee.india@glf.com,String,India employee login,TC_AUTH_001|TC_AUTH_005|TC_AUTH_006|TC_AUTH_008|TC_LEAVE_001|TC_LEAVE_002
+DATA_001,Password,Employee@123,String,Employee password,TC_AUTH_001|TC_AUTH_005
+DATA_001,Role,EMPLOYEE,Enum,User role,TC_AUTH_001
+DATA_001,Location,INDIA,Enum,Employee location,TC_AUTH_001
+DATA_002,Email,manager.india@glf.com,String,India manager login,TC_AUTH_002
+DATA_002,Password,Manager@123,String,Manager password,TC_AUTH_002
+DATA_002,Role,MANAGER,Enum,Manager role,TC_AUTH_002
+DATA_002,Location,INDIA,Enum,Manager location,TC_AUTH_002
+DATA_003,Email,hr@glf.com,String,HR user login,TC_AUTH_003
+DATA_003,Password,Hr@123,String,HR password,TC_AUTH_003
+DATA_003,Role,HR,Enum,HR role,TC_AUTH_003
+DATA_003,Location,INDIA,Enum,HR location,TC_AUTH_003
+DATA_004,Email,admin@glf.com,String,Admin user login,TC_AUTH_004
+DATA_004,Password,Admin@123,String,Admin password,TC_AUTH_004
+DATA_004,Role,ADMIN,Enum,Admin super-user role,TC_AUTH_004
+DATA_004,Location,INDIA,Enum,Admin location,TC_AUTH_004
+DATA_010,EmployeeID,EMP_IND_001,String,India employee with balances,TC_LEAVE_001 to TC_LEAVE_012
+DATA_010,FirstName,Rajesh,String,Employee first name,TC_LEAVE_001
+DATA_010,LastName,Kumar,String,Employee last name,TC_LEAVE_001
+DATA_010,Email,rajesh.kumar@glf.com,String,Employee email,TC_LEAVE_001
+DATA_010,Location,INDIA,Enum,India location,TC_LEAVE_001
+DATA_010,Gender,MALE,Enum,Employee gender,TC_LEAVE_001
+DATA_010,MaritalStatus,SINGLE,Enum,Marital status,TC_LEAVE_001
+DATA_010,JoinDate,2023-01-15,Date,Join date for accrual calculation,TC_LEAVE_001
+DATA_010,CLBalance,10,Number,Casual Leave balance,TC_LEAVE_001
+DATA_010,PLBalance,15,Number,Privilege Leave balance,TC_LEAVE_001
+DATA_010,CompOffBalance,2,Number,Comp Off balance,TC_LEAVE_001
+DATA_010,ManagerID,MGR_IND_001,String,Reporting manager,TC_LEAVE_001
+DATA_011,EmployeeID,EMP_IND_002,String,India employee with insufficient balance,TC_LEAVE_006|TC_LEAVE_032
+DATA_011,FirstName,Priya,String,Employee first name,TC_LEAVE_006
+DATA_011,LastName,Sharma,String,Employee last name,TC_LEAVE_006
+DATA_011,Email,priya.sharma@glf.com,String,Employee email,TC_LEAVE_006
+DATA_011,Location,INDIA,Enum,India location,TC_LEAVE_006
+DATA_011,Gender,FEMALE,Enum,Employee gender,TC_LEAVE_006
+DATA_011,MaritalStatus,SINGLE,Enum,Marital status,TC_LEAVE_006
+DATA_011,CLBalance,0.5,Number,Low CL balance for insufficient test,TC_LEAVE_006
+DATA_011,PLBalance,0,Number,No PL balance,TC_LEAVE_006
+DATA_011,ManagerID,MGR_IND_001,String,Reporting manager,TC_LEAVE_006
+DATA_012,EmployeeID,EMP_IND_003,String,India employee with existing leave,TC_LEAVE_009
+DATA_012,FirstName,Amit,String,Employee first name,TC_LEAVE_009
+DATA_012,LastName,Patel,String,Employee last name,TC_LEAVE_009
+DATA_012,Email,amit.patel@glf.com,String,Employee email,TC_LEAVE_009
+DATA_012,ExistingLeaveFrom,2024-12-10,Date,Existing leave start date,TC_LEAVE_009
+DATA_012,ExistingLeaveTo,2024-12-12,Date,Existing leave end date,TC_LEAVE_009
+DATA_012,ExistingLeaveType,CL,Enum,Existing leave type,TC_LEAVE_009
+DATA_012,CLBalance,8,Number,Reduced balance after existing leave,TC_LEAVE_009
+DATA_012,PLBalance,12,Number,PL balance,TC_LEAVE_009
+DATA_013,EmployeeID,EMP_IND_004,String,India employee with approved leave,TC_LEAVE_014|TC_DASHBOARD_003
+DATA_013,FirstName,Sneha,String,Employee first name,TC_LEAVE_014
+DATA_013,LastName,Reddy,String,Employee last name,TC_LEAVE_014
+DATA_013,Email,sneha.reddy@glf.com,String,Employee email,TC_LEAVE_014
+DATA_013,ApprovedLeaveFrom,2024-12-20,Date,Approved leave start,TC_LEAVE_014
+DATA_013,ApprovedLeaveTo,2024-12-22,Date,Approved leave end,TC_LEAVE_014
+DATA_013,ApprovedLeaveType,PL,Enum,Approved leave type,TC_LEAVE_014
+DATA_013,ApprovedByManager,MGR_IND_001,String,Approver ID,TC_LEAVE_014
+DATA_013,ApprovedDate,2024-12-01,Date,Approval date,TC_LEAVE_014
+DATA_013,CLBalance,10,Number,CL balance,TC_LEAVE_014
+DATA_013,PLBalance,12,Number,PL balance after approval,TC_LEAVE_014
+DATA_014,EmployeeID,EMP_IND_005,String,India employee with rejected leave,TC_LEAVE_015
+DATA_014,FirstName,Vikram,String,Employee first name,TC_LEAVE_015
+DATA_014,LastName,Singh,String,Employee last name,TC_LEAVE_015
+DATA_014,Email,vikram.singh@glf.com,String,Employee email,TC_LEAVE_015
+DATA_014,RejectedLeaveFrom,2024-12-15,Date,Rejected leave start,TC_LEAVE_015
+DATA_014,RejectedLeaveTo,2024-12-17,Date,Rejected leave end,TC_LEAVE_015
+DATA_014,RejectionReason,Team capacity issue,String,Manager rejection reason,TC_LEAVE_015
+DATA_014,RejectedByManager,MGR_IND_001,String,Rejecting manager,TC_LEAVE_015
+DATA_014,CLBalance,10,Number,CL balance restored after rejection,TC_LEAVE_015
+DATA_014,PLBalance,15,Number,PL balance,TC_LEAVE_015
+DATA_020,EmployeeID,MGR_IND_001,String,India manager for approval tests,TC_LEAVE_018 to TC_LEAVE_023
+DATA_020,FirstName,Suresh,String,Manager first name,TC_LEAVE_018
+DATA_020,LastName,Gupta,String,Manager last name,TC_LEAVE_018
+DATA_020,Email,suresh.gupta@glf.com,String,Manager email,TC_LEAVE_018
+DATA_020,Role,MANAGER,Enum,Manager role,TC_LEAVE_018
+DATA_020,Location,INDIA,Enum,Manager location,TC_LEAVE_018
+DATA_020,TeamSize,8,Number,Number of direct reports,TC_LEAVE_018
+DATA_020,ReportsTo,MGR_IND_L2_001,String,L2 manager for multi-level approvals,TC_LEAVE_018
+DATA_030,EmployeeID,HR_001,String,HR user for admin approval tests,TC_LEAVE_021|TC_LEAVE_022
+DATA_030,FirstName,Meera,String,HR first name,TC_LEAVE_021
+DATA_030,LastName,Iyer,String,HR last name,TC_LEAVE_021
+DATA_030,Email,meera.iyer@glf.com,String,HR email,TC_LEAVE_021
+DATA_030,Role,HR,Enum,HR role,TC_LEAVE_021
+DATA_030,Location,INDIA,Enum,HR location,TC_LEAVE_021
+DATA_040,EmployeeID,EMP_USA_001,String,USA AVP employee,TC_LEAVE_024|TC_LEAVE_026|TC_EDGE_008
+DATA_040,FirstName,John,String,Employee first name,TC_LEAVE_024
+DATA_040,LastName,Smith,String,Employee last name,TC_LEAVE_024
+DATA_040,Email,john.smith@glf.com,String,Employee email,TC_LEAVE_024
+DATA_040,Location,USA,Enum,USA location,TC_LEAVE_024
+DATA_040,Designation,AVP,Enum,Associate Vice President,TC_LEAVE_024
+DATA_040,PTOBalance,15,Number,Annual PTO for AVP,TC_LEAVE_024
+DATA_040,BereavementBalance,5,Number,Bereavement leave days,TC_LEAVE_026
+DATA_040,JoinDate,2023-06-01,Date,Join date,TC_LEAVE_024
+DATA_040,Timezone,America/Los_Angeles,String,PST timezone,TC_EDGE_008
+DATA_041,EmployeeID,EMP_USA_002,String,USA VP employee,TC_LEAVE_025
+DATA_041,FirstName,Sarah,String,Employee first name,TC_LEAVE_025
+DATA_041,LastName,Johnson,String,Employee last name,TC_LEAVE_025
+DATA_041,Email,sarah.johnson@glf.com,String,Employee email,TC_LEAVE_025
+DATA_041,Location,USA,Enum,USA location,TC_LEAVE_025
+DATA_041,Designation,VP,Enum,Vice President,TC_LEAVE_025
+DATA_041,PTOBalance,20,Number,Annual PTO for VP,TC_LEAVE_025
+DATA_041,JoinDate,2022-01-10,Date,Join date,TC_LEAVE_025
+DATA_050,EmployeeID,EMP_IND_FEM_001,String,Married female for maternity leave,TC_LEAVE_027|TC_ACCRUAL_008|TC_EDGE_010
+DATA_050,FirstName,Anita,String,Employee first name,TC_LEAVE_027
+DATA_050,LastName,Desai,String,Employee last name,TC_LEAVE_027
+DATA_050,Email,anita.desai@glf.com,String,Employee email,TC_LEAVE_027
+DATA_050,Location,INDIA,Enum,India location,TC_LEAVE_027
+DATA_050,Gender,FEMALE,Enum,Female gender,TC_LEAVE_027
+DATA_050,MaritalStatus,MARRIED,Enum,Married status for ML eligibility,TC_LEAVE_027
+DATA_050,MaternityBalance,180,Number,180 days maternity leave,TC_LEAVE_027
+DATA_050,CLBalance,10,Number,CL balance,TC_LEAVE_027
+DATA_050,PLBalance,15,Number,PL balance,TC_LEAVE_027
+DATA_051,EmployeeID,EMP_IND_FEM_002,String,Unmarried female - ML not eligible,TC_LEAVE_028
+DATA_051,FirstName,Neha,String,Employee first name,TC_LEAVE_028
+DATA_051,LastName,Kapoor,String,Employee last name,TC_LEAVE_028
+DATA_051,Email,neha.kapoor@glf.com,String,Employee email,TC_LEAVE_028
+DATA_051,Gender,FEMALE,Enum,Female gender,TC_LEAVE_028
+DATA_051,MaritalStatus,SINGLE,Enum,Single status - ML not eligible,TC_LEAVE_028
+DATA_051,MaternityBalance,0,Number,No ML for unmarried,TC_LEAVE_028
+DATA_052,EmployeeID,EMP_IND_MAL_001,String,Married male for paternity leave,TC_LEAVE_029|TC_LEAVE_030
+DATA_052,FirstName,Ravi,String,Employee first name,TC_LEAVE_030
+DATA_052,LastName,Shankar,String,Employee last name,TC_LEAVE_030
+DATA_052,Email,ravi.shankar@glf.com,String,Employee email,TC_LEAVE_030
+DATA_052,Gender,MALE,Enum,Male gender,TC_LEAVE_030
+DATA_052,MaritalStatus,MARRIED,Enum,Married status for PL eligibility,TC_LEAVE_030
+DATA_052,PaternityBalance,5,Number,5 days paternity leave,TC_LEAVE_030
+DATA_052,CLBalance,10,Number,CL balance,TC_LEAVE_030
+DATA_052,PLBalance,15,Number,PL balance,TC_LEAVE_030
+DATA_053,EmployeeID,EMP_IND_MAL_002,String,Unmarried male - Paternity not eligible,TC_LEAVE_031
+DATA_053,FirstName,Arjun,String,Employee first name,TC_LEAVE_031
+DATA_053,LastName,Mehta,String,Employee last name,TC_LEAVE_031
+DATA_053,Email,arjun.mehta@glf.com,String,Employee email,TC_LEAVE_031
+DATA_053,Gender,MALE,Enum,Male gender,TC_LEAVE_031
+DATA_053,MaritalStatus,SINGLE,Enum,Single status - Paternity not eligible,TC_LEAVE_031
+DATA_053,PaternityBalance,0,Number,No paternity for unmarried,TC_LEAVE_031
+DATA_060,EmployeeID,EMP_IND_006,String,Employee for comp off tests,TC_COMPOFF_001 to TC_COMPOFF_005
+DATA_060,FirstName,Kiran,String,Employee first name,TC_COMPOFF_001
+DATA_060,LastName,Rao,String,Employee last name,TC_COMPOFF_001
+DATA_060,Email,kiran.rao@glf.com,String,Employee email,TC_COMPOFF_001
+DATA_060,Location,INDIA,Enum,India location,TC_COMPOFF_001
+DATA_060,CompOffBalance,0,Number,Initial comp off balance,TC_COMPOFF_001
+DATA_060,CLBalance,10,Number,CL balance,TC_COMPOFF_001
+DATA_060,PLBalance,15,Number,PL balance,TC_COMPOFF_001
+DATA_060,ManagerL1,MGR_IND_001,String,L1 manager for comp off,TC_COMPOFF_001
+DATA_060,ManagerL2,MGR_IND_L2_001,String,L2 manager for comp off,TC_COMPOFF_001
+DATA_061,EmployeeID,MGR_IND_001,String,L1 manager for comp off approval,TC_COMPOFF_006|TC_COMPOFF_009
+DATA_061,FirstName,Suresh,String,Manager first name,TC_COMPOFF_006
+DATA_061,LastName,Gupta,String,Manager last name,TC_COMPOFF_006
+DATA_061,Email,suresh.gupta@glf.com,String,Manager email,TC_COMPOFF_006
+DATA_061,Role,MANAGER,Enum,Manager L1 role,TC_COMPOFF_006
+DATA_062,EmployeeID,MGR_IND_L2_001,String,L2 manager for comp off approval,TC_COMPOFF_007
+DATA_062,FirstName,Ramesh,String,L2 manager first name,TC_COMPOFF_007
+DATA_062,LastName,Verma,String,L2 manager last name,TC_COMPOFF_007
+DATA_062,Email,ramesh.verma@glf.com,String,L2 manager email,TC_COMPOFF_007
+DATA_062,Role,MANAGER,Enum,Manager L2 role,TC_COMPOFF_007
+DATA_063,EmployeeID,EMP_IND_007,String,Employee with comp off balance,TC_COMPOFF_010|TC_COMPOFF_011
+DATA_063,FirstName,Pooja,String,Employee first name,TC_COMPOFF_010
+DATA_063,LastName,Nair,String,Employee last name,TC_COMPOFF_010
+DATA_063,Email,pooja.nair@glf.com,String,Employee email,TC_COMPOFF_010
+DATA_063,CompOffBalance,2,Number,2 days comp off available,TC_COMPOFF_010
+DATA_063,CompOffEarned1,2024-11-01,Date,First comp off earned date,TC_COMPOFF_010
+DATA_063,CompOffExpiry1,2025-02-01,Date,First comp off expiry (3 months),TC_COMPOFF_010
+DATA_063,CompOffEarned2,2024-11-15,Date,Second comp off earned date,TC_COMPOFF_010
+DATA_063,CompOffExpiry2,2025-02-15,Date,Second comp off expiry,TC_COMPOFF_010
+DATA_064,EmployeeID,EMP_IND_008,String,Employee with expiring comp off,TC_COMPOFF_012|TC_COMPOFF_013
+DATA_064,FirstName,Deepak,String,Employee first name,TC_COMPOFF_012
+DATA_064,LastName,Joshi,String,Employee last name,TC_COMPOFF_012
+DATA_064,Email,deepak.joshi@glf.com,String,Employee email,TC_COMPOFF_012
+DATA_064,CompOffBalance,1,Number,1 day comp off expiring soon,TC_COMPOFF_012
+DATA_064,CompOffEarned,2024-09-01,Date,Comp off earned date,TC_COMPOFF_012
+DATA_064,CompOffExpiry,2024-12-01,Date,Comp off expires in 3 months,TC_COMPOFF_012
+DATA_070,EmployeeID,EMP_IND_009,String,India employee for accrual test,TC_ACCRUAL_001
+DATA_070,FirstName,Lakshmi,String,Employee first name,TC_ACCRUAL_001
+DATA_070,LastName,Murthy,String,Employee last name,TC_ACCRUAL_001
+DATA_070,Email,lakshmi.murthy@glf.com,String,Employee email,TC_ACCRUAL_001
+DATA_070,Location,INDIA,Enum,India for monthly accrual,TC_ACCRUAL_001
+DATA_070,CLBalance,5,Number,CL balance before accrual,TC_ACCRUAL_001
+DATA_070,PLBalance,10,Number,PL balance before accrual,TC_ACCRUAL_001
+DATA_070,AccrualDate,2024-12-01,Date,Accrual job run date (1st of month),TC_ACCRUAL_001
+DATA_071,EmployeeID,EMP_USA_003,String,USA employee for no accrual test,TC_ACCRUAL_002
+DATA_071,FirstName,Michael,String,Employee first name,TC_ACCRUAL_002
+DATA_071,LastName,Brown,String,Employee last name,TC_ACCRUAL_002
+DATA_071,Email,michael.brown@glf.com,String,Employee email,TC_ACCRUAL_002
+DATA_071,Location,USA,Enum,USA - annual allocation not monthly,TC_ACCRUAL_002
+DATA_071,PTOBalance,15,Number,PTO balance unchanged,TC_ACCRUAL_002
+DATA_072,EmployeeID,EMP_IND_NEW_001,String,New India employee joined 1-15,TC_ACCRUAL_003|TC_BOUNDARY_008
+DATA_072,FirstName,Rohit,String,Employee first name,TC_ACCRUAL_003
+DATA_072,LastName,Agarwal,String,Employee last name,TC_ACCRUAL_003
+DATA_072,Email,rohit.agarwal@glf.com,String,Employee email,TC_ACCRUAL_003
+DATA_072,Location,INDIA,Enum,India location,TC_ACCRUAL_003
+DATA_072,JoinDate,2024-12-05,Date,Joined between 1-15 (full accrual),TC_ACCRUAL_003
+DATA_072,CLBalance,1,Number,1 full CL for Dec,TC_ACCRUAL_003
+DATA_072,PLBalance,1,Number,1 full PL for Dec,TC_ACCRUAL_003
+DATA_073,EmployeeID,EMP_IND_NEW_002,String,New India employee joined after 15,TC_ACCRUAL_004|TC_BOUNDARY_009
+DATA_073,FirstName,Sonia,String,Employee first name,TC_ACCRUAL_004
+DATA_073,LastName,Bansal,String,Employee last name,TC_ACCRUAL_004
+DATA_073,Email,sonia.bansal@glf.com,String,Employee email,TC_ACCRUAL_004
+DATA_073,JoinDate,2024-12-20,Date,Joined after 15 (half accrual),TC_ACCRUAL_004
+DATA_073,CLBalance,0.5,Number,0.5 CL for Dec,TC_ACCRUAL_004
+DATA_073,PLBalance,0.5,Number,0.5 PL for Dec,TC_ACCRUAL_004
+DATA_074,EmployeeID,EMP_USA_AVP_001,String,USA AVP for annual PTO allocation,TC_ACCRUAL_005|TC_CARRYFORWARD_004
+DATA_074,FirstName,David,String,Employee first name,TC_ACCRUAL_005
+DATA_074,LastName,Miller,String,Employee last name,TC_ACCRUAL_005
+DATA_074,Email,david.miller@glf.com,String,Employee email,TC_ACCRUAL_005
+DATA_074,Location,USA,Enum,USA location,TC_ACCRUAL_005
+DATA_074,Designation,AVP,Enum,AVP designation,TC_ACCRUAL_005
+DATA_074,PTOBalance,15,Number,15 PTO allocated annually,TC_ACCRUAL_005
+DATA_075,EmployeeID,EMP_USA_VP_001,String,USA VP for annual PTO allocation,TC_ACCRUAL_006|TC_CARRYFORWARD_006
+DATA_075,FirstName,Jennifer,String,Employee first name,TC_ACCRUAL_006
+DATA_075,LastName,Taylor,String,Employee last name,TC_ACCRUAL_006
+DATA_075,Email,jennifer.taylor@glf.com,String,Employee email,TC_ACCRUAL_006
+DATA_075,Designation,VP,Enum,VP designation,TC_ACCRUAL_006
+DATA_075,PTOBalance,20,Number,20 PTO for VP,TC_ACCRUAL_006
+DATA_076,EmployeeID,EMP_USA_AVP_002,String,USA AVP joined mid-year,TC_ACCRUAL_007
+DATA_076,FirstName,Robert,String,Employee first name,TC_ACCRUAL_007
+DATA_076,LastName,Williams,String,Employee last name,TC_ACCRUAL_007
+DATA_076,Email,robert.williams@glf.com,String,Employee email,TC_ACCRUAL_007
+DATA_076,JoinDate,2024-07-01,Date,Joined mid-year for prorated PTO,TC_ACCRUAL_007
+DATA_076,PTOBalance,7.5,Number,Prorated PTO = 15 * 6/12,TC_ACCRUAL_007
+DATA_077,EmployeeID,EMP_IND_FEM_003,String,Female on maternity leave for accrual test,TC_ACCRUAL_008
+DATA_077,FirstName,Kavita,String,Employee first name,TC_ACCRUAL_008
+DATA_077,LastName,Menon,String,Employee last name,TC_ACCRUAL_008
+DATA_077,Email,kavita.menon@glf.com,String,Employee email,TC_ACCRUAL_008
+DATA_077,OnMaternityLeave,TRUE,Boolean,Currently on maternity leave,TC_ACCRUAL_008
+DATA_077,MaternityFrom,2024-12-01,Date,Maternity start date,TC_ACCRUAL_008
+DATA_077,MaternityTo,2025-05-29,Date,Maternity end date (180 days),TC_ACCRUAL_008
+DATA_077,CLBalance,8,Number,CL balance frozen during ML,TC_ACCRUAL_008
+DATA_077,PLBalance,12,Number,PL balance frozen during ML,TC_ACCRUAL_008
+DATA_080,EmployeeID,EMP_IND_010,String,India employee with CL balance at year-end,TC_CARRYFORWARD_001
+DATA_080,FirstName,Ganesh,String,Employee first name,TC_CARRYFORWARD_001
+DATA_080,LastName,Rao,String,Employee last name,TC_CARRYFORWARD_001
+DATA_080,Email,ganesh.rao@glf.com,String,Employee email,TC_CARRYFORWARD_001
+DATA_080,CLBalance,3,Number,3 CL balance on Dec 31,TC_CARRYFORWARD_001
+DATA_080,PLBalance,20,Number,PL balance,TC_CARRYFORWARD_001
+DATA_080,YearEndDate,2024-12-31,Date,Year-end processing date,TC_CARRYFORWARD_001
+DATA_081,EmployeeID,EMP_IND_011,String,India employee with PL > 30,TC_CARRYFORWARD_002|TC_BOUNDARY_004
+DATA_081,FirstName,Sunita,String,Employee first name,TC_CARRYFORWARD_002
+DATA_081,LastName,Pillai,String,Employee last name,TC_CARRYFORWARD_002
+DATA_081,Email,sunita.pillai@glf.com,String,Employee email,TC_CARRYFORWARD_002
+DATA_081,PLBalance,35,Number,35 PL balance exceeds max 30,TC_CARRYFORWARD_002
+DATA_081,CLBalance,0,Number,CL balance,TC_CARRYFORWARD_002
+DATA_081,ExpectedPLAfterCF,30,Number,Max 30 PL carried forward,TC_CARRYFORWARD_002
+DATA_081,ForfeitedPL,5,Number,5 PL forfeited,TC_CARRYFORWARD_002
+DATA_082,EmployeeID,EMP_IND_012,String,India employee with PL exactly 30,TC_CARRYFORWARD_003|TC_BOUNDARY_003
+DATA_082,FirstName,Manish,String,Employee first name,TC_CARRYFORWARD_003
+DATA_082,LastName,Khanna,String,Employee last name,TC_CARRYFORWARD_003
+DATA_082,Email,manish.khanna@glf.com,String,Employee email,TC_CARRYFORWARD_003
+DATA_082,PLBalance,30,Number,Exactly 30 PL at year-end,TC_CARRYFORWARD_003
+DATA_082,CLBalance,1,Number,CL balance,TC_CARRYFORWARD_003
+DATA_082,ExpectedPLAfterCF,30,Number,All 30 carried forward,TC_CARRYFORWARD_003
+DATA_083,EmployeeID,EMP_USA_AVP_003,String,USA AVP with PTO > 5 at year-end,TC_CARRYFORWARD_004
+DATA_083,FirstName,Emily,String,Employee first name,TC_CARRYFORWARD_004
+DATA_083,LastName,Davis,String,Employee last name,TC_CARRYFORWARD_004
+DATA_083,Email,emily.davis@glf.com,String,Employee email,TC_CARRYFORWARD_004
+DATA_083,Designation,AVP,Enum,AVP designation,TC_CARRYFORWARD_004
+DATA_083,PTOBalance,6,Number,6 PTO remaining exceeds max 5,TC_CARRYFORWARD_004
+DATA_083,ExpectedPTOAfterCF,20,Number,5 carried + 15 new = 20,TC_CARRYFORWARD_004
+DATA_083,ForfeitedPTO,1,Number,1 PTO forfeited,TC_CARRYFORWARD_004
+DATA_084,EmployeeID,EMP_USA_AVP_004,String,USA AVP with PTO < 5 at year-end,TC_CARRYFORWARD_005
+DATA_084,FirstName,Daniel,String,Employee first name,TC_CARRYFORWARD_005
+DATA_084,LastName,Garcia,String,Employee last name,TC_CARRYFORWARD_005
+DATA_084,Email,daniel.garcia@glf.com,String,Employee email,TC_CARRYFORWARD_005
+DATA_084,PTOBalance,3,Number,3 PTO remaining < 5,TC_CARRYFORWARD_005
+DATA_084,ExpectedPTOAfterCF,18,Number,3 carried + 15 new = 18,TC_CARRYFORWARD_005
+DATA_085,EmployeeID,EMP_USA_VP_002,String,USA VP with PTO at year-end (no CF),TC_CARRYFORWARD_006
+DATA_085,FirstName,Jessica,String,Employee first name,TC_CARRYFORWARD_006
+DATA_085,LastName,Martinez,String,Employee last name,TC_CARRYFORWARD_006
+DATA_085,Email,jessica.martinez@glf.com,String,Employee email,TC_CARRYFORWARD_006
+DATA_085,Designation,VP,Enum,VP designation,TC_CARRYFORWARD_006
+DATA_085,PTOBalance,10,Number,10 PTO remaining,TC_CARRYFORWARD_006
+DATA_085,ExpectedPTOAfterCF,20,Number,0 carried + 20 new = 20 (VP no CF),TC_CARRYFORWARD_006
+DATA_085,ForfeitedPTO,10,Number,All 10 PTO forfeited,TC_CARRYFORWARD_006
+DATA_090,EmployeeID,EMP_SPECIAL_001,String,Employee with special characters,TC_EDGE_009
+DATA_090,FirstName,François,String,Name with special character,TC_EDGE_009
+DATA_090,LastName,José,String,Name with accented character,TC_EDGE_009
+DATA_090,Email,francois.jose@glf.com,String,Employee email,TC_EDGE_009
+DATA_090,CLBalance,10,Number,CL balance,TC_EDGE_009
+DATA_100,TestUsers,100,Number,100 concurrent users for load test,TC_PERFORMANCE_003
+DATA_100,UserAccounts,EMP_LOAD_001 to EMP_LOAD_100,String,Test user accounts,TC_PERFORMANCE_003
+DATA_100,Scenario,Mixed workload,String,Login + view + submit,TC_PERFORMANCE_003
+DATA_101,BulkLeaveCSV,10000 records,File,CSV with 10K leave records,TC_PERFORMANCE_005
+DATA_101,CSVColumns,"EmployeeID,LeaveType,DateFrom,DateTo,Reason",String,CSV structure,TC_PERFORMANCE_005
+HOLIDAY_IND_001,Date,2024-01-26,Date,India - Republic Day,TC_LEAVE_005|TC_HOLIDAY_001
+HOLIDAY_IND_002,Date,2024-03-25,Date,India - Holi,TC_HOLIDAY_001|TC_HOLIDAY_003
+HOLIDAY_IND_003,Date,2024-03-29,Date,India - Good Friday,TC_HOLIDAY_001
+HOLIDAY_IND_004,Date,2024-04-11,Date,India - Id-ul-Fitr,TC_HOLIDAY_001
+HOLIDAY_IND_005,Date,2024-08-15,Date,India - Independence Day,TC_HOLIDAY_001
+HOLIDAY_IND_006,Date,2024-10-02,Date,India - Gandhi Jayanti,TC_HOLIDAY_001
+HOLIDAY_IND_007,Date,2024-12-25,Date,India - Christmas,TC_LEAVE_005|TC_HOLIDAY_001
+HOLIDAY_USA_001,Date,2024-01-01,Date,USA - New Year's Day,TC_HOLIDAY_002
+HOLIDAY_USA_002,Date,2024-07-04,Date,USA - Independence Day,TC_HOLIDAY_002
+HOLIDAY_USA_003,Date,2024-11-28,Date,USA - Thanksgiving,TC_HOLIDAY_002
+HOLIDAY_USA_004,Date,2024-12-25,Date,USA - Christmas,TC_HOLIDAY_002
+EMAIL_TEMPLATE_001,Template,Leave Application Submitted,String,Email template,TC_NOTIFICATION_001
+EMAIL_TEMPLATE_001,Subject,Leave Application Submitted - Pending Approval,String,Email subject,TC_NOTIFICATION_001
+EMAIL_TEMPLATE_001,ToRecipient,Employee,String,Primary recipient,TC_NOTIFICATION_001
+EMAIL_TEMPLATE_001,CCRecipient,Manager & HR,String,CC recipients,TC_NOTIFICATION_001
+EMAIL_TEMPLATE_002,Template,Leave Approved,String,Email template,TC_NOTIFICATION_002
+EMAIL_TEMPLATE_002,Subject,Leave Application Approved,String,Email subject,TC_NOTIFICATION_002
+EMAIL_TEMPLATE_002,ToRecipient,Employee,String,Primary recipient,TC_NOTIFICATION_002
+EMAIL_TEMPLATE_002,CCRecipient,HR,String,CC recipient,TC_NOTIFICATION_002
+EMAIL_TEMPLATE_003,Template,Leave Rejected,String,Email template,TC_NOTIFICATION_003
+EMAIL_TEMPLATE_003,Subject,Leave Application Rejected,String,Email subject,TC_NOTIFICATION_003
+EMAIL_TEMPLATE_003,ToRecipient,Employee,String,Primary recipient,TC_NOTIFICATION_003
+EMAIL_TEMPLATE_003,IncludesReason,TRUE,Boolean,Rejection reason included,TC_NOTIFICATION_003
+EMAIL_TEMPLATE_004,Template,Leave Approval Request - Manager,String,Email template with action buttons,TC_NOTIFICATION_004
+EMAIL_TEMPLATE_004,ActionButton1,Approve,String,Approve button,TC_NOTIFICATION_004
+EMAIL_TEMPLATE_004,ActionButton2,Reject,String,Reject button,TC_NOTIFICATION_004
+EMAIL_TEMPLATE_004,ButtonAction,API call with token,String,Email action mechanism,TC_NOTIFICATION_004|TC_NOTIFICATION_005
+VALIDATION_001,Rule,Date From <= Date To,String,Date range validation,TC_LEAVE_008|TC_NEGATIVE_006
+VALIDATION_002,Rule,Leave balance >= requested days,String,Balance validation,TC_LEAVE_006
+VALIDATION_003,Rule,No overlap with existing leave,String,Overlap prevention,TC_LEAVE_009
+VALIDATION_004,Rule,No past date leave,String,Past date restriction,TC_LEAVE_007
+VALIDATION_005,Rule,All mandatory fields required,String,Required field validation,TC_LEAVE_010|TC_LEAVE_011
+VALIDATION_006,Rule,Comp off min 5 hours,String,Comp off threshold,TC_COMPOFF_005
+VALIDATION_007,Rule,Comp off only weekend/holiday,String,Comp off eligibility,TC_COMPOFF_003
+VALIDATION_008,Rule,Maternity only married female,String,Maternity eligibility,TC_LEAVE_027|TC_LEAVE_028
+VALIDATION_009,Rule,Paternity only married male,String,Paternity eligibility,TC_LEAVE_030|TC_LEAVE_031
+BUSINESS_RULE_001,Rule,CL expires Dec 31,String,Carry-forward rule,TC_CARRYFORWARD_001
+BUSINESS_RULE_002,Rule,PL max 30 carry-forward,String,Carry-forward rule,TC_CARRYFORWARD_002
+BUSINESS_RULE_003,Rule,USA AVP max 5 PTO carry-forward,String,Carry-forward rule,TC_CARRYFORWARD_004
+BUSINESS_RULE_004,Rule,USA VP no PTO carry-forward,String,Carry-forward rule,TC_CARRYFORWARD_006
+BUSINESS_RULE_005,Rule,Comp off expires 3 months,String,Expiry rule,TC_COMPOFF_012
+BUSINESS_RULE_006,Rule,5 hours = 0.5 day comp off,String,Comp off calculation,TC_COMPOFF_002|TC_BOUNDARY_005
+BUSINESS_RULE_007,Rule,8 hours = 1 day comp off,String,Comp off calculation,TC_COMPOFF_001|TC_BOUNDARY_006
+BUSINESS_RULE_008,Rule,No CL/PL during maternity,String,Maternity accrual pause,TC_ACCRUAL_008
+BUSINESS_RULE_009,Rule,Join 1-15 = full month leave,String,Joining accrual rule,TC_ACCRUAL_003
+BUSINESS_RULE_010,Rule,Join after 15 = half month leave,String,Joining accrual rule,TC_ACCRUAL_004
+APPROVAL_FLOW_001,Flow,Leave: Employee → L1 Manager → HR,String,Multi-level approval,TC_LEAVE_018|TC_LEAVE_021
+APPROVAL_FLOW_002,Flow,Comp Off: Employee → L1 → L2 → HR,String,Multi-level approval,TC_COMPOFF_006|TC_COMPOFF_007|TC_COMPOFF_008
+API_ENDPOINT_001,Endpoint,POST /api/auth/login,String,Login endpoint,TC_AUTH_001 to TC_AUTH_010
+API_ENDPOINT_002,Endpoint,POST /api/leaves,String,Create leave application,TC_LEAVE_001 to TC_LEAVE_011
+API_ENDPOINT_003,Endpoint,GET /api/leaves,String,Get leave list,TC_LEAVE_012 to TC_LEAVE_015
+API_ENDPOINT_004,Endpoint,GET /api/leaves/balance,String,Get leave balance,TC_DASHBOARD_002|TC_PERFORMANCE_001
+API_ENDPOINT_005,Endpoint,PUT /api/leaves/:id/approve,String,Approve leave,TC_LEAVE_018|TC_LEAVE_021
+API_ENDPOINT_006,Endpoint,PUT /api/leaves/:id/reject,String,Reject leave,TC_LEAVE_019
+API_ENDPOINT_007,Endpoint,DELETE /api/leaves/:id,String,Cancel leave,TC_LEAVE_016|TC_NEGATIVE_005
+API_ENDPOINT_008,Endpoint,POST /api/comp-off,String,Create comp off request,TC_COMPOFF_001 to TC_COMPOFF_005
+API_ENDPOINT_009,Endpoint,GET /api/comp-off/balance,String,Get comp off balance,TC_COMPOFF_010
+API_ENDPOINT_010,Endpoint,GET /api/holidays,String,Get holiday list,TC_HOLIDAY_001|TC_HOLIDAY_002
+API_ENDPOINT_011,Endpoint,GET /api/reports/leaves,String,Generate leave report,TC_REPORT_001
+API_ENDPOINT_012,Endpoint,POST /api/leaves/bulk,String,Bulk leave upload,TC_PERFORMANCE_005
+SECURITY_TOKEN_001,TokenType,JWT,String,Authentication token type,TC_AUTH_008|TC_SECURITY_007|TC_SECURITY_008
+SECURITY_TOKEN_001,TokenExpiry,1800,Number,Token expiry in seconds (30 min),TC_AUTH_008|TC_SECURITY_008
+SECURITY_TOKEN_001,TokenAlgorithm,HS256,String,JWT algorithm,TC_SECURITY_007

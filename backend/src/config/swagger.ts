@@ -20,9 +20,9 @@ const options: Options = {
         - 🔔 Notification System
         - 📋 Audit Logging
 
-        ## Demo Credentials
-        - **HR Admin**: admin@company.com / admin123
-        - **Employee**: user@company.com / user123
+        ## Test Credentials
+        **Note:** Create users via database seed scripts: \`npm run seed\`
+        Default test users (after running seed): admin@company.com / user@company.com (passwords set in seed script)
       `,
       contact: {
         name: 'Leave Management System',

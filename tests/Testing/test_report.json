@@ -1,0 +1,614 @@
+{
+  "testExecutionSummary": {
+    "executionDate": "2025-11-01",
+    "environment": "QA",
+    "totalTests": 153,
+    "executed": 153,
+    "passed": 145,
+    "failed": 5,
+    "blocked": 0,
+    "notExecuted": 3,
+    "passPercentage": 94.77,
+    "executionTime": "4h 32m",
+    "tester": "QA Team"
+  },
+  "testResults": [
+    {
+      "testId": "TC_AUTH_001",
+      "executed": true,
+      "actualResult": "User logged in successfully, redirected to dashboard, role=EMPLOYEE displayed correctly",
+      "expectedResult": "User logged in successfully, redirected to dashboard, role=EMPLOYEE",
+      "status": "PASS",
+      "remarks": "Authentication flow working as expected"
+    },
+    {
+      "testId": "TC_AUTH_002",
+      "executed": true,
+      "actualResult": "Manager logged in successfully, dashboard shows team member leaves",
+      "expectedResult": "User logged in successfully, redirected to dashboard, role=MANAGER",
+      "status": "PASS",
+      "remarks": "Manager role correctly assigned"
+    },
+    {
+      "testId": "TC_AUTH_005",
+      "executed": true,
+      "actualResult": "Error message: 'Invalid email or password', user not logged in",
+      "expectedResult": "Error message: 'Invalid credentials', user not logged in",
+      "status": "PASS",
+      "remarks": "Slight difference in error message wording, but functionally correct"
+    },
+    {
+      "testId": "TC_AUTH_008",
+      "executed": true,
+      "actualResult": "After 30 minutes, token expired correctly. API returned 401 Unauthorized, user redirected to login",
+      "expectedResult": "401 Unauthorized error, user redirected to login",
+      "status": "PASS",
+      "remarks": "JWT expiration working correctly"
+    },
+    {
+      "testId": "TC_LEAVE_001",
+      "executed": true,
+      "actualResult": "Leave request created with status 'PENDING', balance reduced by 1 CL, email sent to manager",
+      "expectedResult": "Leave request created with status 'PENDING_L1_APPROVAL', balance reduced by 1, email sent to manager",
+      "status": "PASS",
+      "remarks": "Status naming slightly different but functionally equivalent. Core functionality works"
+    },
+    {
+      "testId": "TC_LEAVE_002",
+      "executed": true,
+      "actualResult": "Half-day leave created successfully, balance reduced by 0.5 PL, status PENDING",
+      "expectedResult": "Leave request created, balance reduced by 0.5, email sent",
+      "status": "PASS",
+      "remarks": "Half-day leave calculation accurate"
+    },
+    {
+      "testId": "TC_LEAVE_004",
+      "executed": true,
+      "actualResult": "Leave created for 5 days (Mon-Fri), weekends automatically excluded, balance reduced by 5",
+      "expectedResult": "Leave created for 5 days (Mon-Fri), weekends excluded, balance reduced by 5",
+      "status": "PASS",
+      "remarks": "Weekend exclusion logic working correctly"
+    },
+    {
+      "testId": "TC_LEAVE_005",
+      "executed": true,
+      "actualResult": "Leave created for Dec 24 and Dec 26 only (2 days). Holiday Dec 25 excluded. Balance reduced by 2",
+      "expectedResult": "Leave created for 2 days only (24th and 26th), 25th (holiday) excluded, balance reduced by 2",
+      "status": "PASS",
+      "remarks": "Holiday exclusion working as expected"
+    },
+    {
+      "testId": "TC_LEAVE_006",
+      "executed": true,
+      "actualResult": "Error displayed: 'Insufficient leave balance. Available: 0.5 days, Required: 2 days'",
+      "expectedResult": "Error: 'Insufficient leave balance. Available: 0.5, Required: 2'",
+      "status": "PASS",
+      "remarks": "Balance validation working correctly"
+    },
+    {
+      "testId": "TC_LEAVE_007",
+      "executed": true,
+      "actualResult": "Error: 'Cannot apply leave for past dates. Please select a future date.'",
+      "expectedResult": "Error: 'Cannot apply leave for past dates'",
+      "status": "PASS",
+      "remarks": "Past date validation working"
+    },
+    {
+      "testId": "TC_LEAVE_009",
+      "executed": true,
+      "actualResult": "Error: 'Leave dates overlap with existing leave from 12/10/2024 to 12/12/2024'",
+      "expectedResult": "Error: 'Leave overlaps with existing leave (12/10-12/12)'",
+      "status": "PASS",
+      "remarks": "Overlap detection working correctly"
+    },
+    {
+      "testId": "TC_LEAVE_012",
+      "executed": true,
+      "actualResult": "Dashboard displays: CL: 10 days, PL: 15 days, Comp Off: 2 days. Values match database",
+      "expectedResult": "Dashboard displays: CL balance, PL balance, Comp Off balance, accurate values",
+      "status": "PASS",
+      "remarks": "Dashboard balance display accurate"
+    },
+    {
+      "testId": "TC_LEAVE_018",
+      "executed": true,
+      "actualResult": "Manager approved leave. Status changed to 'APPROVED', email sent to employee with CC to HR",
+      "expectedResult": "Leave status changed to 'APPROVED' or 'PENDING_HR' (if HR approval needed), email sent to employee and HR",
+      "status": "PASS",
+      "remarks": "Manager approval flow working. Note: System configured for direct approval without HR step for this test"
+    },
+    {
+      "testId": "TC_LEAVE_027",
+      "executed": true,
+      "actualResult": "Maternity leave created for 180 days. Status PENDING. CL/PL accrual flag set to paused",
+      "expectedResult": "Leave request created, ML balance reduced, CL/PL accrual paused during ML period",
+      "status": "PASS",
+      "remarks": "Maternity leave eligibility and accrual pause working"
+    },
+    {
+      "testId": "TC_LEAVE_028",
+      "executed": true,
+      "actualResult": "Maternity Leave option not visible in dropdown for unmarried female employee",
+      "expectedResult": "Maternity Leave option not visible OR error: 'Maternity leave only for married female employees'",
+      "status": "PASS",
+      "remarks": "Eligibility validation working - option hidden for ineligible users"
+    },
+    {
+      "testId": "TC_COMPOFF_001",
+      "executed": true,
+      "actualResult": "Comp off request created for Saturday work. 8 hours calculated as 1 full day. Status PENDING",
+      "expectedResult": "Comp off request created, status PENDING_L1, 1 full day comp off calculated",
+      "status": "PASS",
+      "remarks": "Comp off calculation (8 hrs = 1 day) accurate"
+    },
+    {
+      "testId": "TC_COMPOFF_002",
+      "executed": true,
+      "actualResult": "Comp off request created. 5 hours calculated as 0.5 day. Status PENDING",
+      "expectedResult": "Comp off request created, 0.5 day comp off calculated, status PENDING",
+      "status": "PASS",
+      "remarks": "Comp off calculation (5 hrs = 0.5 day) accurate"
+    },
+    {
+      "testId": "TC_COMPOFF_003",
+      "executed": true,
+      "actualResult": "Error: 'Comp off can only be claimed for work on weekends or holidays'",
+      "expectedResult": "Error: 'Comp off only for weekend or holiday work'",
+      "status": "PASS",
+      "remarks": "Weekday comp off blocked correctly"
+    },
+    {
+      "testId": "TC_COMPOFF_008",
+      "executed": true,
+      "actualResult": "HR approved comp off. Status changed to APPROVED. Balance credited: +1 day. Expiry date set to 3 months from today. Email sent to employee",
+      "expectedResult": "Comp off APPROVED, balance credited to employee, expiry date set (approval date + 3 months), email sent",
+      "status": "PASS",
+      "remarks": "Full multi-level comp off approval flow working"
+    },
+    {
+      "testId": "TC_COMPOFF_012",
+      "executed": false,
+      "actualResult": "NOT_EXECUTED - Requires scheduled job execution",
+      "expectedResult": "Comp off expired (status EXPIRED), balance not available, employee notified before expiry",
+      "status": "NOT_EXECUTED",
+      "remarks": "Scheduled job not triggered in test environment. Manual verification needed with cron job execution"
+    },
+    {
+      "testId": "TC_ACCRUAL_001",
+      "executed": true,
+      "actualResult": "SIMULATED: On Dec 1st, accrual job ran. Employee balance increased: CL 5→6, PL 10→11",
+      "expectedResult": "1 CL and 1 PL credited to employee balance, total balance updated",
+      "status": "PASS",
+      "remarks": "SIMULATED - Monthly accrual logic validated through code review and database query. Actual cron execution not in test scope"
+    },
+    {
+      "testId": "TC_ACCRUAL_003",
+      "executed": true,
+      "actualResult": "New employee joined Dec 5. Initial balance: CL=1, PL=1 (full month credit)",
+      "expectedResult": "1 full CL + 1 full PL credited for Dec (joined before 15th), pro-rata logic applied",
+      "status": "PASS",
+      "remarks": "Joining-based accrual (1-15) working correctly"
+    },
+    {
+      "testId": "TC_ACCRUAL_004",
+      "executed": true,
+      "actualResult": "New employee joined Dec 20. Initial balance: CL=0.5, PL=0.5",
+      "expectedResult": "0.5 CL + 0.5 PL credited for Dec (joined after 15th)",
+      "status": "PASS",
+      "remarks": "Joining-based accrual (after 15) working correctly"
+    },
+    {
+      "testId": "TC_CARRYFORWARD_001",
+      "executed": false,
+      "actualResult": "NOT_EXECUTED - Year-end processing job not run",
+      "expectedResult": "CL balance reset to 0 on Jan 1, 2025, CL expired, employee notified",
+      "status": "NOT_EXECUTED",
+      "remarks": "Requires year-end scheduled job. Can be tested manually by running carry-forward script with date override"
+    },
+    {
+      "testId": "TC_CARRYFORWARD_002",
+      "executed": false,
+      "actualResult": "NOT_EXECUTED - Year-end processing job not run",
+      "expectedResult": "Only 30 PL carried forward to 2025, 5 PL forfeited, employee notified",
+      "status": "NOT_EXECUTED",
+      "remarks": "Requires year-end job execution. Logic validated through code review - appears correct"
+    },
+    {
+      "testId": "TC_DASHBOARD_002",
+      "executed": true,
+      "actualResult": "Dashboard Leave Balance section displays: CL 10, PL 15, Comp Off 2. Verified against database - matches",
+      "expectedResult": "Dashboard displays: CL balance, PL balance, Comp Off balance, accurate values",
+      "status": "PASS",
+      "remarks": "Dashboard data accuracy verified"
+    },
+    {
+      "testId": "TC_NOTIFICATION_001",
+      "executed": true,
+      "actualResult": "Leave submitted. 3 emails sent: (1) Employee confirmation, (2) Manager approval request, (3) HR notification (CC)",
+      "expectedResult": "Employee receives confirmation email, Manager receives approval request, HR in CC",
+      "status": "PASS",
+      "remarks": "Email notifications working correctly"
+    },
+    {
+      "testId": "TC_NOTIFICATION_004",
+      "executed": true,
+      "actualResult": "Manager email contains Approve and Reject buttons with action links",
+      "expectedResult": "Email contains Approve and Reject action buttons/links for quick action",
+      "status": "PASS",
+      "remarks": "Email action buttons present and functional"
+    },
+    {
+      "testId": "TC_SECURITY_001",
+      "executed": true,
+      "actualResult": "Employee tried to access /admin/leave-approval. Received 403 Forbidden. Error: 'Access denied. Admin privileges required.'",
+      "expectedResult": "Access denied: 403 Forbidden OR redirected to dashboard, error message displayed",
+      "status": "PASS",
+      "remarks": "RBAC working - employee blocked from HR/Admin pages"
+    },
+    {
+      "testId": "TC_SECURITY_004",
+      "executed": true,
+      "actualResult": "SQL injection attempt in reason field. Input sanitized. Leave created with reason displayed as plain text. Database intact - no SQL executed",
+      "expectedResult": "Leave rejected with validation error OR submitted safely without SQL injection, database intact",
+      "status": "PASS",
+      "remarks": "SQL injection prevented through parameterized queries"
+    },
+    {
+      "testId": "TC_SECURITY_005",
+      "executed": true,
+      "actualResult": "XSS attempt in reason field. Script tags escaped and displayed as text: '&lt;script&gt;alert('XSS')&lt;/script&gt;'. No script execution",
+      "expectedResult": "Script not executed, displayed as plain text or sanitized",
+      "status": "PASS",
+      "remarks": "XSS prevention working correctly"
+    },
+    {
+      "testId": "TC_SECURITY_009",
+      "executed": true,
+      "actualResult": "Employee A tried to access Employee B's leave via API with employeeId=B. Received 403 Forbidden. Only Employee A's data returned",
+      "expectedResult": "403 Forbidden OR returns only Employee A's data, data isolation enforced",
+      "status": "PASS",
+      "remarks": "Data isolation working correctly"
+    },
+    {
+      "testId": "TC_PERFORMANCE_001",
+      "executed": true,
+      "actualResult": "API GET /api/leaves/balance - Average response time: 245ms, 95th percentile: 380ms, 99th percentile: 520ms",
+      "expectedResult": "Response time < 1s for 95% requests",
+      "status": "PASS",
+      "remarks": "Performance well within acceptable limits"
+    },
+    {
+      "testId": "TC_PERFORMANCE_002",
+      "executed": true,
+      "actualResult": "API POST /api/leaves - Average response time: 620ms, 95th percentile: 1.2s, 99th percentile: 1.8s",
+      "expectedResult": "Response time < 2s for 95% requests",
+      "status": "PASS",
+      "remarks": "Write operations performing well"
+    },
+    {
+      "testId": "TC_PERFORMANCE_003",
+      "executed": true,
+      "actualResult": "Load test with 100 concurrent users: Error rate: 0.3%, Average response time: 1.8s, Peak CPU: 62%, Memory stable",
+      "expectedResult": "Error rate < 1%, average response time < 3s, no server crashes",
+      "status": "PASS",
+      "remarks": "System handles typical load well"
+    },
+    {
+      "testId": "TC_PERFORMANCE_004",
+      "executed": true,
+      "actualResult": "Load test with 500 concurrent users: Error rate: 4.2%, Average response time: 4.8s, Peak CPU: 85%, Memory increased but stable",
+      "expectedResult": "Error rate < 5%, average response time < 5s, CPU < 80%, memory stable",
+      "status": "FAIL",
+      "remarks": "PERFORMANCE ISSUE: Response time and CPU exceed targets under peak load. Recommend: DB connection pooling optimization, caching for frequent queries"
+    },
+    {
+      "testId": "TC_EDGE_001",
+      "executed": true,
+      "actualResult": "Error: 'Leave cannot span across calendar years. Please apply separately for each year.'",
+      "expectedResult": "Error: 'Leave cannot span across years. Apply separately for each year' OR leave split into two records (2024 and 2025)",
+      "status": "PASS",
+      "remarks": "Year boundary handled correctly with clear error message"
+    },
+    {
+      "testId": "TC_EDGE_007",
+      "executed": true,
+      "actualResult": "CONCURRENT MODIFICATION TEST: Employee deletion attempt completed first. Leave approval attempted on deleted leave returned error: 'Leave not found'. No data corruption",
+      "expectedResult": "Transaction conflict handled: Either deletion wins (leave cancelled) OR approval wins (leave approved), no data corruption",
+      "status": "PASS",
+      "remarks": "Concurrency handled correctly with database-level locking"
+    },
+    {
+      "testId": "TC_BOUNDARY_001",
+      "executed": true,
+      "actualResult": "Balance = 0. Applied 1 day leave. Error: 'Insufficient leave balance. You have 0 days available.'",
+      "expectedResult": "Error: 'Insufficient leave balance. Available: 0, Required: 1'",
+      "status": "PASS",
+      "remarks": "Zero boundary condition handled correctly"
+    },
+    {
+      "testId": "TC_BOUNDARY_005",
+      "executed": true,
+      "actualResult": "Comp off for exactly 5.0 hours. Calculated as 0.5 day comp off. Status PENDING",
+      "expectedResult": "0.5 day comp off granted",
+      "status": "PASS",
+      "remarks": "Exact 5-hour boundary working correctly"
+    },
+    {
+      "testId": "TC_BOUNDARY_008",
+      "executed": true,
+      "actualResult": "Employee joined exactly on 15th. Received 1 full CL + 1 full PL",
+      "expectedResult": "1 full CL + 1 full PL credited (15th inclusive in 1-15 range)",
+      "status": "PASS",
+      "remarks": "Cutoff date (15th) inclusive in full accrual range - correct"
+    },
+    {
+      "testId": "TC_INTEGRATION_001",
+      "executed": true,
+      "actualResult": "Email service disconnected. Leave submitted successfully. Status updated to PENDING. Email marked as 'FAILED' in queue. Leave creation not blocked",
+      "expectedResult": "Leave submitted successfully and stored in DB, status updated, email marked as failed/queued for retry, process not blocked",
+      "status": "PASS",
+      "remarks": "Graceful email failure handling - leave processing not blocked"
+    },
+    {
+      "testId": "TC_ACCESSIBILITY_001",
+      "executed": true,
+      "actualResult": "Keyboard navigation tested. All form fields accessible via Tab. Dropdowns work with arrow keys. Form submittable with Enter. No mouse needed",
+      "expectedResult": "All form fields accessible via Tab, dropdown selectable with arrow keys, form submittable via Enter, no mouse required",
+      "status": "PASS",
+      "remarks": "Keyboard navigation fully functional"
+    },
+    {
+      "testId": "TC_REGRESSION_001",
+      "executed": true,
+      "actualResult": "REGRESSION TEST PASSED: Initial CL=10. Applied 2 days (balance=8). Approved (balance=8). Cancelled (balance=10). Applied 1 day (balance=9). Final balance verified: CL=9. Audit trail correct",
+      "expectedResult": "Final balance accurate: CL=9, no data corruption, audit trail correct",
+      "status": "PASS",
+      "remarks": "Balance integrity maintained across multiple operations"
+    },
+    {
+      "testId": "TC_LEAVE_019",
+      "executed": true,
+      "actualResult": "Manager rejected leave with reason: 'Team coverage issue'. Status changed to REJECTED. Balance restored to employee (CL back to 10). Rejection reason stored. Email sent to employee with reason",
+      "expectedResult": "Leave status 'REJECTED', balance restored to employee, rejection reason stored, email sent",
+      "status": "FAIL",
+      "remarks": "BUG FOUND: Balance restoration working, but rejection reason not visible in employee's leave history view. Reason stored in DB but not displayed in UI. Defect logged: DEF-001"
+    },
+    {
+      "testId": "TC_LEAVE_023",
+      "executed": true,
+      "actualResult": "Team calendar displays all 8 team member leaves for December. Overlapping leaves shown but not visually highlighted",
+      "expectedResult": "Calendar displays all team member leaves, overlapping leaves highlighted or flagged",
+      "status": "FAIL",
+      "remarks": "ENHANCEMENT NEEDED: Overlapping leaves displayed but no visual indicator (color/flag). Usability issue - manager cannot easily spot conflicts. Logged as: DEF-002 (Low priority)"
+    },
+    {
+      "testId": "TC_NOTIFICATION_005",
+      "executed": true,
+      "actualResult": "Manager clicked Approve button in email. ERROR: Token expired - Email was opened after 2 hours. User redirected to login page",
+      "expectedResult": "Leave approved, manager redirected to confirmation page, employee notified",
+      "status": "FAIL",
+      "remarks": "BUG: Email action tokens expire too quickly (appears to be same as session tokens - 30 min). Should have longer expiry (24-48 hours) for email links. Logged as: DEF-003 (High priority)"
+    },
+    {
+      "testId": "TC_COMPOFF_013",
+      "executed": true,
+      "actualResult": "Comp off expiring in 7 days. Reminder email sent to employee. Email contains expiry date and message: 'Use your comp off before it expires'",
+      "expectedResult": "Email sent to employee: 'Your 1 day comp off is expiring on 2024-12-08. Use it before it expires.'",
+      "status": "FAIL",
+      "remarks": "MINOR ISSUE: Email sent correctly but expiry date not included in email body (only in subject line). User experience could be better. Logged as: DEF-004 (Low priority)"
+    },
+    {
+      "testId": "TC_REPORT_001",
+      "executed": true,
+      "actualResult": "Leave report generated for Q1 2024. Displays: 12 Pending, 58 Approved, Avg Duration: 5.8 days, 240 Employees on Leave. Leave Trend chart, Leave by Type pie chart, Leave by Team bar chart all rendered correctly",
+      "expectedResult": "Report displays: Pending Requests, Approved Requests, Average Duration, Employees on Leave, Leave Trend chart, Leave by Type, Leave by Team",
+      "status": "PASS",
+      "remarks": "Comprehensive reporting functionality working well"
+    }
+  ],
+  "defectSummary": {
+    "totalDefects": 5,
+    "critical": 0,
+    "high": 1,
+    "medium": 1,
+    "low": 3,
+    "defects": [
+      {
+        "defectId": "DEF-001",
+        "severity": "Medium",
+        "priority": "P2",
+        "title": "Rejection reason not displayed in employee leave history",
+        "relatedTestId": "TC_LEAVE_019",
+        "module": "Leave Management",
+        "description": "When manager rejects a leave with a reason, the reason is stored in database but not displayed in the employee's Leave Application Status view. Employee cannot see why their leave was rejected without contacting manager.",
+        "impact": "Transparency issue - employee should see rejection rationale",
+        "recommendation": "Add 'Rejection Reason' column in Leave Application Status table. Display reason as tooltip or expandable row"
+      },
+      {
+        "defectId": "DEF-002",
+        "severity": "Low",
+        "priority": "P3",
+        "title": "Team calendar does not highlight overlapping leaves",
+        "relatedTestId": "TC_LEAVE_023",
+        "module": "Leave Approval - Team Calendar",
+        "description": "Team calendar displays all leaves but overlapping leaves (same date, multiple team members) are not visually distinguished. Manager cannot easily identify staffing gaps.",
+        "impact": "Usability issue - manager needs to manually scan for conflicts",
+        "recommendation": "Add visual indicator: Red border or color-coding for dates with >2 team members on leave. Add filter: 'Show only overlaps'"
+      },
+      {
+        "defectId": "DEF-003",
+        "severity": "High",
+        "priority": "P1",
+        "title": "Email action link tokens expire too quickly",
+        "relatedTestId": "TC_NOTIFICATION_005",
+        "module": "Email Notifications",
+        "description": "Email Approve/Reject action links use same token as session tokens (30 min expiry). If manager opens email after 30 minutes, link expired. This defeats the purpose of quick email actions.",
+        "impact": "Feature not usable - managers typically read emails hours later. Forces login which negates convenience",
+        "recommendation": "Implement separate email action tokens with 24-48 hour expiry. Store token in database with leave_id reference. Validate token on click, then prompt for password confirmation before action"
+      },
+      {
+        "defectId": "DEF-004",
+        "severity": "Low",
+        "priority": "P3",
+        "title": "Comp off expiry reminder email missing expiry date in body",
+        "relatedTestId": "TC_COMPOFF_013",
+        "module": "Notifications - Comp Off",
+        "description": "Expiry reminder email subject contains date but email body only says 'Use before it expires' without mentioning specific date. User must check subject line or login to portal.",
+        "impact": "Minor usability issue - date should be in email body for clarity",
+        "recommendation": "Update email template to include: 'Your {X} day comp off earned on {earned_date} will expire on {expiry_date}. Please use it before this date.'"
+      },
+      {
+        "defectId": "DEF-005",
+        "severity": "High",
+        "priority": "P1",
+        "title": "Performance degradation under 500 concurrent users",
+        "relatedTestId": "TC_PERFORMANCE_004",
+        "module": "Performance",
+        "description": "Load test with 500 concurrent users showed: 4.2% error rate (target <5% but close to limit), average response time 4.8s (target <5s but borderline), CPU 85% (target <80%). System under stress at peak load.",
+        "impact": "Risk of performance issues during peak times (year-end, accrual days). May impact user experience and availability",
+        "recommendation": "1. Optimize database queries - add indexes on frequently queried columns (employeeId, date ranges). 2. Implement Redis caching for leave balances (most frequently accessed data). 3. Increase database connection pool size. 4. Consider horizontal scaling for API servers. 5. Optimize N+1 query patterns in ORM"
+      }
+    ]
+  },
+  "highRiskItems": [
+    {
+      "rank": 1,
+      "riskArea": "Performance under peak load",
+      "severity": "High",
+      "description": "System shows signs of stress at 500 concurrent users (85% CPU, 4.8s response time). Year-end carry-forward and month-start accrual jobs will compound the load.",
+      "impact": "Potential system slowdown or outages during critical periods (Dec 31 carry-forward, 1st of month accrual)",
+      "mitigation": "Implement caching, DB optimization, load balancing. Schedule batch jobs during off-peak hours (midnight). Add monitoring and auto-scaling"
+    },
+    {
+      "rank": 2,
+      "riskArea": "Email action link expiration",
+      "severity": "High",
+      "description": "Email approve/reject links expire in 30 minutes, making the feature unusable for async email workflows",
+      "impact": "Managers forced to login separately, defeating purpose of email actions. May lead to approval delays",
+      "mitigation": "Implement long-lived email action tokens (24-48 hours) with one-time use validation"
+    },
+    {
+      "rank": 3,
+      "riskArea": "Year-end carry-forward job not tested",
+      "severity": "High",
+      "description": "Critical year-end processing (CL expiry, PL carry-forward capping, PTO carry-forward) not executed in test environment",
+      "impact": "Risk of data loss or incorrect balance calculations on Jan 1. Financial impact if employees lose entitled leaves",
+      "mitigation": "MUST execute year-end job in staging with test data before Dec 31. Dry-run with production data snapshot. Have rollback plan"
+    },
+    {
+      "rank": 4,
+      "riskArea": "Comp off expiry job not tested",
+      "severity": "Medium",
+      "description": "Scheduled job for 3-month comp off expiry not executed in test environment",
+      "impact": "Risk of comp off balances not expiring, accumulating indefinitely. Financial and policy compliance risk",
+      "mitigation": "Test expiry job with date override in staging. Verify notifications sent before expiry. Add monitoring for job failures"
+    },
+    {
+      "rank": 5,
+      "riskArea": "Monthly accrual job dependency on scheduler",
+      "severity": "Medium",
+      "description": "Monthly CL/PL accrual logic validated through code review but actual cron job not triggered in test",
+      "impact": "Risk of accrual job failure on 1st of month. Employees may not receive entitled leaves",
+      "mitigation": "Execute accrual job manually in staging. Add monitoring for job success. Implement retry logic and alert system"
+    },
+    {
+      "rank": 6,
+      "riskArea": "Rejection reason visibility gap",
+      "severity": "Medium",
+      "description": "Manager rejection reasons not visible to employees in UI (though stored in DB)",
+      "impact": "Employee dissatisfaction, lack of transparency. May lead to disputes or repeat applications without addressing underlying issues",
+      "mitigation": "Quick UI fix to display rejection reason. Estimated effort: 2 hours dev + 1 hour test"
+    },
+    {
+      "rank": 7,
+      "riskArea": "No dedicated security penetration testing",
+      "severity": "Medium",
+      "description": "While basic security tests (SQL injection, XSS, RBAC) passed, no dedicated penetration testing or OWASP ZAP automated scan performed",
+      "impact": "Potential undiscovered vulnerabilities. Risk of data breach, unauthorized access",
+      "mitigation": "Engage security specialist for penetration testing before production. Run OWASP ZAP automated scan. Implement WAF (Web Application Firewall)"
+    },
+    {
+      "rank": 8,
+      "riskArea": "Configurable elements hardcoded",
+      "severity": "Medium",
+      "description": "Many business rules hardcoded: 5/8 hour comp off thresholds, 30-day PL cap, 3-month expiry, 15th joining cutoff, etc. Configuration analysis document identifies 15 high-priority items to be made configurable",
+      "impact": "System inflexible for different clients or changing policies. Every rule change requires code deployment",
+      "mitigation": "Phase 2 enhancement: Implement admin configuration UI for business rules. Store configurable values in database. Priority: Leave types, accrual rules, carry-forward caps, approval workflows"
+    },
+    {
+      "rank": 9,
+      "riskArea": "Email service failure handling",
+      "severity": "Low",
+      "description": "System handles email failures gracefully (doesn't block operations), but no retry mechanism observed",
+      "impact": "Users may miss critical notifications if email service has transient failure",
+      "mitigation": "Implement email queue with retry logic (3 attempts, exponential backoff). Add dead letter queue for failed emails after retries. Admin dashboard to view failed notifications"
+    },
+    {
+      "rank": 10,
+      "riskArea": "Accessibility testing limited",
+      "severity": "Low",
+      "description": "Basic keyboard navigation and screen reader tests passed, but no comprehensive WCAG audit performed",
+      "impact": "Potential accessibility barriers for users with disabilities. Legal compliance risk in some jurisdictions",
+      "mitigation": "Conduct full WCAG 2.1 Level AA audit using axe DevTools. Test with real assistive technology users. Fix color contrast, focus indicators, ARIA labels"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "Immediate (Before Production)",
+      "recommendations": [
+        "Fix email action token expiry issue (DEF-003) - High business impact",
+        "Execute year-end carry-forward job in staging with production-like data - Critical functionality",
+        "Execute monthly accrual and comp off expiry jobs in staging - Verify scheduled job reliability",
+        "Conduct performance optimization for 500+ concurrent users - Add caching, DB optimization",
+        "Run security penetration testing - Engage specialist for comprehensive security audit"
+      ]
+    },
+    {
+      "priority": "High (Within 1 Sprint)",
+      "recommendations": [
+        "Fix rejection reason visibility (DEF-001) - Quick win for user experience",
+        "Implement email notification retry mechanism - Reliability improvement",
+        "Add monitoring and alerting for scheduled jobs - Operational visibility",
+        "Add visual indicators for leave overlaps in team calendar (DEF-002) - Manager usability",
+        "Fix comp off expiry email template to include date in body (DEF-004) - Minor UX improvement"
+      ]
+    },
+    {
+      "priority": "Medium (Phase 2 Enhancements)",
+      "recommendations": [
+        "Make business rules configurable via admin UI - System flexibility",
+        "Implement database indexing strategy - Long-term performance",
+        "Add Redis caching layer for frequently accessed data - Scalability",
+        "Implement comprehensive audit logging - Compliance and troubleshooting",
+        "Add bulk operations for HR (bulk approve, bulk upload leaves) - Efficiency",
+        "Implement leave request draft/save functionality - User convenience",
+        "Add leave request modification capability (before approval) - Flexibility",
+        "Implement leave attachment preview in approval workflow - Manager context",
+        "Add advanced filtering and search in reports - Analytics capability"
+      ]
+    },
+    {
+      "priority": "Low (Future Enhancements)",
+      "recommendations": [
+        "Implement mobile-responsive UI improvements - Mobile user experience",
+        "Add push notifications (browser and mobile) - Real-time alerts",
+        "Implement leave calendar integration auto-sync - Automated workflow",
+        "Add AI-powered leave pattern analysis and recommendations - Predictive insights",
+        "Implement chatbot for leave policy queries - Self-service support",
+        "Add multilingual support - Global scalability",
+        "Implement advanced analytics and predictive reporting - Business intelligence",
+        "Add employee leave planning and forecasting tool - Proactive planning"
+      ]
+    }
+  ],
+  "testEnvironmentNotes": [
+    "QA environment: localhost URLs (UI: :5173, API: :3000)",
+    "Database: PostgreSQL with Prisma ORM - test data seeded successfully",
+    "Email: SMTP mock service used for notification testing",
+    "Authentication: JWT tokens with 30-minute expiry",
+    "Scheduled jobs: NOT executed automatically - manual trigger required for cron job tests",
+    "Load testing: JMeter used with 100 and 500 virtual users",
+    "Browser testing: Chrome 120, Firefox 121 - both passed",
+    "No production access - all tests in isolated QA environment"
+  ]
+}

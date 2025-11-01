@@ -1,0 +1,92 @@
+Generate & Execute Full Test Suite, Test Data, and Actual vs Expected Report
+
+You are an expert QA Architect and Senior Test Engineer. Your task is to *thoroughly test* the provided **Leave Management** application requirements/document. Produce an exhaustive, rigorous, and practical test deliverable set that a development and QA team can use immediately. Act as the most correct, detail-oriented tester refert document - "C:\Users\mayurw\ClaudeCode\leave-management-system\leave-management-system\tests\Testing\Test Prompt.txt".
+
+**Inputs you will be given**: the Leave Management Requirements Document - "C:\Users\mayurw\ClaudeCode\leave-management-system\leave-management-system\GLF Requirement\GLF_Leave Management System.pdf" and configuration document - "C:\Users\mayurw\ClaudeCode\leave-management-system\leave-management-system\GLF Requirement\LeaveManagement_ConfigAnalysis.pdf". If anything in the document is ambiguous, make safe assumptions and state them clearly in your output.
+
+**Primary objectives**
+
+1. Produce a complete **Test Plan** (scope, objectives, environment, roles, risks, entry/exit criteria).
+2. Generate a prioritized **Test Suite** covering Unit/Functional/Integration/Regression/UI/UX/Boundary/Negative/Edge/Performance/Security/Accessibility tests.
+3. Create **structured test cases** (Given–When–Then where applicable) with:
+
+   * Unique Test ID
+   * Title
+   * Pre-conditions
+   * Steps
+   * Input/test data (explicit values)
+   * Expected result
+   * Priority (High/Med/Low)
+   * Category (Functional/Integration/Security/etc.)
+4. Produce **test data sets** as downloadable CSV files (and a JSON variant), covering normal, boundary, and negative cases, and role-based permutations (Admin, Approver, Employee, HR).
+5. Where possible, **simulate/test-execute** logical test cases within the assistant (describe simulation assumptions) and generate an **Actual vs Expected** report showing pass/fail and notes. If you cannot run the application, mark these as “Not Executed” and provide exact steps and data to run them.
+6. Provide **automation pseudo-code** / script skeletons (e.g., Playwright / Selenium / Cypress / Postman collections) for high-priority test cases so developers can pick up and run them.
+7. Create a **traceability matrix** mapping requirements to test cases.
+8. Produce a concise **Executive Summary** listing high-risk items, must-fix bugs (if discovered by simulation), and recommendations to make elements configurable (to avoid future code changes).
+9. Output everything in structured files / sections: `test_plan.md`, `test_cases.csv`, `test_data.csv`, `test_report.json` (Actual vs Expected), `traceability_matrix.csv`, and `automation_snippets.md`.
+
+**Deliverable format requirements**
+
+* `test_plan.md` — full test plan (Markdown).
+* `test_cases.csv` — columns: TestID, Title, Priority, Category, Pre-conditions, Steps (numbered), Test Data Reference, Expected Result, Notes.
+* `test_data.csv` — columns: DataID, Field, Value, DataType, Purpose, RelatedTestIDs.
+* `test_report.json` — JSON array of results: { testId, executed (true/false), actualResult, expectedResult, status: PASS/FAIL/NOT_EXECUTED, remarks }.
+* `traceability_matrix.csv` — columns: RequirementID, RequirementSummary, TestIDs.
+* `automation_snippets.md` — code snippets for UI and API tests (Playwright or Cypress for UI; Postman/Newman or REST-assured for APIs). Provide at least 5 runnable examples (one smoke, one end-to-end workflow, one negative/edge case, one performance test outline, one API contract test).
+
+**Testing depth & scope specifics (must include):**
+
+* **User roles & permissions**: Employee (create leave request), Manager/Approver (approve/reject), HR (override), Admin (configure global non-billable tasks). Test role-based access thoroughly.
+* **Leave types & configuration**: Test CRUD and auto-creation behavior for global non-billable types (HOLIDAY, LEAVE, TRAVEL). Validate UI and API.
+* **Timesheet integration**: Test how leave entries reflect in timesheet, priority/complexity fields, blocked edits after submit, reject flow, and re-open behavior.
+* **Validation & business rules**: carry-forward rules, balance calculation, overlap prevention, multi-day leave, partial day, holiday handling, weekend exclusions, holiday overrides, approval chains.
+* **Data integrity on delete/update**: Deleting test cases or defects equivalent — simulate delete & re-upload impact on hierarchy, task types, reports.
+* **Boundary & negative testing**: Large leaves, invalid dates, simultaneous edits, timezone issues, locale/date format, concurrency (two approvers), missing config entries.
+* **Performance**: Outline load tests for bulk leave uploads (e.g., 10k entries), response time targets, and concurrency targets.
+* **Security & privacy**: test role-based data visibility, SQL injection checks on text fields, CSRF, authentication expiry, and API token misuse.
+* **Accessibility**: basic checks for keyboard navigation and screen-reader friendly labels for critical screens.
+
+**Test data generation rules**
+
+* Provide synthetic realistic employee records (IDs, emails, roles, hire dates) and leave balances.
+* Create edge-case employees: newly joined (0 balance), long-tenured (large accruals), contract-based (no leaves), cross-timezone.
+* Supply `test_data.csv` with at least 100 rows covering combinations (leave type × role × overlap × partial/full day × weekend/holiday).
+
+**Execution & Simulation**
+
+* For tests you can logically simulate here, run through steps and provide `Actual` results (based on deterministic expectation from requirements). Mark simulated tests clearly.
+* For tests requiring the application, mark as `NOT_EXECUTED` and provide *exact* instructions, API payloads, and UI steps to run them manually or via automation.
+
+**Reporting**
+
+* Create `test_report.json` where each test has pass/fail/not_executed and a clear remark.
+* Generate a summary: total tests, passed, failed, blocked, not executed, pass percentage.
+* Highlight **top 10 high-risk/priority** failing or not-covered items.
+
+**Priority and Risk guidance**
+
+* Mark high priority: anything impacting financial calculation (timesheet billing), approval logic, data loss (delete), or security.
+* Provide recommended quick fixes and mitigations for high-risk items.
+
+**Output style & clarity**
+
+* Use tables and numbered lists.
+* Make filenames explicit and provide the raw file contents inline (CSV/JSON/MD) so I can copy them.
+* Keep technical snippets minimal but runnable and well-commented.
+
+---
+
+**If you need to ask one question to clarify, ask only this**:
+
+* "Please confirm the environment endpoints (UI URL, API base URL), authentication method (SAML/OAuth2/API key), and sample admin credentials for simulation."
+  If no answer, assume **no runtime access** and produce full manual & automation artifacts with NOT_EXECUTED markers where required.
+
+**Begin analysis now**:
+
+1. Parse the attached Leave Management Requirements Document.
+2. Produce the deliverables listed above (`test_plan.md`, `test_cases.csv`, `test_data.csv`, `test_report.json`, `traceability_matrix.csv`, `automation_snippets.md`).
+3. Summarize high-risk items at the top and include exact steps to run critical tests.
+
+---
+
+If you want, I can also transform the high-priority test cases into a ready-to-run **Postman collection** or **Playwright project** in the next step — say which you prefer.

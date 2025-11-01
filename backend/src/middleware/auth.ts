@@ -40,61 +40,19 @@ export const authenticate = async (
     };
 
     // Fetch user from database
-    let user = await userService.getUserById(decoded.userId);
+    // SECURITY FIX: Removed mock user bypass (MEDIUM vulnerability fix)
+    // All users must exist in database - no fallback to hardcoded users
+    const user = await userService.getUserById(decoded.userId);
 
-    // If user not found in database, check for mock users
     if (!user) {
-      const mockUsers = [
-        {
-          id: 'admin-001',
-          employeeId: 'EMP001',
-          email: 'admin@company.com',
-          password: 'hashedPassword',
-          firstName: 'System',
-          lastName: 'Administrator',
-          role: 'ADMIN',
-          department: 'Human Resources',
-          location: 'Bengaluru',
-          reportingManagerId: null,
-          joiningDate: new Date('2020-01-01'),
-          status: 'ACTIVE',
-          lastLogin: null,
-          gender: 'FEMALE',
-          maritalStatus: 'MARRIED',
-          country: 'INDIA',
-          createdAt: new Date('2020-01-01'),
-          updatedAt: new Date('2020-01-01')
-        },
-        {
-          id: 'emp-eng-001',
-          employeeId: 'EMP002',
-          email: 'user@company.com',
-          password: 'hashedPassword',
-          firstName: 'Arjun',
-          lastName: 'Singh',
-          role: 'EMPLOYEE',
-          department: 'Engineering',
-          location: 'Bengaluru',
-          reportingManagerId: null,
-          joiningDate: new Date('2021-06-15'),
-          status: 'ACTIVE',
-          lastLogin: null,
-          gender: 'MALE',
-          maritalStatus: 'MARRIED',
-          country: 'INDIA',
-          createdAt: new Date('2021-06-15'),
-          updatedAt: new Date('2021-06-15')
-        }
-      ];
-
-      const mockUser = mockUsers.find(u => u.id === decoded.userId && u.email === decoded.email);
-      if (mockUser) {
-        user = mockUser;
-      }
+      logger.warn(`Authentication failed: User not found in database - ${decoded.userId}`);
+      throw new AppError('User not found or has been deleted', 401);
     }
 
-    if (!user) {
-      throw new AppError('User not found', 401);
+    // Additional security check: verify user status is ACTIVE
+    if (user.status !== 'ACTIVE') {
+      logger.warn(`Authentication failed: User status is ${user.status} - ${decoded.userId}`);
+      throw new AppError('User account is not active', 401);
     }
 
     req.user = {

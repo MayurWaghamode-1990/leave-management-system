@@ -1,0 +1,134 @@
+RequirementID,RequirementSummary,TestIDs
+REQ_AUTH_001,User authentication with valid credentials,TC_AUTH_001|TC_AUTH_002|TC_AUTH_003|TC_AUTH_004
+REQ_AUTH_002,User authentication with invalid credentials,TC_AUTH_005|TC_AUTH_006|TC_AUTH_007
+REQ_AUTH_003,JWT token expiration and session management,TC_AUTH_008|TC_AUTH_009|TC_SECURITY_008
+REQ_AUTH_004,Logout functionality,TC_AUTH_010
+REQ_LEAVE_IND_001,India leave types: CL PL Maternity Paternity LWP Comp Off,TC_LEAVE_001|TC_LEAVE_002|TC_LEAVE_027|TC_LEAVE_030|TC_LEAVE_032
+REQ_LEAVE_USA_001,USA leave types: PTO Bereavement LWP Comp Off,TC_LEAVE_024|TC_LEAVE_025|TC_LEAVE_026
+REQ_LEAVE_002,Leave application - full day,TC_LEAVE_001|TC_LEAVE_024
+REQ_LEAVE_003,Leave application - half day (first half / second half),TC_LEAVE_002|TC_LEAVE_003
+REQ_LEAVE_004,Leave application - multi-day,TC_LEAVE_004
+REQ_LEAVE_005,Weekend exclusion in leave calculation,TC_LEAVE_004
+REQ_LEAVE_006,Holiday exclusion in leave calculation,TC_LEAVE_005
+REQ_LEAVE_007,Leave balance validation - insufficient balance,TC_LEAVE_006|TC_EDGE_004
+REQ_LEAVE_008,Leave date validation - no past dates,TC_LEAVE_007
+REQ_LEAVE_009,Leave date validation - Date To >= Date From,TC_LEAVE_008|TC_NEGATIVE_006
+REQ_LEAVE_010,Leave overlap prevention,TC_LEAVE_009|TC_EDGE_005
+REQ_LEAVE_011,Mandatory fields validation,TC_LEAVE_010|TC_LEAVE_011
+REQ_LEAVE_012,Leave balance display on dashboard,TC_LEAVE_012|TC_DASHBOARD_002
+REQ_LEAVE_013,Leave application status tracking,TC_LEAVE_013|TC_LEAVE_014|TC_LEAVE_015
+REQ_LEAVE_014,Leave cancellation by employee,TC_LEAVE_016|TC_LEAVE_017
+REQ_LEAVE_015,Leave approval by manager,TC_LEAVE_018|TC_SECURITY_010
+REQ_LEAVE_016,Leave rejection by manager with reason,TC_LEAVE_019
+REQ_LEAVE_017,Bulk leave approval by manager,TC_LEAVE_020
+REQ_LEAVE_018,HR approval after manager approval,TC_LEAVE_021
+REQ_LEAVE_019,HR override of manager rejection,TC_LEAVE_022
+REQ_LEAVE_020,Team calendar view with leave overlaps,TC_LEAVE_023
+REQ_LEAVE_021,Maternity leave - 180 days for married female employees only,TC_LEAVE_027|TC_LEAVE_028|TC_LEAVE_029|TC_EDGE_010
+REQ_LEAVE_022,Paternity leave - 5 days for married male employees only,TC_LEAVE_030|TC_LEAVE_031
+REQ_COMPOFF_001,Comp off eligibility - weekend or holiday work only,TC_COMPOFF_001|TC_COMPOFF_002|TC_COMPOFF_003|TC_COMPOFF_004
+REQ_COMPOFF_002,Comp off calculation - 5 hours = 0.5 day,TC_COMPOFF_002|TC_BOUNDARY_005
+REQ_COMPOFF_003,Comp off calculation - 8 hours = 1 day,TC_COMPOFF_001|TC_BOUNDARY_006
+REQ_COMPOFF_004,Comp off minimum hours threshold,TC_COMPOFF_005
+REQ_COMPOFF_005,Comp off multi-level approval: Employee → L1 → L2 → HR,TC_COMPOFF_006|TC_COMPOFF_007|TC_COMPOFF_008|TC_REGRESSION_002
+REQ_COMPOFF_006,Comp off rejection flow,TC_COMPOFF_009
+REQ_COMPOFF_007,Comp off balance display,TC_COMPOFF_010
+REQ_COMPOFF_008,Use comp off balance to apply leave,TC_COMPOFF_011
+REQ_COMPOFF_009,Comp off expiry after 3 months from approval date,TC_COMPOFF_012|TC_BOUNDARY_007
+REQ_COMPOFF_010,Comp off expiry reminder notification,TC_COMPOFF_013
+REQ_ACCRUAL_IND_001,India monthly accrual - 1 CL + 1 PL on 1st of every month,TC_ACCRUAL_001
+REQ_ACCRUAL_IND_002,India joining-based allocation - full day if joined 1-15,TC_ACCRUAL_003|TC_BOUNDARY_008
+REQ_ACCRUAL_IND_003,India joining-based allocation - 0.5 day if joined after 15,TC_ACCRUAL_004|TC_BOUNDARY_009
+REQ_ACCRUAL_USA_001,USA annual PTO allocation - AVP and below: 15 days,TC_ACCRUAL_005|TC_CARRYFORWARD_004|TC_CARRYFORWARD_005
+REQ_ACCRUAL_USA_002,USA annual PTO allocation - VP and above: 20 days,TC_ACCRUAL_006|TC_CARRYFORWARD_006
+REQ_ACCRUAL_USA_003,USA mid-year joining prorated PTO calculation,TC_ACCRUAL_007
+REQ_ACCRUAL_004,No CL/PL accrual during maternity leave period,TC_ACCRUAL_008
+REQ_ACCRUAL_005,No monthly accrual for USA employees (annual model),TC_ACCRUAL_002
+REQ_CF_IND_001,India CL balance expires on December 31st,TC_CARRYFORWARD_001
+REQ_CF_IND_002,India PL carry-forward - maximum 30 days allowed,TC_CARRYFORWARD_002|TC_BOUNDARY_003|TC_BOUNDARY_004
+REQ_CF_IND_003,India PL carry-forward - less than 30 fully carried,TC_CARRYFORWARD_003
+REQ_CF_USA_001,USA AVP and below - maximum 5 PTO days carry-forward,TC_CARRYFORWARD_004|TC_CARRYFORWARD_005
+REQ_CF_USA_002,USA VP and above - no PTO carry-forward allowed,TC_CARRYFORWARD_006
+REQ_CF_003,Year-end carry-forward processing job,TC_CARRYFORWARD_001 to TC_CARRYFORWARD_006
+REQ_DASHBOARD_001,Dashboard - Leave and Comp Off Policy display,TC_DASHBOARD_001
+REQ_DASHBOARD_002,Dashboard - Leave Balance section,TC_DASHBOARD_002
+REQ_DASHBOARD_003,Dashboard - Booked Leaves section,TC_DASHBOARD_003
+REQ_DASHBOARD_004,Dashboard - Approved Leaves Status,TC_DASHBOARD_004
+REQ_DASHBOARD_005,Dashboard - Upcoming Holidays,TC_DASHBOARD_005
+REQ_DASHBOARD_006,Dashboard - Pie Chart of Leaves Applied (optional),TC_DASHBOARD_005
+REQ_HOLIDAY_001,Holiday lists - India and USA separate calendars,TC_HOLIDAY_001|TC_HOLIDAY_002
+REQ_HOLIDAY_002,Holiday reminder emails,TC_HOLIDAY_003
+REQ_NOTIFICATION_001,Email notification on leave submission (Employee Manager HR),TC_NOTIFICATION_001
+REQ_NOTIFICATION_002,Email notification on leave approval (Employee HR),TC_NOTIFICATION_002
+REQ_NOTIFICATION_003,Email notification on leave rejection with reason,TC_NOTIFICATION_003
+REQ_NOTIFICATION_004,Email notification with Approve/Reject action buttons,TC_NOTIFICATION_004|TC_NOTIFICATION_005
+REQ_NOTIFICATION_005,Email notification on leave balance change,TC_NOTIFICATION_006
+REQ_NOTIFICATION_006,Email notification on leave cancellation,TC_NOTIFICATION_007
+REQ_REPORT_001,Leave report generation by date range,TC_REPORT_001
+REQ_REPORT_002,Leave report export to CSV,TC_REPORT_002
+REQ_REPORT_003,Leave trend visualization - heatmap,TC_REPORT_003
+REQ_REPORT_004,Leave by type breakdown - pie chart,TC_REPORT_004
+REQ_REPORT_005,Leave by team breakdown - stacked bar chart,TC_REPORT_005
+REQ_SECURITY_001,Role-based access control - Employee restrictions,TC_SECURITY_001
+REQ_SECURITY_002,Role-based access control - Manager access to team only,TC_SECURITY_002|TC_SECURITY_010
+REQ_SECURITY_003,Role-based access control - HR full access,TC_SECURITY_003
+REQ_SECURITY_004,SQL injection prevention,TC_SECURITY_004
+REQ_SECURITY_005,XSS attack prevention,TC_SECURITY_005|TC_NEGATIVE_007
+REQ_SECURITY_006,CSRF token validation,TC_SECURITY_006
+REQ_SECURITY_007,API authentication required,TC_SECURITY_007|TC_NEGATIVE_001
+REQ_SECURITY_008,Token expiration handling,TC_SECURITY_008
+REQ_SECURITY_009,Data isolation between users,TC_SECURITY_009
+REQ_PERFORMANCE_001,API response time < 2s for 95% requests,TC_PERFORMANCE_001|TC_PERFORMANCE_002
+REQ_PERFORMANCE_002,Support 100 concurrent users with < 1% error rate,TC_PERFORMANCE_003
+REQ_PERFORMANCE_003,Support 500 peak concurrent users,TC_PERFORMANCE_004
+REQ_PERFORMANCE_004,Bulk leave upload - 10K records within 5 minutes,TC_PERFORMANCE_005
+REQ_PERFORMANCE_005,Database query optimization for large datasets,TC_PERFORMANCE_006
+REQ_ACCESSIBILITY_001,Keyboard navigation support for all forms,TC_ACCESSIBILITY_001
+REQ_ACCESSIBILITY_002,Screen reader compatibility,TC_ACCESSIBILITY_002
+REQ_ACCESSIBILITY_003,WCAG 2.1 Level AA color contrast compliance,TC_ACCESSIBILITY_003
+REQ_ACCESSIBILITY_004,Visible focus indicators,TC_ACCESSIBILITY_004
+REQ_INTEGRATION_001,Email service failure handling - graceful degradation,TC_INTEGRATION_001
+REQ_INTEGRATION_002,Calendar sync - Outlook integration,TC_INTEGRATION_002
+REQ_INTEGRATION_003,Calendar sync - Google Calendar integration,TC_INTEGRATION_003
+REQ_INTEGRATION_004,Database transaction rollback on error,TC_INTEGRATION_004
+REQ_EDGE_001,Leave spanning year boundary handling,TC_EDGE_001
+REQ_EDGE_002,Leap year date handling (Feb 29),TC_EDGE_002
+REQ_EDGE_003,Special characters in text fields,TC_EDGE_003|TC_EDGE_009
+REQ_EDGE_004,Zero balance scenario handling,TC_EDGE_004
+REQ_EDGE_005,Multiple half-day leaves on same day,TC_EDGE_005
+REQ_EDGE_006,Overnight work hours for comp off,TC_EDGE_006
+REQ_EDGE_007,Concurrent modification conflict handling,TC_EDGE_007
+REQ_EDGE_008,Timezone difference handling - USA employees,TC_EDGE_008
+REQ_EDGE_009,Unicode character support - non-ASCII names,TC_EDGE_009
+REQ_EDGE_010,Maximum leave duration - 180 days maternity,TC_EDGE_010
+REQ_BOUNDARY_001,Leave balance exactly zero,TC_BOUNDARY_001
+REQ_BOUNDARY_002,Leave balance exactly sufficient,TC_BOUNDARY_002
+REQ_BOUNDARY_003,Carry-forward exactly at limit,TC_BOUNDARY_003
+REQ_BOUNDARY_004,Carry-forward exceeds limit boundary,TC_BOUNDARY_004
+REQ_BOUNDARY_005,Comp off hours exactly 5.0,TC_BOUNDARY_005
+REQ_BOUNDARY_006,Comp off hours exactly 8.0,TC_BOUNDARY_006
+REQ_BOUNDARY_007,Comp off expiry exactly 3 months,TC_BOUNDARY_007
+REQ_BOUNDARY_008,Joining date exactly on 15th cutoff,TC_BOUNDARY_008
+REQ_BOUNDARY_009,Joining date exactly on 16th (after cutoff),TC_BOUNDARY_009
+REQ_NEGATIVE_001,Authentication required for all protected endpoints,TC_NEGATIVE_001
+REQ_NEGATIVE_002,Authorization enforcement - manager team scope,TC_NEGATIVE_002
+REQ_NEGATIVE_003,Negative balance scenario handling,TC_NEGATIVE_003
+REQ_NEGATIVE_004,Future date limit validation (if applicable),TC_NEGATIVE_004
+REQ_NEGATIVE_005,Non-existent resource handling - 404,TC_NEGATIVE_005
+REQ_NEGATIVE_006,API-level date validation,TC_NEGATIVE_006
+REQ_NEGATIVE_007,XSS prevention in email notifications,TC_NEGATIVE_007
+REQ_NEGATIVE_008,File upload validation - format and integrity,TC_NEGATIVE_008
+REQ_NEGATIVE_009,Rate limiting to prevent abuse,TC_NEGATIVE_009
+REQ_REGRESSION_001,Leave balance integrity across multiple operations,TC_REGRESSION_001
+REQ_REGRESSION_002,Multi-level approval workflow integrity,TC_REGRESSION_002
+REQ_REGRESSION_003,Year-end processing data integrity,TC_REGRESSION_003
+REQ_CONFIG_001,Leave types should be configurable per region,TC_LEAVE_001 to TC_LEAVE_032
+REQ_CONFIG_002,Leave calendar should be configurable (fiscal year support),TC_ACCRUAL_001|TC_CARRYFORWARD_001
+REQ_CONFIG_003,Accrual rules should be configurable,TC_ACCRUAL_001 to TC_ACCRUAL_008
+REQ_CONFIG_004,Carry-forward rules should be configurable,TC_CARRYFORWARD_001 to TC_CARRYFORWARD_006
+REQ_CONFIG_005,Approval workflows should be configurable,TC_LEAVE_018|TC_COMPOFF_006 to TC_COMPOFF_008
+REQ_CONFIG_006,Email templates should be configurable,TC_NOTIFICATION_001 to TC_NOTIFICATION_007
+REQ_CONFIG_007,Holiday calendars should be admin-manageable,TC_HOLIDAY_001|TC_HOLIDAY_002
+REQ_CONFIG_008,Comp off eligibility and expiry should be configurable,TC_COMPOFF_001 to TC_COMPOFF_013
+REQ_CONFIG_009,Leave duration options should be configurable,TC_LEAVE_002|TC_LEAVE_003
+REQ_CONFIG_010,Maternity/Paternity eligibility should be configurable,TC_LEAVE_027 to TC_LEAVE_031

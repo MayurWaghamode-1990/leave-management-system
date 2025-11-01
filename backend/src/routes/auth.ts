@@ -37,7 +37,7 @@ const router = express.Router();
  *               password:
  *                 type: string
  *                 format: password
- *                 example: "admin123"
+ *                 example: "YourSecurePassword123!"
  *                 description: User's password
  *     responses:
  *       200:
@@ -72,7 +72,7 @@ const router = express.Router();
  *               $ref: '#/components/schemas/ErrorResponse'
  *             example:
  *               success: false
- *               message: "Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123"
+ *               message: "Invalid email or password"
  *               error: "Authentication failed"
  *               code: "INVALID_CREDENTIALS"
  *     security: []
@@ -99,6 +99,9 @@ router.post('/login', validate(authSchemas.login), asyncHandler(async (req: Requ
         throw new AppError('JWT secret not configured', 500);
       }
 
+      // SECURITY FIX: Changed JWT expiry from 7 days to 30 minutes (HIGH vulnerability fix)
+      // Access tokens should be short-lived to minimize risk of token theft
+      // TODO: Implement refresh token mechanism for longer sessions
       const token = jwt.sign(
         {
           userId: user.id,
@@ -107,7 +110,7 @@ router.post('/login', validate(authSchemas.login), asyncHandler(async (req: Requ
         },
         jwtSecret,
         {
-          expiresIn: '7d'
+          expiresIn: '30m' // Changed from '7d' to '30m' for security
         }
       );
 
@@ -135,137 +138,23 @@ router.post('/login', validate(authSchemas.login), asyncHandler(async (req: Requ
         }
       });
     } else {
-      // Fall back to mock users for demo
-      const mockUsers = [
-        {
-          id: 'admin-001',
-          employeeId: 'EMP001',
-          email: 'admin@company.com',
-          password: 'admin123',
-          firstName: 'System',
-          lastName: 'Administrator',
-          role: 'ADMIN',
-          department: 'Human Resources',
-          location: 'Bengaluru'
-        },
-        {
-          id: 'emp-eng-001',
-          employeeId: 'EMP002',
-          email: 'user@company.com',
-          password: 'user123',
-          firstName: 'John',
-          lastName: 'Doe',
-          role: 'EMPLOYEE',
-          department: 'Engineering',
-          location: 'Bengaluru'
-        }
-      ];
-
-      const mockUser = mockUsers.find(u => u.email === email && u.password === password);
-
-      if (!mockUser) {
-        throw new AppError('Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123', 401);
-      }
-
-      // Generate JWT token for mock user
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        throw new AppError('JWT secret not configured', 500);
-      }
-
-      const token = jwt.sign(
-        {
-          userId: mockUser.id,
-          email: mockUser.email,
-          role: mockUser.role
-        },
-        jwtSecret,
-        {
-          expiresIn: '7d'
-        }
-      );
-
-      logger.info(`Mock user logged in: ${mockUser.email}`);
-
-      res.json({
-        success: true,
-        message: 'Login successful (Demo Mode)',
-        data: {
-          token,
-          user: {
-            id: mockUser.id,
-            employeeId: mockUser.employeeId,
-            email: mockUser.email,
-            firstName: mockUser.firstName,
-            lastName: mockUser.lastName,
-            role: mockUser.role,
-            department: mockUser.department,
-            location: mockUser.location
-          }
-        }
-      });
+      // User not found in database
+      // SECURITY FIX: Removed hardcoded mock users with plaintext passwords (CRITICAL vulnerability)
+      // All users must be created in the database using seed scripts
+      // For development, run: npm run seed
+      logger.warn(`Login failed: User not found in database - ${email}`);
+      throw new AppError('Invalid email or password', 401);
     }
   } catch (error) {
+    // Re-throw AppError (includes user not found, invalid credentials, etc.)
     if (error instanceof AppError) {
       throw error;
     }
-    // If database error, fall back to mock authentication
-    logger.warn('Database connection issue, falling back to mock authentication');
 
-    const mockUsers = [
-      {
-        id: '1',
-        employeeId: 'EMP001',
-        email: 'admin@company.com',
-        password: 'admin123',
-        firstName: 'Admin',
-        lastName: 'User',
-        role: 'HR_ADMIN',
-        department: 'Human Resources',
-        location: 'Bengaluru'
-      },
-      {
-        id: '2',
-        employeeId: 'EMP002',
-        email: 'user@company.com',
-        password: 'user123',
-        firstName: 'John',
-        lastName: 'Doe',
-        role: 'EMPLOYEE',
-        department: 'Engineering',
-        location: 'Bengaluru'
-      }
-    ];
-
-    const mockUser = mockUsers.find(u => u.email === email && u.password === password);
-
-    if (!mockUser) {
-      throw new AppError('Invalid credentials. Try admin@company.com/admin123 or user@company.com/user123', 401);
-    }
-
-    const jwtSecret = process.env.JWT_SECRET;
-    if (!jwtSecret) {
-      throw new AppError('JWT secret not configured', 500);
-    }
-
-    const token = jwt.sign(
-      {
-        userId: mockUser.id,
-        email: mockUser.email,
-        role: mockUser.role
-      },
-      jwtSecret,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      success: true,
-      message: 'Login successful (Demo Mode)',
-      data: {
-        token,
-        user: mockUser
-      }
-    });
+    // For unexpected errors, log and return generic error
+    // SECURITY FIX: Removed mock user fallback on database errors
+    logger.error('Login error:', error);
+    throw new AppError('Service temporarily unavailable. Please try again later.', 503);
   }
 }));
 
