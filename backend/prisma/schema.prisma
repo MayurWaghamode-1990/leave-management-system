@@ -1,4 +1,3 @@
-// This is your Prisma schema file for MySQL
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,54 +7,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User and Employee Models
 model User {
-  id                String    @id @default(cuid())
-  employeeId        String    @unique
-  email             String    @unique
-  password          String
-  firstName         String
-  lastName          String
-  role              String    @default("EMPLOYEE")
-  department        String
-  location          String
-  reportingManagerId String?
-  joiningDate       DateTime  @default(now())
-  status            String    @default("ACTIVE")
-  lastLogin         DateTime?
-  gender            String?   // MALE, FEMALE, OTHER
-  maritalStatus     String?   // SINGLE, MARRIED, DIVORCED, WIDOWED
-  country           String?   // USA, INDIA - for region-specific leave policies
-  designation       String?   // AVP, VP, MANAGER, SENIOR_MANAGER, etc. - for USA PTO policies
-
-  // Relations
-  reportingManager  User?     @relation("UserHierarchy", fields: [reportingManagerId], references: [id])
-  directReports     User[]    @relation("UserHierarchy")
-  managedDepartment Department[] @relation("DepartmentManager")
-  leaveRequests     LeaveRequest[]
-  leaveDrafts       LeaveDraft[]
-  delegationsGiven  LeaveDelegation[] @relation("DelegationsGiven")
-  delegationsReceived LeaveDelegation[] @relation("DelegationsReceived")
-  leaveBalances     LeaveBalance[]
-  approvals         Approval[]
-  notifications     Notification[]
-  auditLogs         AuditLog[]
-  automationRules   AutomationRule[]
-  cancellationRequests LeaveCancellationRequest[] @relation("CancellationRequests")
+  id                    String                     @id @default(cuid())
+  employeeId            String                     @unique
+  email                 String                     @unique
+  password              String
+  firstName             String
+  lastName              String
+  role                  String                     @default("EMPLOYEE")
+  department            String
+  location              String
+  reportingManagerId    String?
+  joiningDate           DateTime                   @default(now())
+  status                String                     @default("ACTIVE")
+  lastLogin             DateTime?
+  gender                String?
+  maritalStatus         String?
+  country               String?
+  designation           String?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  approvals             Approval[]
+  auditLogs             AuditLog[]
+  automationRules       AutomationRule[]
+  calendarIntegrations  CalendarIntegration[]
+  compOffApprovals      CompOffApproval[]          @relation("CompOffApprovals")
+  compOffBalances       CompOffBalance[]           @relation("CompOffBalances")
+  compOffRequests       CompOffRequest[]           @relation("CompOffRequests")
+  compOffWorkLogs       CompOffWorkLog[]           @relation("CompOffWorkLogs")
+  compOffVerifications  CompOffWorkLog[]           @relation("CompOffVerifications")
+  managedDepartment     Department[]               @relation("DepartmentManager")
+  leaveBalances         LeaveBalance[]
   cancellationApprovals LeaveCancellationRequest[] @relation("CancellationApprovals")
-  modificationRequests LeaveModificationRequest[] @relation("ModificationRequests")
+  cancellationRequests  LeaveCancellationRequest[] @relation("CancellationRequests")
+  delegationsReceived   LeaveDelegation[]          @relation("DelegationsReceived")
+  delegationsGiven      LeaveDelegation[]          @relation("DelegationsGiven")
+  leaveDrafts           LeaveDraft[]
   modificationApprovals LeaveModificationRequest[] @relation("ModificationApprovals")
-  leaveTemplates       LeaveTemplate[]
-  calendarIntegrations CalendarIntegration[]
-  monthlyAccruals      MonthlyAccrual[] @relation("MonthlyAccruals")
-  compOffWorkLogs      CompOffWorkLog[] @relation("CompOffWorkLogs")
-  compOffVerifications CompOffWorkLog[] @relation("CompOffVerifications")
-  compOffRequests      CompOffRequest[] @relation("CompOffRequests")
-  compOffApprovals     CompOffApproval[] @relation("CompOffApprovals")
-  compOffBalances      CompOffBalance[] @relation("CompOffBalances")
-
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  modificationRequests  LeaveModificationRequest[] @relation("ModificationRequests")
+  leaveRequests         LeaveRequest[]
+  leaveTemplates        LeaveTemplate[]
+  monthlyAccruals       MonthlyAccrual[]           @relation("MonthlyAccruals")
+  notifications         Notification[]
+  reportingManager      User?                      @relation("UserHierarchy", fields: [reportingManagerId], references: [id])
+  directReports         User[]                     @relation("UserHierarchy")
 
   @@index([reportingManagerId])
   @@index([role])
@@ -65,50 +60,44 @@ model User {
 }
 
 model Department {
-  id                    String    @id @default(cuid())
-  name                  String
-  managerId             String?
-  parentDepartmentId    String?
-  location              String
+  id                 String       @id @default(cuid())
+  name               String
+  managerId          String?
+  parentDepartmentId String?
+  location           String
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  manager            User?        @relation("DepartmentManager", fields: [managerId], references: [id])
+  parentDepartment   Department?  @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
+  childDepartments   Department[] @relation("DepartmentHierarchy")
 
-  // Relations
-  manager               User?     @relation("DepartmentManager", fields: [managerId], references: [id])
-  parentDepartment      Department? @relation("DepartmentHierarchy", fields: [parentDepartmentId], references: [id])
-  childDepartments      Department[] @relation("DepartmentHierarchy")
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
+  @@index([managerId], map: "departments_managerId_fkey")
+  @@index([parentDepartmentId], map: "departments_parentDepartmentId_fkey")
   @@map("departments")
 }
 
-// Leave Models
 model LeaveRequest {
-  id              String        @id @default(cuid())
-  employeeId      String
-  leaveType       String
-  startDate       DateTime
-  endDate         DateTime
-  totalDays       Float
-  isHalfDay       Boolean       @default(false)
-  halfDayPeriod   String?       // FIRST_HALF, SECOND_HALF (only applicable when isHalfDay is true)
-  reason          String
-  attachments     String?
-  status          String        @default("PENDING")
-  appliedDate     DateTime      @default(now())
-  googleCalendarEventId String?
+  id                     String                     @id @default(cuid())
+  employeeId             String
+  leaveType              String
+  startDate              DateTime
+  endDate                DateTime
+  totalDays              Float
+  isHalfDay              Boolean                    @default(false)
+  halfDayPeriod          String?
+  reason                 String
+  attachments            String?
+  status                 String                     @default("PENDING")
+  appliedDate            DateTime                   @default(now())
+  googleCalendarEventId  String?
   outlookCalendarEventId String?
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+  approvals              Approval[]
+  cancellationRequests   LeaveCancellationRequest[]
+  modificationRequests   LeaveModificationRequest[]
+  employee               User                       @relation(fields: [employeeId], references: [id])
 
-  // Relations
-  employee        User          @relation(fields: [employeeId], references: [id])
-  approvals       Approval[]
-  cancellationRequests LeaveCancellationRequest[]
-  modificationRequests LeaveModificationRequest[]
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-
-  // Performance indexes for frequently queried fields
   @@index([status])
   @@index([appliedDate])
   @@index([employeeId, status])
@@ -125,18 +114,15 @@ model LeaveDraft {
   endDate           DateTime?
   totalDays         Float?
   isHalfDay         Boolean?  @default(false)
-  halfDayPeriod     String?   // FIRST_HALF, SECOND_HALF
+  halfDayPeriod     String?
   reason            String?
   attachments       String?
-  completionPercent Int       @default(0)  // 0-100
+  completionPercent Int       @default(0)
   lastSavedAt       DateTime  @default(now())
-  expiresAt         DateTime? // Auto-delete after 30 days
-
-  // Relations
-  employee          User      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
+  expiresAt         DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  employee          User      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([lastSavedAt])
@@ -145,22 +131,19 @@ model LeaveDraft {
 }
 
 model LeaveDelegation {
-  id            String    @id @default(cuid())
-  delegatorId   String    // Manager giving approval authority
-  delegateeId   String    // Person receiving authority
-  startDate     DateTime
-  endDate       DateTime
-  reason        String?
-  status        String    @default("ACTIVE") // ACTIVE, REVOKED, EXPIRED
-  revokedAt     DateTime?
-  revokedBy     String?
-
-  // Relations
-  delegator     User      @relation("DelegationsGiven", fields: [delegatorId], references: [id], onDelete: Cascade)
-  delegatee     User      @relation("DelegationsReceived", fields: [delegateeId], references: [id], onDelete: Cascade)
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  delegatorId String
+  delegateeId String
+  startDate   DateTime
+  endDate     DateTime
+  reason      String?
+  status      String    @default("ACTIVE")
+  revokedAt   DateTime?
+  revokedBy   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  delegatee   User      @relation("DelegationsReceived", fields: [delegateeId], references: [id], onDelete: Cascade)
+  delegator   User      @relation("DelegationsGiven", fields: [delegatorId], references: [id], onDelete: Cascade)
 
   @@index([delegatorId])
   @@index([delegateeId])
@@ -170,20 +153,17 @@ model LeaveDelegation {
 }
 
 model Approval {
-  id              String          @id @default(cuid())
-  leaveRequestId  String
-  approverId      String
-  level           Int             @default(1)
-  status          String          @default("PENDING")
-  comments        String?
-  approvedAt      DateTime?
-
-  // Relations
-  leaveRequest    LeaveRequest    @relation(fields: [leaveRequestId], references: [id])
-  approver        User            @relation(fields: [approverId], references: [id])
-
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id             String       @id @default(cuid())
+  leaveRequestId String
+  approverId     String
+  level          Int          @default(1)
+  status         String       @default("PENDING")
+  comments       String?
+  approvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  approver       User         @relation(fields: [approverId], references: [id])
+  leaveRequest   LeaveRequest @relation(fields: [leaveRequestId], references: [id])
 
   @@unique([leaveRequestId, level])
   @@index([status])
@@ -192,20 +172,17 @@ model Approval {
 }
 
 model LeaveBalance {
-  id                  String      @id @default(cuid())
-  employeeId          String
-  leaveType           String
-  totalEntitlement    Float
-  used                Float       @default(0)
-  available           Float
-  carryForward        Float       @default(0)
-  year                Int
-
-  // Relations
-  employee            User        @relation(fields: [employeeId], references: [id])
-
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  id               String   @id @default(cuid())
+  employeeId       String
+  leaveType        String
+  totalEntitlement Float
+  used             Float    @default(0)
+  available        Float
+  carryForward     Float    @default(0)
+  year             Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  employee         User     @relation(fields: [employeeId], references: [id])
 
   @@unique([employeeId, leaveType, year])
   @@index([employeeId])
@@ -215,274 +192,238 @@ model LeaveBalance {
 }
 
 model LeavePolicy {
-  id                    String    @id @default(cuid())
-  name                  String
-  leaveType             String
-  entitlementDays       Float
-  accrualRate           Float     @default(1.0)
-  maxCarryForward       Float     @default(0)
-  minimumGap            Int       @default(0)
-  maxConsecutiveDays    Int       @default(365)
-  requiresDocumentation Boolean   @default(false)
-  documentationThreshold Int      @default(0)
-  location              String
-  region                String    @default("INDIA")
-  effectiveFrom         DateTime
-  effectiveTo           DateTime?
-  isActive              Boolean   @default(true)
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                     String    @id @default(cuid())
+  name                   String
+  leaveType              String
+  entitlementDays        Float
+  accrualRate            Float     @default(1)
+  maxCarryForward        Float     @default(0)
+  minimumGap             Int       @default(0)
+  maxConsecutiveDays     Int       @default(365)
+  requiresDocumentation  Boolean   @default(false)
+  documentationThreshold Int       @default(0)
+  location               String
+  region                 String    @default("INDIA")
+  effectiveFrom          DateTime
+  effectiveTo            DateTime?
+  isActive               Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   @@map("leave_policies")
 }
 
-// Calendar and Holiday Models
 model Holiday {
-  id          String      @id @default(cuid())
-  name        String
-  date        DateTime
-  location    String
-  region      String      @default("INDIA")
-  isOptional  Boolean     @default(false)
-  type        String      @default("COMPANY")
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  date       DateTime
+  location   String
+  region     String   @default("INDIA")
+  isOptional Boolean  @default(false)
+  type       String   @default("COMPANY")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("holidays")
 }
 
-// Leave Template Model
 model LeaveTemplate {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
-  category    String      @default("PERSONAL")
-
-  // Template data
+  category    String   @default("PERSONAL")
   leaveType   String
-  duration    Int?        // Number of days (null for variable duration)
+  duration    Int?
   reason      String
-  isHalfDay   Boolean     @default(false)
-
-  // Sharing and visibility
-  isPublic    Boolean     @default(false)
-  isActive    Boolean     @default(true)
-  usageCount  Int         @default(0)
-
-  // Owner information
+  isHalfDay   Boolean  @default(false)
+  isPublic    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  usageCount  Int      @default(0)
   createdBy   String
-  owner       User        @relation(fields: [createdBy], references: [id])
+  tags        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  owner       User     @relation(fields: [createdBy], references: [id])
 
-  // Tags for better categorization
-  tags        String?     // JSON array of tags
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
+  @@index([createdBy], map: "leave_templates_createdBy_fkey")
   @@map("leave_templates")
 }
 
-// Notification Model
 model Notification {
-  id          String            @id @default(cuid())
-  userId      String
-  type        String
-  title       String
-  message     String
-  isRead      Boolean           @default(false)
-  metadata    String?
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  metadata  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 
-  // Relations
-  user        User              @relation(fields: [userId], references: [id])
-
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
+  @@index([userId], map: "notifications_userId_fkey")
   @@map("notifications")
 }
 
-// Audit and Logging Models
 model AuditLog {
-  id          String      @id @default(cuid())
-  userId      String?
-  entity      String
-  entityId    String
-  action      String
-  oldValues   String?
-  newValues   String?
-  ipAddress   String?
-  userAgent   String?
+  id        String   @id @default(cuid())
+  userId    String?
+  entity    String
+  entityId  String
+  action    String
+  oldValues String?
+  newValues String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
-  // Relations
-  user        User?       @relation(fields: [userId], references: [id])
-
-  createdAt   DateTime    @default(now())
-
+  @@index([userId], map: "audit_logs_userId_fkey")
   @@map("audit_logs")
 }
 
-// Regional Policy Model
 model RegionalPolicy {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   region      String
   state       String?
   policyRules String
-  isActive    Boolean   @default(true)
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("regional_policies")
 }
 
-// Automation Rules Models
 model AutomationRule {
-  id              String    @id @default(cuid())
-  name            String
-  description     String?
-  enabled         Boolean   @default(true)
-  priority        Int       @default(1)
-  triggerType     String    // 'LEAVE_REQUEST', 'APPROVAL_PENDING', etc.
-  triggerConditions String  // JSON string of conditions
-  actions         String    // JSON string of actions
-  validationRules String?   // JSON string of validation rules
-  createdBy       String
-  lastExecuted    DateTime?
-  executionCount  Int       @default(0)
+  id                String          @id @default(cuid())
+  name              String
+  description       String?
+  enabled           Boolean         @default(true)
+  priority          Int             @default(1)
+  triggerType       String
+  triggerConditions String
+  actions           String
+  validationRules   String?
+  createdBy         String
+  lastExecuted      DateTime?
+  executionCount    Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  creator           User            @relation(fields: [createdBy], references: [id])
+  executions        RuleExecution[]
 
-  // Relations
-  creator         User      @relation(fields: [createdBy], references: [id])
-  executions      RuleExecution[]
-
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
+  @@index([createdBy], map: "automation_rules_createdBy_fkey")
   @@map("automation_rules")
 }
 
 model RuleExecution {
-  id              String    @id @default(cuid())
+  id              String         @id @default(cuid())
   ruleId          String
-  triggerContext  String    // JSON string of execution context
-  result          String    // JSON string of execution result
+  triggerContext  String
+  result          String
   success         Boolean
-  executionTime   Int       // milliseconds
-  actionsExecuted String    // JSON string of executed actions
-  errors          String?   // JSON string of errors if any
-
-  // Relations
+  executionTime   Int
+  actionsExecuted String
+  errors          String?
+  createdAt       DateTime       @default(now())
   rule            AutomationRule @relation(fields: [ruleId], references: [id])
 
-  createdAt       DateTime  @default(now())
-
+  @@index([ruleId], map: "rule_executions_ruleId_fkey")
   @@map("rule_executions")
 }
 
-// Advanced Leave Request Models
 model LeaveCancellationRequest {
-  id                String    @id @default(cuid())
-  leaveRequestId    String
-  employeeId        String
+  id                 String       @id @default(cuid())
+  leaveRequestId     String
+  employeeId         String
   cancellationReason String
-  status            String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  appliedDate       DateTime  @default(now())
-  approvedBy        String?
-  approvedAt        DateTime?
-  rejectionReason   String?
+  status             String       @default("PENDING")
+  appliedDate        DateTime     @default(now())
+  approvedBy         String?
+  approvedAt         DateTime?
+  rejectionReason    String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  approver           User?        @relation("CancellationApprovals", fields: [approvedBy], references: [id])
+  employee           User         @relation("CancellationRequests", fields: [employeeId], references: [id])
+  leaveRequest       LeaveRequest @relation(fields: [leaveRequestId], references: [id])
 
-  // Relations
-  leaveRequest      LeaveRequest @relation(fields: [leaveRequestId], references: [id])
-  employee          User         @relation("CancellationRequests", fields: [employeeId], references: [id])
-  approver          User?        @relation("CancellationApprovals", fields: [approvedBy], references: [id])
-
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
+  @@index([approvedBy], map: "leave_cancellation_requests_approvedBy_fkey")
+  @@index([employeeId], map: "leave_cancellation_requests_employeeId_fkey")
+  @@index([leaveRequestId], map: "leave_cancellation_requests_leaveRequestId_fkey")
   @@map("leave_cancellation_requests")
 }
 
 model LeaveModificationRequest {
-  id                String    @id @default(cuid())
-  originalLeaveId   String
-  employeeId        String
-  newStartDate      DateTime?
-  newEndDate        DateTime?
-  newLeaveType      String?
-  newReason         String?
+  id                 String       @id @default(cuid())
+  originalLeaveId    String
+  employeeId         String
+  newStartDate       DateTime?
+  newEndDate         DateTime?
+  newLeaveType       String?
+  newReason          String?
   modificationReason String
-  status            String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  appliedDate       DateTime  @default(now())
-  approvedBy        String?
-  approvedAt        DateTime?
-  rejectionReason   String?
+  status             String       @default("PENDING")
+  appliedDate        DateTime     @default(now())
+  approvedBy         String?
+  approvedAt         DateTime?
+  rejectionReason    String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  approver           User?        @relation("ModificationApprovals", fields: [approvedBy], references: [id])
+  employee           User         @relation("ModificationRequests", fields: [employeeId], references: [id])
+  originalLeave      LeaveRequest @relation(fields: [originalLeaveId], references: [id])
 
-  // Relations
-  originalLeave     LeaveRequest @relation(fields: [originalLeaveId], references: [id])
-  employee          User         @relation("ModificationRequests", fields: [employeeId], references: [id])
-  approver          User?        @relation("ModificationApprovals", fields: [approvedBy], references: [id])
-
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
+  @@index([approvedBy], map: "leave_modification_requests_approvedBy_fkey")
+  @@index([employeeId], map: "leave_modification_requests_employeeId_fkey")
+  @@index([originalLeaveId], map: "leave_modification_requests_originalLeaveId_fkey")
   @@map("leave_modification_requests")
 }
 
-// Calendar Integration Model
 model CalendarIntegration {
   id           String   @id @default(cuid())
   userId       String
-  provider     String   // 'google' or 'outlook'
+  provider     String
   accessToken  String
   refreshToken String?
   calendarId   String?
   enabled      Boolean  @default(true)
-
-  // Relations
-  user         User     @relation(fields: [userId], references: [id])
-
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, provider], name: "userId_provider")
   @@map("calendar_integrations")
 }
 
-// Monthly Accrual Tracking Model for India
 model MonthlyAccrual {
-  id              String   @id @default(cuid())
-  employeeId      String
-  year            Int
-  month           Int      // 1-12
-  casualLeave     Float    @default(0)  // CL accrued this month
-  privilegeLeave  Float    @default(0)  // PL accrued this month
-  proRated        Boolean  @default(false) // If joining mid-month
-  joiningDate     DateTime?
-  processedAt     DateTime @default(now())
-  status          String   @default("PROCESSED") // PROCESSED, PENDING, FAILED
-
-  // Relations
-  employee        User     @relation("MonthlyAccruals", fields: [employeeId], references: [id])
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String    @id @default(cuid())
+  employeeId     String
+  year           Int
+  month          Int
+  casualLeave    Float     @default(0)
+  privilegeLeave Float     @default(0)
+  proRated       Boolean   @default(false)
+  joiningDate    DateTime?
+  processedAt    DateTime  @default(now())
+  status         String    @default("PROCESSED")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  employee       User      @relation("MonthlyAccruals", fields: [employeeId], references: [id])
 
   @@unique([employeeId, year, month])
   @@map("monthly_accruals")
 }
 
-// Leave Accrual Rules Model
 model LeaveAccrualRule {
   id                String   @id @default(cuid())
-  region            String   // INDIA, USA
+  region            String
   leaveType         String
-  monthlyAccrual    Float    // Amount credited per month
-  joiningDayProRate Boolean  @default(true) // Pro-rate based on joining day
-  carryForwardRules String   // JSON: rules for carry forward
-  expiryRules       String   // JSON: rules for expiry
+  monthlyAccrual    Float
+  joiningDayProRate Boolean  @default(true)
+  carryForwardRules String
+  expiryRules       String
   isActive          Boolean  @default(true)
-
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -490,111 +431,98 @@ model LeaveAccrualRule {
   @@map("leave_accrual_rules")
 }
 
-// Comp Off Work Log Model - Track weekend/holiday work for comp off eligibility
 model CompOffWorkLog {
-  id              String   @id @default(cuid())
+  id              String           @id @default(cuid())
   employeeId      String
   workDate        DateTime
-  hoursWorked     Float    // Actual hours worked
-  workType        String   // WEEKEND, HOLIDAY, EXTENDED_HOURS
-  workDescription String   // Description of work performed
-  projectDetails  String?  // Project or task details
-  isVerified      Boolean  @default(false) // Manager verification
-  verifiedBy      String?  // Manager who verified
+  hoursWorked     Float
+  workType        String
+  workDescription String
+  projectDetails  String?
+  isVerified      Boolean          @default(false)
+  verifiedBy      String?
   verifiedAt      DateTime?
-  compOffEarned   Float    @default(0) // Comp off days earned (calculated)
-  status          String   @default("PENDING") // PENDING, VERIFIED, REJECTED, CONSUMED
-
-  // Relations
-  employee        User     @relation("CompOffWorkLogs", fields: [employeeId], references: [id])
-  verifier        User?    @relation("CompOffVerifications", fields: [verifiedBy], references: [id])
+  compOffEarned   Float            @default(0)
+  status          String           @default("PENDING")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   compOffRequests CompOffRequest[]
+  employee        User             @relation("CompOffWorkLogs", fields: [employeeId], references: [id])
+  verifier        User?            @relation("CompOffVerifications", fields: [verifiedBy], references: [id])
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
+  @@index([employeeId], map: "comp_off_work_logs_employeeId_fkey")
+  @@index([verifiedBy], map: "comp_off_work_logs_verifiedBy_fkey")
   @@map("comp_off_work_logs")
 }
 
-// Comp Off Request Model - Comprehensive comp off leave requests
 model CompOffRequest {
-  id                String   @id @default(cuid())
-  employeeId        String
-  workLogId         String   // Reference to the work log that earned this comp off
-  hoursToRedeem     Float    // Hours being redeemed for comp off
-  daysRequested     Float    // Calculated comp off days (based on policy)
-  startDate         DateTime
-  endDate           DateTime
-  reason            String
-  isHalfDay         Boolean  @default(false)
-  status            String   @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
-  appliedDate       DateTime @default(now())
-  approvedDate      DateTime?
-  expiryDate        DateTime // 3 months from approval date
-  isExpired         Boolean  @default(false)
+  id            String            @id @default(cuid())
+  employeeId    String
+  workLogId     String
+  hoursToRedeem Float
+  daysRequested Float
+  startDate     DateTime
+  endDate       DateTime
+  reason        String
+  isHalfDay     Boolean           @default(false)
+  status        String            @default("PENDING")
+  appliedDate   DateTime          @default(now())
+  approvedDate  DateTime?
+  expiryDate    DateTime
+  isExpired     Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  approvals     CompOffApproval[]
+  employee      User              @relation("CompOffRequests", fields: [employeeId], references: [id])
+  workLog       CompOffWorkLog    @relation(fields: [workLogId], references: [id])
 
-  // Relations
-  employee          User     @relation("CompOffRequests", fields: [employeeId], references: [id])
-  workLog           CompOffWorkLog @relation(fields: [workLogId], references: [id])
-  approvals         CompOffApproval[]
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
+  @@index([employeeId], map: "comp_off_requests_employeeId_fkey")
+  @@index([workLogId], map: "comp_off_requests_workLogId_fkey")
   @@map("comp_off_requests")
 }
 
-// Comp Off Approval Model - Multi-level approval for comp off requests
 model CompOffApproval {
-  id              String   @id @default(cuid())
+  id               String         @id @default(cuid())
   compOffRequestId String
-  approverId      String
-  level           Int      @default(1)
-  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  comments        String?
-  approvedAt      DateTime?
-
-  // Relations
-  compOffRequest  CompOffRequest @relation(fields: [compOffRequestId], references: [id])
-  approver        User     @relation("CompOffApprovals", fields: [approverId], references: [id])
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  approverId       String
+  level            Int            @default(1)
+  status           String         @default("PENDING")
+  comments         String?
+  approvedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  approver         User           @relation("CompOffApprovals", fields: [approverId], references: [id])
+  compOffRequest   CompOffRequest @relation(fields: [compOffRequestId], references: [id])
 
   @@unique([compOffRequestId, level])
+  @@index([approverId], map: "comp_off_approvals_approverId_fkey")
   @@map("comp_off_approvals")
 }
 
-// Comp Off Balance Model - Track available comp off balance per employee
 model CompOffBalance {
-  id              String   @id @default(cuid())
-  employeeId      String
-  year            Int
-  totalEarned     Float    @default(0) // Total comp off days earned
-  totalUsed       Float    @default(0) // Total comp off days used
-  available       Float    @default(0) // Available comp off days
-  expired         Float    @default(0) // Expired comp off days
-
-  // Relations
-  employee        User     @relation("CompOffBalances", fields: [employeeId], references: [id])
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(cuid())
+  employeeId  String
+  year        Int
+  totalEarned Float    @default(0)
+  totalUsed   Float    @default(0)
+  available   Float    @default(0)
+  expired     Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  employee    User     @relation("CompOffBalances", fields: [employeeId], references: [id])
 
   @@unique([employeeId, year])
   @@map("comp_off_balances")
 }
 
-// System Configuration Model - Store configurable options
 model SystemConfiguration {
   id          String   @id @default(cuid())
-  category    String   // DEPARTMENT, LOCATION, GENDER, MARITAL_STATUS, DESIGNATION, COUNTRY
-  value       String   // The actual value (e.g., 'Engineering', 'New York')
-  displayName String   // User-friendly display name
+  category    String
+  value       String
+  displayName String
   isActive    Boolean  @default(true)
-  sortOrder   Int      @default(0) // For ordering options
-  metadata    String?  // JSON string for additional properties
-
+  sortOrder   Int      @default(0)
+  metadata    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -604,79 +532,57 @@ model SystemConfiguration {
   @@map("system_configurations")
 }
 
-// Leave Type Configuration - Enhanced configurable leave types
 model LeaveTypeConfiguration {
-  id                    String   @id @default(cuid())
-  leaveTypeCode         String   @unique // CASUAL_LEAVE, PRIVILEGE_LEAVE, PTO, etc.
-  displayName           String
-  description           String?
-  region                String   // INDIA, USA, GLOBAL
-  isActive              Boolean  @default(true)
-  sortOrder             Int      @default(0)
-
-  // Entitlement Configuration
-  defaultEntitlement    Float    @default(0)
-  allowNegativeBalance  Boolean  @default(false)
-  negativeBalanceLimit  Float    @default(0)
-
-  // Documentation Requirements
-  requiresDocumentation Boolean  @default(false)
-  documentationThreshold Int     @default(0) // Days threshold for requiring documentation
-
-  // Eligibility Criteria (JSON)
-  eligibilityCriteria   String?  @db.Text // JSON: gender, maritalStatus, tenure, designation, etc.
-
-  // Leave Application Rules
-  minimumAdvanceNoticeDays Int   @default(0)
-  maxFutureBookingDays     Int   @default(365)
-  minimumGapDays           Int   @default(0)
-  maxConsecutiveDays       Int   @default(365)
-  allowBackdatedLeave      Boolean @default(false)
-  backdatedLimitDays       Int   @default(0)
-
-  // Duration Options
-  allowFullDay         Boolean  @default(true)
-  allowHalfDay         Boolean  @default(true)
-  allowQuarterDay      Boolean  @default(false)
-  allowHourly          Boolean  @default(false)
-
-  // Color for UI
-  colorCode            String   @default("#3B82F6")
-  icon                 String?
-
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                       String   @id @default(cuid())
+  leaveTypeCode            String   @unique
+  displayName              String
+  description              String?
+  region                   String
+  isActive                 Boolean  @default(true)
+  sortOrder                Int      @default(0)
+  defaultEntitlement       Float    @default(0)
+  allowNegativeBalance     Boolean  @default(false)
+  negativeBalanceLimit     Float    @default(0)
+  requiresDocumentation    Boolean  @default(false)
+  documentationThreshold   Int      @default(0)
+  eligibilityCriteria      String?  @db.Text
+  minimumAdvanceNoticeDays Int      @default(0)
+  maxFutureBookingDays     Int      @default(365)
+  minimumGapDays           Int      @default(0)
+  maxConsecutiveDays       Int      @default(365)
+  allowBackdatedLeave      Boolean  @default(false)
+  backdatedLimitDays       Int      @default(0)
+  allowFullDay             Boolean  @default(true)
+  allowHalfDay             Boolean  @default(true)
+  allowQuarterDay          Boolean  @default(false)
+  allowHourly              Boolean  @default(false)
+  colorCode                String   @default("#3B82F6")
+  icon                     String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   @@index([region])
   @@index([isActive])
   @@map("leave_type_configurations")
 }
 
-// Dashboard Widget Configuration
 model DashboardConfiguration {
-  id                String   @id @default(cuid())
-  userId            String?  // User-specific or null for role-based
-  role              String?  // Role-based default configuration
-  isDefault         Boolean  @default(false)
-  name              String
-  description       String?
-
-  // Layout Configuration (JSON)
-  layoutConfig      String   @db.Text // JSON: grid layout, widget positions, sizes
-
-  // Theme Configuration
-  colorScheme       String   @default("LIGHT") // LIGHT, DARK, AUTO
-  primaryColor      String   @default("#3B82F6")
-  accentColor       String   @default("#10B981")
-
-  // Preferences
-  defaultView       String   @default("GRID") // GRID, LIST
-  compactMode       Boolean  @default(false)
-  showAnimations    Boolean  @default(true)
-
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String   @id @default(cuid())
+  userId         String?
+  role           String?
+  isDefault      Boolean  @default(false)
+  name           String
+  description    String?
+  layoutConfig   String   @db.Text
+  colorScheme    String   @default("LIGHT")
+  primaryColor   String   @default("#3B82F6")
+  accentColor    String   @default("#10B981")
+  defaultView    String   @default("GRID")
+  compactMode    Boolean  @default(false)
+  showAnimations Boolean  @default(true)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([userId])
   @@index([role])
@@ -684,100 +590,67 @@ model DashboardConfiguration {
   @@map("dashboard_configurations")
 }
 
-// Widget Definition - Available widgets in the system
 model WidgetDefinition {
-  id                    String   @id @default(cuid())
-  widgetType            String   @unique // LEAVE_BALANCE, UPCOMING_HOLIDAYS, TEAM_CALENDAR, etc.
-  displayName           String
-  description           String?
-  category              String   // PERSONAL, TEAM, ANALYTICS, ADMIN
-  icon                  String?
-
-  // Size Constraints
-  defaultWidth          Int      @default(4) // Grid columns (out of 12)
-  defaultHeight         Int      @default(3) // Grid rows
-  minWidth              Int      @default(2)
-  minHeight             Int      @default(2)
-  maxWidth              Int      @default(12)
-  maxHeight             Int      @default(8)
-
-  // Configuration Schema (JSON)
-  configurableProperties String? // JSON: list of configurable properties
-
-  // Data and Rendering
-  dataSourceEndpoint    String?  // API endpoint for data
-  refreshIntervalSeconds Int     @default(0) // 0 = no auto-refresh
-
-  // Permissions
-  requiredPermissions   String?  // JSON array of required permissions
-  allowedRoles          String?  // JSON array of allowed roles
-
-  isCustom              Boolean  @default(false)
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                     String   @id @default(cuid())
+  widgetType             String   @unique
+  displayName            String
+  description            String?
+  category               String
+  icon                   String?
+  defaultWidth           Int      @default(4)
+  defaultHeight          Int      @default(3)
+  minWidth               Int      @default(2)
+  minHeight              Int      @default(2)
+  maxWidth               Int      @default(12)
+  maxHeight              Int      @default(8)
+  configurableProperties String?
+  dataSourceEndpoint     String?
+  refreshIntervalSeconds Int      @default(0)
+  requiredPermissions    String?
+  allowedRoles           String?
+  isCustom               Boolean  @default(false)
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   @@index([category])
   @@index([isActive])
   @@map("widget_definitions")
 }
 
-// Bulk Action Configuration
 model BulkActionConfiguration {
   id                    String   @id @default(cuid())
-  actionType            String   // APPROVE, REJECT, CANCEL, EXPORT, EMAIL, STATUS_UPDATE
+  actionType            String   @unique
   enabled               Boolean  @default(true)
-  allowedRoles          String   // JSON array of allowed roles
-
-  // Limits
+  allowedRoles          String
   maxItemsPerAction     Int      @default(100)
   requiresConfirmation  Boolean  @default(true)
   requiresReason        Boolean  @default(false)
-
-  // Validation Rules (JSON)
-  validationRules       String?  @db.Text // JSON: sameLeaveType, sameDepartment, etc.
-
-  // Confirmation Dialog Config (JSON)
-  confirmationConfig    String?  @db.Text // JSON: showSummary, summaryFields, warningThreshold
-
-  // Audit Configuration (JSON)
-  auditConfig           String   @db.Text // JSON: logLevel, captureBeforeState, notifyOnCompletion
-
-  // Performance
-  executionMode         String   @default("SYNCHRONOUS") // SYNCHRONOUS, ASYNCHRONOUS, BATCHED
+  validationRules       String?  @db.Text
+  confirmationConfig    String?  @db.Text
+  auditConfig           String   @db.Text
+  executionMode         String   @default("SYNCHRONOUS")
   batchSize             Int      @default(50)
   timeoutSeconds        Int      @default(300)
-
-  // Rollback
   allowRollback         Boolean  @default(false)
   rollbackWindowMinutes Int      @default(60)
-
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  @@unique([actionType])
   @@index([enabled])
   @@map("bulk_action_configurations")
 }
 
-// Workflow Configuration - Dynamic approval workflows
 model WorkflowConfiguration {
   id                String   @id @default(cuid())
-  workflowType      String   // LEAVE_REQUEST, COMP_OFF_REQUEST, LWP_REQUEST
+  workflowType      String
   name              String
   description       String?
   isDefault         Boolean  @default(false)
   priority          Int      @default(0)
-
-  // Conditions for applying this workflow (JSON)
-  conditions        String?  @db.Text // JSON: leaveType, duration, department, etc.
-
-  // Workflow Steps (JSON)
-  steps             String   @db.Text // JSON array of workflow steps with levels, roles, execution mode
-
-  // Auto-approval Rules (JSON)
-  autoApprovalRules String?  @db.Text // JSON: conditions for auto-approval
-
+  conditions        String?  @db.Text
+  steps             String   @db.Text
+  autoApprovalRules String?  @db.Text
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -788,188 +661,139 @@ model WorkflowConfiguration {
   @@map("workflow_configurations")
 }
 
-// Leave Application Field Configuration
 model LeaveApplicationFieldConfig {
-  id                String   @id @default(cuid())
-  leaveTypeCode     String   // Reference to leave type
-  fieldName         String
-  displayLabel      String
-  fieldType         String   // TEXT, TEXTAREA, FILE, PHONE, EMAIL, DATE, USER_SELECTION
-
-  // Mandatory Settings
-  isMandatory       Boolean  @default(false)
-  conditionalMandatory String? @db.Text // JSON: conditions when field becomes mandatory
-
-  // Validation Rules (JSON)
-  validationRules   String?  @db.Text // JSON: minLength, maxLength, pattern, allowedFileTypes, etc.
-
-  // Display Settings
-  helpText          String?
-  placeholder       String?
-  defaultValue      String?
-  sortOrder         Int      @default(0)
-
-  // Permissions
-  visibleToRoles    String   // JSON array
-  editableByRoles   String   // JSON array
-
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  leaveTypeCode        String
+  fieldName            String
+  displayLabel         String
+  fieldType            String
+  isMandatory          Boolean  @default(false)
+  conditionalMandatory String?  @db.Text
+  validationRules      String?  @db.Text
+  helpText             String?
+  placeholder          String?
+  defaultValue         String?
+  sortOrder            Int      @default(0)
+  visibleToRoles       String
+  editableByRoles      String
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   @@unique([leaveTypeCode, fieldName])
   @@index([leaveTypeCode])
   @@map("leave_application_field_configs")
 }
 
-// Leave Duration Configuration
 model LeaveDurationConfiguration {
-  id                String   @id @default(cuid())
-  region            String   // INDIA, USA, GLOBAL
+  id                 String   @id @default(cuid())
+  region             String   @unique
+  fullDayEnabled     Boolean  @default(true)
+  fullDayHours       Float    @default(8)
+  halfDayEnabled     Boolean  @default(true)
+  halfDayHours       Float    @default(4)
+  halfDaySlots       String?  @db.Text
+  quarterDayEnabled  Boolean  @default(false)
+  quarterDayHours    Float    @default(2)
+  quarterDaySlots    String?  @db.Text
+  hourlyEnabled      Boolean  @default(false)
+  minimumHours       Float    @default(1)
+  maximumHours       Float    @default(8)
+  allowedLeaveTypes  String?  @db.Text
+  allowMixedDuration Boolean  @default(false)
+  roundingMethod     String   @default("NEAREST")
+  roundingPrecision  Float    @default(0.5)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
-  // Full Day Configuration
-  fullDayEnabled    Boolean  @default(true)
-  fullDayHours      Float    @default(8.0)
-
-  // Half Day Configuration
-  halfDayEnabled    Boolean  @default(true)
-  halfDayHours      Float    @default(4.0)
-  halfDaySlots      String?  @db.Text // JSON: slots with times
-
-  // Quarter Day Configuration
-  quarterDayEnabled Boolean  @default(false)
-  quarterDayHours   Float    @default(2.0)
-  quarterDaySlots   String?  @db.Text // JSON: slots with times
-
-  // Hourly Configuration
-  hourlyEnabled     Boolean  @default(false)
-  minimumHours      Float    @default(1.0)
-  maximumHours      Float    @default(8.0)
-  allowedLeaveTypes String?  @db.Text // JSON: array of leave types that allow hourly
-
-  // Rounding Rules
-  allowMixedDuration Boolean @default(false)
-  roundingMethod    String   @default("NEAREST") // UP, DOWN, NEAREST
-  roundingPrecision Float    @default(0.5)
-
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@unique([region])
   @@map("leave_duration_configurations")
 }
 
-// Team Calendar Configuration
 model TeamCalendarConfiguration {
-  id                    String   @id @default(cuid())
-  department            String?  // Department-specific or null for global
-
-  // Team Definition
-  teamDefinitionType    String   @default("REPORTING_HIERARCHY") // REPORTING_HIERARCHY, DEPARTMENT, CUSTOM_GROUP
-  includeSubordinates   Boolean  @default(true)
-  subordinateDepth      Int      @default(2)
-
-  // Display Configuration (JSON)
-  displayConfig         String   @db.Text // JSON: defaultView, colors, showWeekends, etc.
-
-  // Overlap Rules
-  overlapEnabled        Boolean  @default(false)
-  overlapCalculation    String   @default("PERCENTAGE") // PERCENTAGE, ABSOLUTE_COUNT
-  overlapThreshold      Float    @default(20.0)
-  excludeLeaveTypes     String?  @db.Text // JSON array
-  minimumTeamSize       Int      @default(2)
-
-  // Overlap Actions (JSON)
-  overlapActions        String   @db.Text // JSON: showWarning, blockApplication, notifyManager
-
-  // External Calendar Integration
-  externalCalendarEnabled Boolean @default(false)
-  syncProviders         String?  @db.Text // JSON: GOOGLE, OUTLOOK, APPLE
-  syncFrequencyMinutes  Int      @default(30)
-
-  // Privacy Settings
-  showEmployeeNames     Boolean  @default(true)
-  showLeaveTypes        Boolean  @default(true)
-  showLeaveDuration     Boolean  @default(true)
-  showLeaveReason       Boolean  @default(false)
-
-  isActive              Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  department              String?
+  teamDefinitionType      String   @default("REPORTING_HIERARCHY")
+  includeSubordinates     Boolean  @default(true)
+  subordinateDepth        Int      @default(2)
+  displayConfig           String   @db.Text
+  overlapEnabled          Boolean  @default(false)
+  overlapCalculation      String   @default("PERCENTAGE")
+  overlapThreshold        Float    @default(20)
+  excludeLeaveTypes       String?  @db.Text
+  minimumTeamSize         Int      @default(2)
+  overlapActions          String   @db.Text
+  externalCalendarEnabled Boolean  @default(false)
+  syncProviders           String?  @db.Text
+  syncFrequencyMinutes    Int      @default(30)
+  showEmployeeNames       Boolean  @default(true)
+  showLeaveTypes          Boolean  @default(true)
+  showLeaveDuration       Boolean  @default(true)
+  showLeaveReason         Boolean  @default(false)
+  isActive                Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   @@index([department])
   @@map("team_calendar_configurations")
 }
 
-// Leave Balance Visibility Configuration
 model LeaveBalanceVisibilityConfig {
-  id                        String   @id @default(cuid())
-  role                      String   @unique
-
-  // Visibility Permissions
-  canViewOwnBalance         Boolean  @default(true)
-  canViewTeamBalance        Boolean  @default(false)
-  canViewDepartmentBalance  Boolean  @default(false)
-  canViewOrganizationBalance Boolean @default(false)
-  canViewBalanceHistory     Boolean  @default(false)
-  canViewProjectedBalance   Boolean  @default(false)
-  canExportBalances         Boolean  @default(false)
-
-  // Display Options (JSON)
-  displayOptions            String   @db.Text // JSON: showInDashboard, showDetailedBreakdown, etc.
-
-  // Alert Configuration (JSON)
-  alertConfig               String?  @db.Text // JSON: thresholds, notification channels
-
-  isActive                  Boolean  @default(true)
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  id                         String   @id @default(cuid())
+  role                       String   @unique
+  canViewOwnBalance          Boolean  @default(true)
+  canViewTeamBalance         Boolean  @default(false)
+  canViewDepartmentBalance   Boolean  @default(false)
+  canViewOrganizationBalance Boolean  @default(false)
+  canViewBalanceHistory      Boolean  @default(false)
+  canViewProjectedBalance    Boolean  @default(false)
+  canExportBalances          Boolean  @default(false)
+  displayOptions             String   @db.Text
+  alertConfig                String?  @db.Text
+  isActive                   Boolean  @default(true)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
   @@map("leave_balance_visibility_configs")
 }
 
-// USA PTO Automation Models
 model UsaPtoPolicy {
-  id                    String    @id @default(cuid())
-  designation           String    // VP, AVP, SENIOR_MANAGER, MANAGER, etc.
-  annualPtoDays         Float     // Annual PTO entitlement
-  accrualFrequency      String    @default("YEARLY") // YEARLY, MONTHLY, BI_WEEKLY
-  accrualRate           Float     // Days accrued per period
-  maxCarryForward       Float     @default(5) // Max days that can be carried forward
-  carryForwardExpiry    Int       @default(90) // Days until carry-forward expires (Q1)
-  proRataCalculation    Boolean   @default(true) // Enable pro-rata for mid-year joiners
-  minimumServiceMonths  Int       @default(0) // Minimum service months to accrue
-  isActive              Boolean   @default(true)
-  effectiveFrom         DateTime  @default(now())
-  effectiveTo           DateTime?
+  id                   String    @id @default(cuid())
+  designation          String    @unique
+  annualPtoDays        Float
+  accrualFrequency     String    @default("YEARLY")
+  accrualRate          Float
+  maxCarryForward      Float     @default(5)
+  carryForwardExpiry   Int       @default(90)
+  proRataCalculation   Boolean   @default(true)
+  minimumServiceMonths Int       @default(0)
+  isActive             Boolean   @default(true)
+  effectiveFrom        DateTime  @default(now())
+  effectiveTo          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  @@unique([designation])
   @@index([isActive])
   @@map("usa_pto_policies")
 }
 
 model UsaPtoAccrual {
-  id                  String    @id @default(cuid())
-  employeeId          String
-  year                Int
-  month               Int?      // Null for yearly accrual
-  designation         String
-  accrualAmount       Float     // PTO days accrued this period
-  carryForwardAmount  Float     @default(0) // Carried from previous year
-  totalAvailable      Float     // accrualAmount + carryForwardAmount
-  used                Float     @default(0)
-  balance             Float     // totalAvailable - used
-  proRated            Boolean   @default(false) // Was this pro-rated?
-  proRataMonths       Int?      // Number of months worked (for mid-year joiners)
-  status              String    @default("PROCESSED") // PROCESSED, SKIPPED, ERROR
-  notes               String?   @db.Text
-
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 String   @id @default(cuid())
+  employeeId         String
+  year               Int
+  month              Int?
+  designation        String
+  accrualAmount      Float
+  carryForwardAmount Float    @default(0)
+  totalAvailable     Float
+  used               Float    @default(0)
+  balance            Float
+  proRated           Boolean  @default(false)
+  proRataMonths      Int?
+  status             String   @default("PROCESSED")
+  notes              String?  @db.Text
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@unique([employeeId, year, month])
   @@index([employeeId])
@@ -979,19 +803,18 @@ model UsaPtoAccrual {
 }
 
 model UsaPtoCarryForward {
-  id                    String    @id @default(cuid())
-  employeeId            String
-  fromYear              Int
-  toYear                Int
-  carriedDays           Float     // Days carried forward
-  expiryDate            DateTime  // Typically March 31st of toYear
-  used                  Float     @default(0)
-  expired               Float     @default(0)
-  remaining             Float     // carriedDays - used - expired
-  status                String    @default("ACTIVE") // ACTIVE, EXPIRED, FULLY_USED
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  employeeId  String
+  fromYear    Int
+  toYear      Int
+  carriedDays Float
+  expiryDate  DateTime
+  used        Float    @default(0)
+  expired     Float    @default(0)
+  remaining   Float
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@unique([employeeId, fromYear, toYear])
   @@index([employeeId])
@@ -1000,48 +823,35 @@ model UsaPtoCarryForward {
   @@map("usa_pto_carry_forwards")
 }
 
-// Advanced Reporting & Analytics Models
 model LeaveAnalytics {
-  id                      String    @id @default(cuid())
-  reportDate              DateTime  @default(now())
-  reportType              String    // DAILY, WEEKLY, MONTHLY, QUARTERLY, YEARLY
-  department              String?
-  location                String?
-  region                  String?   // USA, INDIA
-
-  // Leave Statistics
-  totalLeaveRequests      Int       @default(0)
-  approvedLeaves          Int       @default(0)
-  rejectedLeaves          Int       @default(0)
-  pendingLeaves           Int       @default(0)
-  cancelledLeaves         Int       @default(0)
-  totalLeaveDays          Float     @default(0)
-  averageLeaveDuration    Float     @default(0)
-
-  // Leave Type Breakdown (JSON)
-  leaveTypeBreakdown      String    @db.Text // JSON: {CASUAL_LEAVE: 50, SICK_LEAVE: 30, ...}
-
-  // Absenteeism Metrics
-  totalWorkingDays        Int       @default(0)
-  totalAbsentDays         Float     @default(0)
-  absenteeismRate         Float     @default(0) // Percentage
-  employeeCount           Int       @default(0)
-  averageAbsencePerEmployee Float   @default(0)
-
-  // Peak Period Analysis
-  peakLeaveMonth          String?
-  peakLeaveDays           Float     @default(0)
-  peakLeaveWeek           String?   // ISO week number
-
-  // Team Utilization
-  teamSize                Int       @default(0)
-  teamAvailability        Float     @default(100) // Percentage
-  criticalCoverageAlerts  Int       @default(0)
-
-  // Metadata
-  generatedAt             DateTime  @default(now())
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+  id                        String   @id @default(cuid())
+  reportDate                DateTime @default(now())
+  reportType                String
+  department                String?
+  location                  String?
+  region                    String?
+  totalLeaveRequests        Int      @default(0)
+  approvedLeaves            Int      @default(0)
+  rejectedLeaves            Int      @default(0)
+  pendingLeaves             Int      @default(0)
+  cancelledLeaves           Int      @default(0)
+  totalLeaveDays            Float    @default(0)
+  averageLeaveDuration      Float    @default(0)
+  leaveTypeBreakdown        String   @db.Text
+  totalWorkingDays          Int      @default(0)
+  totalAbsentDays           Float    @default(0)
+  absenteeismRate           Float    @default(0)
+  employeeCount             Int      @default(0)
+  averageAbsencePerEmployee Float    @default(0)
+  peakLeaveMonth            String?
+  peakLeaveDays             Float    @default(0)
+  peakLeaveWeek             String?
+  teamSize                  Int      @default(0)
+  teamAvailability          Float    @default(100)
+  criticalCoverageAlerts    Int      @default(0)
+  generatedAt               DateTime @default(now())
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
   @@index([reportDate])
   @@index([reportType])
@@ -1051,35 +861,26 @@ model LeaveAnalytics {
 }
 
 model DepartmentLeaveStats {
-  id                        String    @id @default(cuid())
-  department                String
-  month                     Int       // 1-12
-  year                      Int
-
-  // Department Metrics
-  totalEmployees            Int       @default(0)
-  leavesThisMonth           Int       @default(0)
-  totalLeaveDays            Float     @default(0)
-  averageLeaveDaysPerEmployee Float   @default(0)
-
-  // Leave Type Distribution
-  casualLeaves              Int       @default(0)
-  sickLeaves                Int       @default(0)
-  earnedLeaves              Int       @default(0)
-  maternityLeaves           Int       @default(0)
-  paternityLeaves           Int       @default(0)
-  unpaidLeaves              Int       @default(0)
-
-  // Trends
-  monthOverMonthChange      Float     @default(0) // Percentage
-  yearOverYearChange        Float     @default(0) // Percentage
-  absenteeismTrend          String    @default("STABLE") // INCREASING, DECREASING, STABLE
-
-  // Predictions (JSON)
-  nextMonthForecast         String?   @db.Text // JSON: predicted leave count
-
-  createdAt                 DateTime  @default(now())
-  updatedAt                 DateTime  @updatedAt
+  id                          String   @id @default(cuid())
+  department                  String
+  month                       Int
+  year                        Int
+  totalEmployees              Int      @default(0)
+  leavesThisMonth             Int      @default(0)
+  totalLeaveDays              Float    @default(0)
+  averageLeaveDaysPerEmployee Float    @default(0)
+  casualLeaves                Int      @default(0)
+  sickLeaves                  Int      @default(0)
+  earnedLeaves                Int      @default(0)
+  maternityLeaves             Int      @default(0)
+  paternityLeaves             Int      @default(0)
+  unpaidLeaves                Int      @default(0)
+  monthOverMonthChange        Float    @default(0)
+  yearOverYearChange          Float    @default(0)
+  absenteeismTrend            String   @default("STABLE")
+  nextMonthForecast           String?  @db.Text
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
 
   @@unique([department, year, month])
   @@index([department])
@@ -1088,27 +889,18 @@ model DepartmentLeaveStats {
 }
 
 model LeavePatternAnalysis {
-  id                      String    @id @default(cuid())
-  employeeId              String?   // Null for organization-wide patterns
-  patternType             String    // SEASONAL, DAY_OF_WEEK, PRE_WEEKEND, POST_WEEKEND, HOLIDAY_ADJACENT
-
-  // Pattern Details (JSON)
-  patternData             String    @db.Text // JSON: detailed pattern information
-
-  // Frequency
-  occurrenceCount         Int       @default(0)
-  confidence              Float     @default(0) // 0-100 percentage
-
-  // Time Range
-  analyzedFrom            DateTime
-  analyzedTo              DateTime
-
-  // Insights
-  recommendation          String?   @db.Text
-  riskLevel               String    @default("LOW") // LOW, MEDIUM, HIGH
-
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+  id              String   @id @default(cuid())
+  employeeId      String?
+  patternType     String
+  patternData     String   @db.Text
+  occurrenceCount Int      @default(0)
+  confidence      Float    @default(0)
+  analyzedFrom    DateTime
+  analyzedTo      DateTime
+  recommendation  String?  @db.Text
+  riskLevel       String   @default("LOW")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([employeeId])
   @@index([patternType])
@@ -1117,30 +909,21 @@ model LeavePatternAnalysis {
 }
 
 model TeamAvailabilityForecast {
-  id                    String    @id @default(cuid())
-  department            String
-  forecastDate          DateTime  // The date being forecasted
-
-  // Team Metrics
-  totalTeamSize         Int
-  projectedAbsent       Int       // Predicted number absent
-  projectedAvailable    Int       // Predicted number available
-  availabilityRate      Float     // Percentage
-
-  // Risk Assessment
-  riskLevel             String    @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
-  criticalRoles         String?   @db.Text // JSON: array of roles at risk
-
-  // Recommendations (JSON)
-  recommendations       String?   @db.Text // JSON: suggested actions
-
-  // Forecast Metadata
-  confidenceScore       Float     @default(0) // 0-100
-  modelVersion          String    @default("1.0")
-  generatedAt           DateTime  @default(now())
-
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                 String   @id @default(cuid())
+  department         String
+  forecastDate       DateTime
+  totalTeamSize      Int
+  projectedAbsent    Int
+  projectedAvailable Int
+  availabilityRate   Float
+  riskLevel          String   @default("LOW")
+  criticalRoles      String?  @db.Text
+  recommendations    String?  @db.Text
+  confidenceScore    Float    @default(0)
+  modelVersion       String   @default("1.0")
+  generatedAt        DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@index([department])
   @@index([forecastDate])
